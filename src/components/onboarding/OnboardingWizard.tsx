@@ -178,8 +178,8 @@ export function OnboardingWizard({ initialStep = 0, existingOrgId = null }: Onbo
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
           <img 
-            src="/logo-uplink.png" 
-            alt="Uplink"
+            src="/hook7-logo.svg" 
+            alt="Hook7"
             className="w-16 h-16 mx-auto mb-4 rounded-full"
           />
           <h1 className="text-2xl font-bold text-foreground">

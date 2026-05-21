@@ -157,36 +157,36 @@
     "titleHighlight": "frequentes",
     "questions": [
       {
-        "question": "Por que a UplinkLite é a melhor API WhatsApp do Brasil?",
-        "answer": "A UplinkLite é uma API WhatsApp brasileira que custa R$ 69,90/mês com mensagens ilimitadas. Diferente da API oficial do WhatsApp Business que cobra por conversa, a UplinkLite permite configuração em 5 minutos, oferece suporte 24/7 em português, integra com Make, Zapier, n8n e TypeBot, e não exige aprovação como BSP (Business Solution Provider)."
+        "question": "Por que a Hook7 é a melhor API WhatsApp do Brasil?",
+        "answer": "A Hook7 é uma API WhatsApp de nova geração powered by Evolution Go. Permite configuração em minutos, oferece suporte 24/7, integra com Make, Zapier, n8n e TypeBot, e não exige aprovação como BSP (Business Solution Provider)."
       },
       {
-        "question": "Quanto custa a API WhatsApp da UplinkLite?",
-        "answer": "A UplinkLite custa R$ 69,90 por mês com mensagens ilimitadas incluídas. Não há cobrança por mensagem individual, diferente da API oficial do WhatsApp Business. O pagamento é mensal via cartão de crédito (Stripe) e pode ser cancelado a qualquer momento sem multas."
+        "question": "Quanto custa a API WhatsApp da Hook7?",
+        "answer": "Consulte nossos planos em hook7.com.br/precos. Mensagens ilimitadas incluídas. O pagamento é mensal e pode ser cancelado a qualquer momento sem multas."
       },
       {
-        "question": "Preciso ser BSP do WhatsApp para usar a UplinkLite?",
-        "answer": "Não é necessário ser BSP (Business Solution Provider) para usar a UplinkLite. A API funciona de forma independente, permitindo que qualquer empresa envie mensagens via WhatsApp sem processo de aprovação do Meta ou do WhatsApp Business."
+        "question": "Preciso ser BSP do WhatsApp para usar a Hook7?",
+        "answer": "Não é necessário ser BSP (Business Solution Provider) para usar a Hook7. A API funciona de forma independente, permitindo que qualquer empresa envie mensagens via WhatsApp sem processo de aprovação do Meta ou do WhatsApp Business."
       },
       {
         "question": "Quanto tempo leva para configurar a API WhatsApp?",
-        "answer": "A configuração da UplinkLite leva menos de 5 minutos. O processo consiste em: criar conta, escanear QR Code com WhatsApp e começar a enviar mensagens. Não é necessário aprovação, documentação empresarial ou integração complexa."
+        "answer": "A configuração da Hook7 leva menos de 5 minutos. O processo consiste em: criar conta, escanear QR Code com WhatsApp e começar a enviar mensagens. Não é necessário aprovação, documentação empresarial ou integração complexa."
       },
       {
-        "question": "A UplinkLite funciona com Make, Zapier e n8n?",
-        "answer": "Sim. A API WhatsApp da UplinkLite oferece integração nativa com as principais ferramentas de automação: Make (Integromat), Zapier, n8n e TypeBot. A API também pode ser integrada com qualquer sistema via requisições HTTP REST, incluindo Python, Node.js e PHP."
+        "question": "A Hook7 funciona com Make, Zapier e n8n?",
+        "answer": "Sim. A API WhatsApp da Hook7 oferece integração nativa com as principais ferramentas de automação: Make (Integromat), Zapier, n8n e TypeBot. A API também pode ser integrada com qualquer sistema via requisições HTTP REST, incluindo Python, Node.js e PHP."
       },
       {
         "question": "Existe limite de mensagens na API WhatsApp?",
-        "answer": "Não há limite de mensagens no plano da UplinkLite. Por R$ 69,90/mês você pode enviar quantas mensagens precisar para seus clientes, sem cobrança adicional por volume."
+        "answer": "Não há limite de mensagens nos planos da Hook7. Você pode enviar quantas mensagens precisar para seus clientes, sem cobrança adicional por volume."
       },
       {
-        "question": "A UplinkLite oferece suporte técnico?",
-        "answer": "Sim. A UplinkLite oferece suporte técnico 24/7 em português via WhatsApp e email. A equipe de suporte auxilia com configuração, integração com ferramentas de automação e resolução de problemas técnicos."
+        "question": "A Hook7 oferece suporte técnico?",
+        "answer": "Sim. A Hook7 oferece suporte técnico 24/7 em português via WhatsApp e email. A equipe de suporte auxilia com configuração, integração com ferramentas de automação e resolução de problemas técnicos."
       },
       {
-        "question": "Como funciona o pagamento da UplinkLite?",
-        "answer": "O pagamento da UplinkLite é feito mensalmente via cartão de crédito (Stripe). O valor é R$ 69,90/mês com renovação automática. Você pode cancelar a qualquer momento pelo painel, sem multas ou taxas adicionais."
+        "question": "Como funciona o pagamento da Hook7?",
+        "answer": "O pagamento da Hook7 é feito mensalmente via cartão de crédito (Stripe) com renovação automática. Você pode cancelar a qualquer momento pelo painel, sem multas ou taxas adicionais."
       }
     ]
   },
@@ -210,12 +210,12 @@
     "support": "Suporte",
     "support247": "Suporte 24/7",
     "inPortuguese": "Em Português",
-    "copyright": "© 2025 Uplink Lite. Todos os direitos reservados.",
+    "copyright": "© 2025 Hook7. Todos os direitos reservados.",
     "sslSecure": "SSL Seguro"
   },
   "auth": {
     "login": "Login",
-    "loginTitle": "Uplink",
+    "loginTitle": "Hook7",
     "loginSubtitle": "Faça login para acessar o painel",
     "email": "Email",
     "emailPlaceholder": "seu@email.com",
@@ -257,7 +257,7 @@
     "invalidLink": "Link de recuperação inválido"
   },
   "checkout": {
-    "title": "Assinar Uplink",
+    "title": "Assinar Hook7",
     "subtitle": "Plano de Sessão API WhatsApp",
     "subtitleWithSession": "Finalize o pagamento para criar a sessão \"{{sessionName}}\"",
     "perMonth": "por mês",
@@ -422,7 +422,7 @@
   },
   "subscriptions": {
     "title": "Minhas Assinaturas",
-    "subtitle": "Gerencie suas sessões e assinaturas do Uplink",
+    "subtitle": "Gerencie suas sessões e assinaturas Hook7",
     "loadingSubscriptions": "Carregando assinaturas...",
     "legacyAlert": "Cliente Legacy",
     "legacyDescription": "Você possui acesso especial sem cobrança por sessão. Suas sessões foram criadas antes do novo modelo de assinatura.",
@@ -476,7 +476,7 @@
     "updatePayment": "Atualizar Pagamento"
   },
   "onboarding": {
-    "welcome": "Bem-vindo ao Uplink!",
+    "welcome": "Bem-vindo à Hook7!",
     "setupDescription": "Configure sua API WhatsApp em 3 passos simples",
     "estimatedTime": "⏱️ Tempo estimado: 2 minutos",
     "exit": "Sair",

@@ -1,9 +1,9 @@
 /**
- * Evolution API v2 Service
- * Serviço centralizado para todas as chamadas à Evolution API
+ * Hook7 WhatsApp API Service
+ * Serviço centralizado para todas as chamadas à API de instâncias WhatsApp
  */
 
-const EVOLUTION_API_URL = 'https://api.uplinklite.com';
+const EVOLUTION_API_URL = import.meta.env.VITE_API_URL || 'https://api.hook7.com.br';
 
 export interface EvolutionConnectionState {
   instance: {

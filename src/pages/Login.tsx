@@ -53,9 +53,9 @@ const Login = () => {
   return (
     <>
       <SEO 
-        title="Login | Uplink - API WhatsApp"
-        description="Access your Uplink account and manage your WhatsApp API sessions."
-        canonical="https://uplinklite.com/login"
+        title="Login | Hook7 - API WhatsApp"
+        description="Acesse sua conta Hook7 e gerencie suas sessões de API WhatsApp."
+        canonical="https://app.hook7.com.br/login"
         noindex={true}
       />
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -73,8 +73,8 @@ const Login = () => {
           <CardHeader className="space-y-3 text-center">
             <div className="mx-auto w-20 h-20 flex items-center justify-center">
               <img 
-                src="/logo-uplink.png" 
-                alt="Uplink - WhatsApp API"
+                src="/hook7-logo.svg" 
+                alt="Hook7 - API WhatsApp"
                 loading="lazy"
                 width="80"
                 height="80"

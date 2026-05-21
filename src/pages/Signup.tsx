@@ -101,9 +101,9 @@ const Signup = () => {
   return (
     <>
       <SEO 
-        title="Create Account | WhatsApp API Uplink"
-        description="Create your free Uplink account and start using the WhatsApp API in minutes."
-        canonical="https://uplinklite.com/signup"
+        title="Create Account | Hook7 - API WhatsApp"
+        description="Crie sua conta Hook7 gratuita and start using the WhatsApp API in minutes."
+        canonical="https://app.hook7.com.br/signup"
       />
       <div className="min-h-screen flex bg-background">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10 pointer-events-none" />
@@ -125,15 +125,15 @@ const Signup = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3 justify-center lg:justify-start">
                 <img 
-                  src="/logo-uplink.png" 
-                  alt="Uplink - WhatsApp API"
+                  src="/hook7-logo.svg" 
+                  alt="Hook7 - API WhatsApp"
                   loading="lazy"
                   width="48"
                   height="48"
                   className="w-12 h-12 object-contain drop-shadow-2xl rounded-full"
                 />
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Uplink
+                  Hook7
                 </span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold leading-tight">
@@ -281,3 +281,4 @@ const Signup = () => {
 };
 
 export default Signup;
+

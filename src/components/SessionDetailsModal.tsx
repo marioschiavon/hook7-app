@@ -64,7 +64,7 @@ const SessionDetailsModal = ({ session, open, onClose, onRefresh }: SessionDetai
 
   useEffect(() => {
     if (session) {
-      const defaultUrl = `https://api.uplinklite.com/webhook/${session.name || ''}`;
+      const defaultUrl = `https://api.hook7.com.br/webhook/${session.name || ''}`;
       setWebhookUrl(session.webhook_url || defaultUrl);
       setSelectedEvents(session.webhook_events?.length ? session.webhook_events : ['MESSAGES_UPSERT']);
     }
@@ -354,7 +354,7 @@ const SessionDetailsModal = ({ session, open, onClose, onRefresh }: SessionDetai
                   id="webhook-url"
                   value={webhookUrl}
                   onChange={(e) => setWebhookUrl(e.target.value)}
-                  placeholder="https://api.uplinklite.com/webhook/..."
+                  placeholder="https://api.hook7.com.br/webhook/..."
                 />
                 <p className="text-xs text-muted-foreground">
                   {t('webhooks.webhookUrlHint')}

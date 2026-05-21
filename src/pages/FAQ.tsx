@@ -17,12 +17,12 @@ const FAQ = () => {
   return (
     <>
       <SEO
-        browserTitle={isPortuguese ? "FAQ | UplinkLite" : "FAQ | UplinkLite"}
-        title={isPortuguese ? "Perguntas Frequentes | UplinkLite" : "FAQ | UplinkLite"}
+        browserTitle={isPortuguese ? "FAQ | Hook7" : "FAQ | Hook7"}
+        title={isPortuguese ? "Perguntas Frequentes | Hook7" : "FAQ | Hook7"}
         description={isPortuguese
-          ? "Tire suas dúvidas sobre a API WhatsApp da UplinkLite. Preços, configuração, integrações e suporte."
-          : "Get answers about UplinkLite WhatsApp API. Pricing, setup, integrations, and support."}
-        canonical="https://uplinklite.com/faq"
+          ? "Tire suas dúvidas sobre a API WhatsApp da Hook7. Preços, configuração, integrações e suporte."
+          : "Get answers about Hook7 WhatsApp API. Pricing, setup, integrations, and support."}
+        canonical="https://app.hook7.com.br/faq"
       />
       <Helmet>
         <script type="application/ld+json">
@@ -46,9 +46,8 @@ const FAQ = () => {
         <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <button onClick={() => navigate("/")} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <img src="/logo-uplink.png" alt="Uplink" width="36" height="36" className="h-9 w-9 rounded-full" />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Uplink</span>
-              <Badge variant="secondary" className="text-xs">Lite</Badge>
+              <img src="/hook7-logo.svg" alt="Hook7" width="36" height="36" className="h-9 w-9 rounded-full" />
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Hook7</span>
             </button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
@@ -73,8 +72,8 @@ const FAQ = () => {
               </h1>
               <p className="text-lg text-muted-foreground mt-4">
                 {isPortuguese
-                  ? "Encontre respostas para as perguntas mais comuns sobre a UplinkLite."
-                  : "Find answers to the most common questions about UplinkLite."}
+                  ? "Encontre respostas para as perguntas mais comuns sobre a Hook7."
+                  : "Find answers to the most common questions about Hook7."}
               </p>
             </motion.div>
           </div>
@@ -119,9 +118,9 @@ const FAQ = () => {
                   : "Our support team is available 24/7 to help you."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                <Button onClick={() => window.open("mailto:suporte@uplinklite.com")} variant="outline" className="gap-2">
+                <Button onClick={() => window.open("mailto:suporte@hook7.com.br")} variant="outline" className="gap-2">
                   <Mail className="h-4 w-4" />
-                  suporte@uplinklite.com
+                  suporte@hook7.com.br
                 </Button>
                 <Button onClick={() => navigate("/signup")} className="gap-2">
                   {t('hero.cta')}

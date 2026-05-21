@@ -73,7 +73,7 @@ const CreateOrgModal = ({ open, onOrgCreated, onClose }: CreateOrgModalProps) =>
             Crie sua organização
           </DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
-            Para começar a usar o Uplink Lite, primeiro crie sua organização.
+            Para começar a usar a Hook7, primeiro crie sua organização.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleCreateOrg} className="space-y-4 mt-4">

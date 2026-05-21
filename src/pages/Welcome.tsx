@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/SEO";
@@ -75,7 +75,7 @@ export default function Welcome() {
   return (
     <>
       <SEO 
-        title="Bem-vindo | Configure sua API WhatsApp - Uplink"
+        title="Bem-vindo | Configure sua API WhatsApp - Hook7"
         description="Configure sua primeira sessão WhatsApp API em 3 passos simples. Organização, sessão e pagamento."
         noindex
       />
@@ -89,3 +89,4 @@ export default function Welcome() {
     </>
   );
 }
+

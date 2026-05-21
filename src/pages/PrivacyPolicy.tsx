@@ -9,24 +9,24 @@ export default function PrivacyPolicy() {
   return (
     <>
       <SEO 
-        title="Política de Privacidade | Uplink - API WhatsApp"
-        description="Política de privacidade da Uplink. Saiba como protegemos seus dados pessoais em conformidade com a LGPD ao usar nossa API WhatsApp."
-        canonical="https://uplinklite.com/privacy"
+        title="Política de Privacidade | Hook7 - API WhatsApp"
+        description="Política de privacidade do Hook7. Saiba como protegemos seus dados pessoais em conformidade com a LGPD ao usar nossa API WhatsApp."
+        canonical="https://app.hook7.com.br/privacy"
       />
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 md:px-8 py-8 md:py-16 max-w-4xl">
           {/* Header com Logo */}
           <header className="flex flex-col items-center mb-12">
             <img 
-              src="/logo-uplink.png" 
-              alt="Uplink - API WhatsApp para automações empresariais"
+              src="/hook7-logo.svg" 
+              alt="Hook7 - API WhatsApp para automações empresariais"
               loading="lazy"
               width="64"
               height="64"
               className="h-16 w-16 mb-6 rounded-full shadow-lg"
             />
             <h1 className="text-4xl md:text-5xl font-bold text-foreground text-center mb-2">
-              Política de Privacidade – Uplink
+              Política de Privacidade – Hook7
             </h1>
             <p className="text-sm text-muted-foreground">
               Última atualização: 25 de novembro de 2025
@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
             {/* Introdução */}
             <div className="space-y-4 leading-relaxed">
               <p>
-                A <strong>Uplink</strong>, operada pela <strong>S7</strong>, controladora empresarial do titular 
+                A <strong>Hook7</strong>, operada pela <strong>S7</strong>, controladora empresarial do titular 
                 Mario R Schiavon (CNPJ 46.214.207/0001-60), está comprometida com a proteção da privacidade dos 
                 seus usuários e com a transparência no tratamento de dados pessoais.
               </p>
@@ -47,7 +47,7 @@ export default function PrivacyPolicy() {
                 informações, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
               </p>
               <p className="font-medium">
-                Ao utilizar a Uplink, você concorda com as práticas descritas nesta política.
+                Ao utilizar a Hook7, você concorda com as práticas descritas nesta política.
               </p>
             </div>
 
@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
             <section className="space-y-3" aria-labelledby="privacy-section-1">
               <h2 id="privacy-section-1" className="text-2xl font-semibold text-foreground">1. DADOS COLETADOS</h2>
               <p className="leading-relaxed">
-                A Uplink coleta apenas os dados mínimos necessários para o funcionamento da plataforma:
+                O Hook7 coleta apenas os dados mínimos necessários para o funcionamento da plataforma:
               </p>
               <ul className="space-y-2 leading-relaxed list-disc list-inside ml-4">
                 <li><strong>E-mail:</strong> Utilizado para autenticação, recuperação de senha e comunicações essenciais sobre o serviço.</li>
@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
                 <li><strong>Dados de uso:</strong> Informações técnicas sobre o uso da API, como volume de mensagens e horários de conexão, para fins operacionais.</li>
               </ul>
               <p className="leading-relaxed font-medium">
-                A Uplink NÃO coleta, armazena ou acessa o conteúdo das mensagens enviadas através da API.
+                O Hook7 NÃO coleta, armazena ou acessa o conteúdo das mensagens enviadas através da API.
               </p>
             </section>
 
@@ -87,7 +87,7 @@ export default function PrivacyPolicy() {
             <section className="space-y-3" aria-labelledby="privacy-section-3">
               <h2 id="privacy-section-3" className="text-2xl font-semibold text-foreground">3. COMPARTILHAMENTO DE DADOS</h2>
               <p className="leading-relaxed">
-                A Uplink não vende, aluga ou compartilha seus dados pessoais com terceiros para fins de marketing.
+                O Hook7 não vende, aluga ou compartilha seus dados pessoais com terceiros para fins de marketing.
               </p>
               <p className="leading-relaxed">
                 Seus dados podem ser compartilhados apenas nas seguintes situações:
@@ -106,7 +106,7 @@ export default function PrivacyPolicy() {
             <section className="space-y-3" aria-labelledby="privacy-section-4">
               <h2 id="privacy-section-4" className="text-2xl font-semibold text-foreground">4. ARMAZENAMENTO E SEGURANÇA</h2>
               <p className="leading-relaxed">
-                A Uplink adota medidas técnicas e organizacionais para proteger seus dados contra acesso não autorizado, 
+                O Hook7 adota medidas técnicas e organizacionais para proteger seus dados contra acesso não autorizado, 
                 perda, destruição ou alteração:
               </p>
               <ul className="space-y-2 leading-relaxed list-disc list-inside ml-4">
@@ -145,7 +145,7 @@ export default function PrivacyPolicy() {
             <section className="space-y-3" aria-labelledby="privacy-section-6">
               <h2 id="privacy-section-6" className="text-2xl font-semibold text-foreground">6. COOKIES E TECNOLOGIAS SIMILARES</h2>
               <p className="leading-relaxed">
-                A Uplink <strong>não utiliza cookies de rastreamento ou publicidade</strong>.
+                O Hook7 <strong>não utiliza cookies de rastreamento ou publicidade</strong>.
               </p>
               <p className="leading-relaxed">
                 Utilizamos apenas cookies essenciais para o funcionamento da plataforma, como:
@@ -186,7 +186,7 @@ export default function PrivacyPolicy() {
             <section className="space-y-3" aria-labelledby="privacy-section-8">
               <h2 id="privacy-section-8" className="text-2xl font-semibold text-foreground">8. PRIVACIDADE DE MENORES</h2>
               <p className="leading-relaxed">
-                A Uplink não coleta intencionalmente dados de menores de 18 anos.
+                O Hook7 não coleta intencionalmente dados de menores de 18 anos.
               </p>
               <p className="leading-relaxed">
                 Se você acredita que um menor forneceu dados pessoais, entre em contato conosco para que 
@@ -258,7 +258,7 @@ export default function PrivacyPolicy() {
             <aside className="bg-muted/50 p-6 rounded-lg space-y-3 border border-border">
               <p className="font-semibold text-foreground">Importante:</p>
               <p className="text-sm leading-relaxed">
-                A Uplink é uma plataforma de API para WhatsApp e <strong>não tem acesso ao conteúdo das mensagens</strong> 
+                O Hook7 é uma plataforma de API para WhatsApp e <strong>não tem acesso ao conteúdo das mensagens</strong> 
                 enviadas pelos usuários através da API. Não somos responsáveis pelo conteúdo transmitido, 
                 que é de inteira responsabilidade do usuário.
               </p>
@@ -292,7 +292,7 @@ export default function PrivacyPolicy() {
           {/* Rodapé */}
           <footer className="mt-16 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Uplink – Powered by S7
+              © {new Date().getFullYear()} Hook7 – Powered by S7
             </p>
           </footer>
         </div>
@@ -300,3 +300,4 @@ export default function PrivacyPolicy() {
     </>
   );
 }
+

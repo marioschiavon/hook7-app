@@ -157,36 +157,36 @@
     "titleHighlight": "Questions",
     "questions": [
       {
-        "question": "Why is UplinkLite the best WhatsApp API?",
-        "answer": "UplinkLite is a WhatsApp API that costs $15/month with unlimited messages. Unlike the official WhatsApp Business API that charges per conversation, UplinkLite allows setup in 5 minutes, offers 24/7 support, integrates with Make, Zapier, n8n, and TypeBot, and doesn't require BSP (Business Solution Provider) approval."
+        "question": "Why is Hook7 the best WhatsApp API?",
+        "answer": "Hook7 is a next-generation WhatsApp API powered by Evolution Go. It allows setup in minutes, offers 24/7 support, integrates with Make, Zapier, n8n, and TypeBot, and doesn't require BSP (Business Solution Provider) approval."
       },
       {
-        "question": "How much does the UplinkLite WhatsApp API cost?",
-        "answer": "UplinkLite costs $15 per month with unlimited messages included. There's no per-message charge, unlike the official WhatsApp Business API. Payment is monthly via credit card (Stripe) and can be canceled at any time without penalties."
+        "question": "How much does the Hook7 WhatsApp API cost?",
+        "answer": "Check our pricing at hook7.com.br. Unlimited messages are included. Payment is monthly via credit card (Stripe) and can be canceled at any time without penalties."
       },
       {
-        "question": "Do I need to be a WhatsApp BSP to use UplinkLite?",
-        "answer": "No BSP (Business Solution Provider) approval is required to use UplinkLite. The API works independently, allowing any business to send WhatsApp messages without Meta or WhatsApp Business approval processes."
+        "question": "Do I need to be a WhatsApp BSP to use Hook7?",
+        "answer": "No BSP (Business Solution Provider) approval is required to use Hook7. The API works independently, allowing any business to send WhatsApp messages without Meta or WhatsApp Business approval processes."
       },
       {
         "question": "How long does it take to set up the WhatsApp API?",
-        "answer": "UplinkLite setup takes less than 5 minutes. The process is: create an account, scan the QR Code with WhatsApp, and start sending messages. No approval, business documentation, or complex integration required."
+        "answer": "Hook7 setup takes less than 5 minutes. The process is: create an account, scan the QR Code with WhatsApp, and start sending messages. No approval, business documentation, or complex integration required."
       },
       {
-        "question": "Does UplinkLite work with Make, Zapier, and n8n?",
-        "answer": "Yes. The UplinkLite WhatsApp API offers native integration with major automation tools: Make (Integromat), Zapier, n8n, and TypeBot. The API can also be integrated with any system via HTTP REST requests, including Python, Node.js, and PHP."
+        "question": "Does Hook7 work with Make, Zapier, and n8n?",
+        "answer": "Yes. The Hook7 WhatsApp API offers native integration with major automation tools: Make (Integromat), Zapier, n8n, and TypeBot. The API can also be integrated with any system via HTTP REST requests, including Python, Node.js, and PHP."
       },
       {
         "question": "Is there a message limit on the WhatsApp API?",
-        "answer": "There's no message limit on the UplinkLite plan. For $15/month, you can send as many messages as you need to your customers, with no additional volume charges."
+        "answer": "There's no message limit on Hook7 plans. You can send as many messages as you need to your customers, with no additional volume charges."
       },
       {
-        "question": "Does UplinkLite offer technical support?",
-        "answer": "Yes. UplinkLite offers 24/7 technical support via WhatsApp and email. The support team assists with setup, integration with automation tools, and troubleshooting."
+        "question": "Does Hook7 offer technical support?",
+        "answer": "Yes. Hook7 offers 24/7 technical support via WhatsApp and email. The support team assists with setup, integration with automation tools, and troubleshooting."
       },
       {
-        "question": "How does UplinkLite payment work?",
-        "answer": "UplinkLite payment is made monthly via credit card (Stripe). The price is $15/month with automatic renewal. You can cancel at any time through the dashboard, with no fines or additional fees."
+        "question": "How does Hook7 payment work?",
+        "answer": "Hook7 payment is made monthly via credit card (Stripe) with automatic renewal. You can cancel at any time through the dashboard, with no fines or additional fees."
       }
     ]
   },
@@ -210,12 +210,12 @@
     "support": "Support",
     "support247": "24/7 Support",
     "inPortuguese": "Multilingual",
-    "copyright": "© 2025 Uplink Lite. All rights reserved.",
+    "copyright": "© 2025 Hook7. All rights reserved.",
     "sslSecure": "SSL Secure"
   },
   "auth": {
     "login": "Login",
-    "loginTitle": "Uplink",
+    "loginTitle": "Hook7",
     "loginSubtitle": "Log in to access the dashboard",
     "email": "Email",
     "emailPlaceholder": "your@email.com",
@@ -257,7 +257,7 @@
     "invalidLink": "Invalid recovery link"
   },
   "checkout": {
-    "title": "Subscribe to Uplink",
+    "title": "Subscribe to Hook7",
     "subtitle": "WhatsApp API Session Plan",
     "subtitleWithSession": "Complete payment to create session \"{{sessionName}}\"",
     "perMonth": "per month",
@@ -422,7 +422,7 @@
   },
   "subscriptions": {
     "title": "My Subscriptions",
-    "subtitle": "Manage your Uplink sessions and subscriptions",
+    "subtitle": "Manage your Hook7 sessions and subscriptions",
     "loadingSubscriptions": "Loading subscriptions...",
     "legacyAlert": "Legacy Client",
     "legacyDescription": "You have special access without per-session charges. Your sessions were created before the new subscription model.",
@@ -476,7 +476,7 @@
     "updatePayment": "Update Payment"
   },
   "onboarding": {
-    "welcome": "Welcome to Uplink!",
+    "welcome": "Welcome to Hook7!",
     "setupDescription": "Set up your WhatsApp API in 3 simple steps",
     "estimatedTime": "⏱️ Estimated time: 2 minutes",
     "exit": "Exit",

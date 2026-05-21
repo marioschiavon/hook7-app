@@ -129,7 +129,7 @@ export function SessionWebhookConfig({
         session_id: sessionId,
         timestamp: new Date().toISOString(),
         data: {
-          message: 'This is a test webhook from Uplink',
+          message: 'This is a test webhook from Hook7',
           test: true
         }
       };

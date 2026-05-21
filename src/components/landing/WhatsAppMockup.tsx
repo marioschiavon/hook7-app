@@ -76,7 +76,7 @@ const WhatsAppMockup = () => {
             <div className="flex items-center gap-2">
               <ChevronLeft className="h-5 w-5 opacity-90" />
               <Avatar className="h-9 w-9 border-2 border-white/20">
-                <AvatarImage src="/logo-uplink.png" alt="Empresa" />
+                <AvatarImage src="/hook7-logo.svg" alt="Empresa" />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">UP</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">

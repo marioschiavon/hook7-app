@@ -9,24 +9,24 @@ export default function TermsOfService() {
   return (
     <>
       <SEO 
-        title="Termos de Uso | Uplink - API WhatsApp"
-        description="Termos de uso da plataforma Uplink. Conheça as regras e condições para utilização da API WhatsApp para automações empresariais."
-        canonical="https://uplinklite.com/terms"
+        title="Termos de Uso | Hook7 - API WhatsApp"
+        description="Termos de uso da plataforma Hook7. Conheça as regras e condições para utilização da API WhatsApp para automações empresariais."
+        canonical="https://app.hook7.com.br/terms"
       />
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 md:px-8 py-8 md:py-16 max-w-4xl">
           {/* Header com Logo */}
           <header className="flex flex-col items-center mb-12">
             <img 
-              src="/logo-uplink.png" 
-              alt="Uplink - API WhatsApp para automações empresariais"
+              src="/hook7-logo.svg" 
+              alt="Hook7 - API WhatsApp para automações empresariais"
               loading="lazy"
               width="64"
               height="64"
               className="h-16 w-16 mb-6 rounded-full shadow-lg"
             />
             <h1 className="text-4xl md:text-5xl font-bold text-foreground text-center mb-2">
-              Termos de Uso – Uplink
+              Termos de Uso – Hook7
             </h1>
             <p className="text-sm text-muted-foreground">
               Última atualização: 25 de novembro de 2025
@@ -38,7 +38,7 @@ export default function TermsOfService() {
             {/* Introdução */}
             <div className="space-y-4 leading-relaxed">
               <p>
-                Bem-vindo à <strong>Uplink</strong>, uma plataforma desenvolvida e operada por <strong>S7</strong>, 
+                Bem-vindo ao <strong>Hook7</strong>, uma plataforma desenvolvida e operada por <strong>S7</strong>, 
                 controladora empresarial do titular Mario R Schiavon, inscrito no CNPJ 46.214.207/0001-60, 
                 com endereço na Rua Alexandre Foggiatto, Brasil.
               </p>
@@ -46,7 +46,7 @@ export default function TermsOfService() {
                 Contato oficial: <a href="mailto:contato@upevolution.com.br" className="text-primary hover:underline">contato@upevolution.com.br</a>
               </p>
               <p className="font-medium">
-                Ao utilizar a Uplink, você concorda integralmente com estes Termos de Uso. 
+                Ao utilizar a Hook7, você concorda integralmente com estes Termos de Uso. 
                 Caso não concorde, não utilize a plataforma.
               </p>
             </div>
@@ -55,22 +55,22 @@ export default function TermsOfService() {
             <section className="space-y-3" aria-labelledby="section-1">
               <h2 id="section-1" className="text-2xl font-semibold text-foreground">1. OBJETO</h2>
               <p className="leading-relaxed">
-                A Uplink é uma plataforma que fornece uma API de conexão com o WhatsApp, permitindo envio e 
-                recebimento de mensagens e integrações com sistemas externos. A Uplink opera como servidor de API, 
+                O Hook7 é uma plataforma que fornece uma API de conexão com o WhatsApp, permitindo envio e 
+                recebimento de mensagens e integrações com sistemas externos. O Hook7 opera como servidor de API, 
                 oferecendo conexão, tráfego e suporte técnico básico.
               </p>
             </section>
 
             {/* Seção 2 */}
             <section className="space-y-3" aria-labelledby="section-2">
-              <h2 id="section-2" className="text-2xl font-semibold text-foreground">2. O QUE A UPLINK NÃO É E NÃO FAZ</h2>
+              <h2 id="section-2" className="text-2xl font-semibold text-foreground">2. O QUE O Hook7 NÃO É E NÃO FAZ</h2>
               <ul className="space-y-2 leading-relaxed list-disc list-inside ml-4">
-                <li>A Uplink não é API oficial da Meta (WhatsApp).</li>
-                <li>A Uplink não fornece número de WhatsApp.</li>
-                <li>A Uplink não se responsabiliza por bloqueios, bans ou restrições aplicadas pelo WhatsApp.</li>
-                <li>A Uplink não se responsabiliza pelo conteúdo das mensagens enviadas pelos usuários.</li>
-                <li>A Uplink não garante entrega ou recebimento de 100% das mensagens.</li>
-                <li>A Uplink não é responsável por perdas financeiras, falhas externas, ações da Meta ou danos causados por mau uso da API.</li>
+                <li>O Hook7 não é API oficial da Meta (WhatsApp).</li>
+                <li>O Hook7 não fornece número de WhatsApp.</li>
+                <li>O Hook7 não se responsabiliza por bloqueios, bans ou restrições aplicadas pelo WhatsApp.</li>
+                <li>O Hook7 não se responsabiliza pelo conteúdo das mensagens enviadas pelos usuários.</li>
+                <li>O Hook7 não garante entrega ou recebimento de 100% das mensagens.</li>
+                <li>O Hook7 não é responsável por perdas financeiras, falhas externas, ações da Meta ou danos causados por mau uso da API.</li>
               </ul>
             </section>
 
@@ -106,7 +106,7 @@ export default function TermsOfService() {
                 SPAM pode resultar no banimento do número pelo WhatsApp, e isso é responsabilidade do usuário.
               </p>
               <p className="leading-relaxed">
-                Integrações externas são permitidas, mas a Uplink não responde por falhas nelas.
+                Integrações externas são permitidas, mas O Hook7 não responde por falhas nelas.
               </p>
             </section>
 
@@ -114,7 +114,7 @@ export default function TermsOfService() {
             <section className="space-y-3" aria-labelledby="section-6">
               <h2 id="section-6" className="text-2xl font-semibold text-foreground">6. LIMITAÇÕES DE RESPONSABILIDADE</h2>
               <p className="leading-relaxed">
-                A Uplink não garante estabilidade, continuidade ou entrega total de mensagens.
+                O Hook7 não garante estabilidade, continuidade ou entrega total de mensagens.
               </p>
               <p className="leading-relaxed">
                 Não se responsabiliza por banimentos, problemas no WhatsApp ou prejuízos decorrentes do uso da API.
@@ -128,7 +128,7 @@ export default function TermsOfService() {
                 O usuário pode integrar com sistemas externos, como n8n, Bubble, Make etc.
               </p>
               <p className="leading-relaxed">
-                A Uplink não é responsável por falhas nessas integrações.
+                O Hook7 não é responsável por falhas nessas integrações.
               </p>
             </section>
 
@@ -136,7 +136,7 @@ export default function TermsOfService() {
             <section className="space-y-3" aria-labelledby="section-8">
               <h2 id="section-8" className="text-2xl font-semibold text-foreground">8. DADOS COLETADOS E PRIVACIDADE</h2>
               <p className="leading-relaxed">
-                A Uplink coleta apenas e-mail para autenticação.
+                O Hook7 coleta apenas e-mail para autenticação.
               </p>
               <p className="leading-relaxed">
                 Não armazena mensagens; apenas trafega temporariamente.
@@ -150,7 +150,7 @@ export default function TermsOfService() {
             <section className="space-y-3" aria-labelledby="section-9">
               <h2 id="section-9" className="text-2xl font-semibold text-foreground">9. SUSPENSÃO OU ENCERRAMENTO DE CONTA</h2>
               <p className="leading-relaxed">
-                A Uplink pode encerrar contas que realizem:
+                O Hook7 pode encerrar contas que realizem:
               </p>
               <ul className="space-y-2 leading-relaxed list-disc list-inside ml-4">
                 <li>Uso ilegal</li>
@@ -166,7 +166,7 @@ export default function TermsOfService() {
             <section className="space-y-3" aria-labelledby="section-10">
               <h2 id="section-10" className="text-2xl font-semibold text-foreground">10. ALTERAÇÕES NOS TERMOS</h2>
               <p className="leading-relaxed">
-                A Uplink pode alterar este Termo a qualquer momento.
+                O Hook7 pode alterar este Termo a qualquer momento.
               </p>
               <p className="leading-relaxed">
                 O uso contínuo implica aceitação das alterações.
@@ -222,7 +222,7 @@ export default function TermsOfService() {
           {/* Rodapé */}
           <footer className="mt-16 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Uplink – Powered by S7
+              © {new Date().getFullYear()} Hook7 – Powered by S7
             </p>
           </footer>
         </div>
@@ -230,3 +230,4 @@ export default function TermsOfService() {
     </>
   );
 }
+

@@ -14,7 +14,7 @@ const NotFound = () => {
   return (
     <>
       <SEO 
-        title="Página Não Encontrada | Uplink"
+        title="Página Não Encontrada | Hook7"
         description="A página que você está procurando não existe ou foi movida."
         noindex={true}
       />

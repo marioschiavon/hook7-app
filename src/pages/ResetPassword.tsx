@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ export default function ResetPassword() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://uplinklite.com/update-password',
+        redirectTo: 'https://Hook7.com/update-password',
       });
 
       if (error) throw error;
@@ -96,3 +96,4 @@ export default function ResetPassword() {
     </div>
   );
 }
+

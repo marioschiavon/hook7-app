@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
@@ -48,7 +48,7 @@ const Unsubscribe = () => {
   return (
     <>
       <SEO
-        title="Cancelar Inscrição | Uplink Lite"
+        title="Cancelar Inscrição | Hook7"
         description="Cancelar inscrição de lembretes por email"
       />
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 flex items-center justify-center p-4">
@@ -105,3 +105,4 @@ const Unsubscribe = () => {
 };
 
 export default Unsubscribe;
+

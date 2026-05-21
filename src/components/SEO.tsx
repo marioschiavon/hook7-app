@@ -16,11 +16,11 @@ export const SEO = ({
   description, 
   canonical, 
   noindex = false,
-  ogImage = "https://uplinklite.com/logo-512.png",
+  ogImage = "https://hook7.com.br/hook7-logo-new.jpg",
   ogType = "website"
 }: SEOProps) => {
-  const seoTitle = title.includes("UplinkLite") ? title : `${title} | UplinkLite`;
-  const tabTitle = browserTitle || "UplinkLite";
+  const seoTitle = title.includes("Hook7") ? title : `${title} | Hook7`;
+  const tabTitle = browserTitle || "Hook7";
   
   return (
     <Helmet>

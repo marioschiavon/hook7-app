@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -240,7 +240,7 @@ const Subscriptions = () => {
           <h1 className="text-3xl font-bold">Minhas Assinaturas</h1>
         </div>
         <p className="text-muted-foreground">
-          Gerencie suas sessões e assinaturas do Uplink
+          Gerencie suas sessões e assinaturas do Hook7
         </p>
       </div>
 
@@ -652,3 +652,4 @@ const Subscriptions = () => {
 };
 
 export default Subscriptions;
+

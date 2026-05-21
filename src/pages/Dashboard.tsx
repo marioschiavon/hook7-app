@@ -12,6 +12,7 @@ import { OrganizationBanner } from "@/components/dashboard/OrganizationBanner";
 import { ApiKeySheet } from "@/components/dashboard/ApiKeySheet";
 import { SendTestMessageDialog } from "@/components/dashboard/SendTestMessageDialog";
 import { ConnectionHelpCard } from "@/components/dashboard/ConnectionHelpCard";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { toast } from "sonner";
 import { Zap, MessageSquare, CreditCard, ArrowRight, Plus, DollarSign, Settings, Megaphone, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -350,6 +351,14 @@ const Dashboard = () => {
       {/* Announcement Banner */}
       <AnnouncementBanner />
 
+      {/* Onboarding Checklist — 100% frontend, localStorage */}
+      <OnboardingChecklist
+        hasOrg={!!orgData}
+        hasSessions={sessions.length > 0}
+        hasConnectedSession={activeSessions.length > 0}
+        hasSentMessage={false}
+      />
+
       {/* Connection Help Card */}
       <AnimatePresence>
         {showConnectionHelp && (
@@ -384,7 +393,7 @@ const Dashboard = () => {
             value={activeSessions.length}
             icon={Zap}
             subtitle={t('dashboard.connectedViaWhatsApp')}
-            color="green"
+            color="purple"
           />
         </motion.div>
 
@@ -414,7 +423,7 @@ const Dashboard = () => {
             value={activeSubscriptionsCount}
             icon={CreditCard}
             subtitle={t('dashboard.pricePerSession', { price: priceDisplay })}
-            color="green"
+            color="purple"
           />
         </motion.div>
 
