@@ -22,9 +22,9 @@ const ApiDocs = () => {
   return (
     <>
       <SEO 
-        title="Documentação da API WhatsApp | UplinkLite"
-        description="Documentação completa da API WhatsApp UplinkLite. Aprenda a enviar mensagens, mídias e integrar com Make, Zapier, n8n e TypeBot. Exemplos em JavaScript, Python e PHP."
-        canonical="https://uplinklite.com/api-docs"
+        title="Documentação da API WhatsApp | Hook7"
+        description="Documentação completa da API WhatsApp Hook7. Aprenda a enviar mensagens, mídias e integrar com Make, Zapier, n8n e TypeBot. Exemplos em JavaScript, Python e PHP."
+        canonical="https://app.hook7.com.br/api-docs"
       />
       <Helmet>
         {/* Schema.org TechArticle */}
@@ -32,25 +32,25 @@ const ApiDocs = () => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "TechArticle",
-            "headline": "Documentação da API WhatsApp UplinkLite",
-            "description": "Documentação técnica completa para integrar a API WhatsApp UplinkLite em suas aplicações. Inclui autenticação, endpoints para envio de mensagens e mídias, exemplos de código em JavaScript, Python e PHP.",
+            "headline": "Documentação da API WhatsApp Hook7",
+            "description": "Documentação técnica completa para integrar a API WhatsApp Hook7 em suas aplicações. Inclui autenticação, endpoints para envio de mensagens e mídias, exemplos de código em JavaScript, Python e PHP.",
             "author": {
               "@type": "Organization",
-              "name": "UplinkLite"
+              "name": "Hook7"
             },
             "publisher": {
               "@type": "Organization",
-              "name": "UplinkLite",
-              "url": "https://uplinklite.com"
+              "name": "Hook7",
+              "url": "https://app.hook7.com.br"
             },
-            "mainEntityOfPage": "https://uplinklite.com/api-docs",
+            "mainEntityOfPage": "https://app.hook7.com.br/api-docs",
             "datePublished": "2024-01-01",
             "dateModified": "2026-01-23",
             "inLanguage": "pt-BR",
             "keywords": ["API WhatsApp", "documentação API", "enviar mensagens WhatsApp", "integração WhatsApp", "enviar enquete WhatsApp", "pesquisa NPS WhatsApp API", "enviar localização WhatsApp", "lista interativa WhatsApp", "menu WhatsApp API", "enviar contato WhatsApp", "Make", "Zapier", "n8n", "TypeBot"],
             "about": {
               "@type": "SoftwareApplication",
-              "name": "UplinkLite API",
+              "name": "Hook7 API",
               "applicationCategory": "BusinessApplication"
             }
           })}
@@ -63,17 +63,17 @@ const ApiDocs = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg animate-pulse-glow" />
               <img 
-                src="/logo-uplink.png" 
-                alt="Uplink - API WhatsApp" 
+                src="/hook7-logo.svg" 
+                alt="Hook7 - API WhatsApp" 
                 width="40"
                 height="40"
                 className="h-10 w-10 relative drop-shadow-lg rounded-full"
               />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Uplink
+              Hook7
             </span>
-            <Badge variant="secondary" className="text-xs">Lite</Badge>
+
           </Link>
           <Link 
             to="/" 
@@ -95,7 +95,7 @@ const ApiDocs = () => {
           <div className="flex items-center gap-3">
             <BookOpen className="h-8 w-8 text-primary" aria-hidden="true" />
             <div>
-              <h1 className="text-3xl font-bold">Documentação da API WhatsApp UplinkLite</h1>
+              <h1 className="text-3xl font-bold">Documentação da API WhatsApp Hook7</h1>
               <p className="text-muted-foreground">
                 Integre o WhatsApp nas suas aplicações com nossa API REST
               </p>
@@ -108,16 +108,16 @@ const ApiDocs = () => {
           {/* Introduction Section - GEO Optimized */}
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
             <CardContent className="pt-6 space-y-4">
-              <h2 className="text-xl font-semibold">O que é a API WhatsApp UplinkLite?</h2>
+              <h2 className="text-xl font-semibold">O que é a API WhatsApp Hook7?</h2>
               <p className="text-muted-foreground leading-relaxed">
-                A UplinkLite é uma API WhatsApp brasileira que permite enviar mensagens de texto, imagens, áudio e documentos via WhatsApp por R$ 69,90/mês com mensagens ilimitadas. A API é RESTful e pode ser integrada com qualquer linguagem de programação (JavaScript, Python, PHP) ou plataforma de automação (Make, Zapier, n8n, TypeBot).
+                A Hook7 é uma API WhatsApp brasileira que permite enviar mensagens de texto, imagens, áudio e documentos via WhatsApp por R$ 69,90/mês com mensagens ilimitadas. A API é RESTful e pode ser integrada com qualquer linguagem de programação (JavaScript, Python, PHP) ou plataforma de automação (Make, Zapier, n8n, TypeBot).
               </p>
               
               <div className="grid md:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-2">
                   <h3 className="font-medium text-sm">Requisitos</h3>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Conta ativa na UplinkLite</li>
+                    <li>• Conta ativa na Hook7</li>
                     <li>• Sessão WhatsApp configurada</li>
                     <li>• API Key (obtida no Dashboard)</li>
                   </ul>
@@ -206,7 +206,7 @@ const ApiDocs = () => {
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
                   { name: "text", type: "string", required: true, description: "Texto da mensagem", example: "Olá, tudo bem?" },
                 ]}
-                requestExample={`curl -X POST "https://api.uplinklite.com/message/sendText/sua-instancia" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendText/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -240,7 +240,7 @@ const ApiDocs = () => {
                   { name: "fileName", type: "string", required: false, description: "Nome do arquivo (para documento)" },
                 ]}
                 requestExample={`# Exemplo 1: Enviar IMAGEM
-curl -X POST "https://api.uplinklite.com/message/sendMedia/sua-instancia" \\
+curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -251,7 +251,7 @@ curl -X POST "https://api.uplinklite.com/message/sendMedia/sua-instancia" \\
   }'
 
 # Exemplo 2: Enviar ÁUDIO
-curl -X POST "https://api.uplinklite.com/message/sendMedia/sua-instancia" \\
+curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -261,7 +261,7 @@ curl -X POST "https://api.uplinklite.com/message/sendMedia/sua-instancia" \\
   }'
 
 # Exemplo 3: Enviar DOCUMENTO/ARQUIVO
-curl -X POST "https://api.uplinklite.com/message/sendMedia/sua-instancia" \\
+curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -310,7 +310,7 @@ curl -X POST "https://api.uplinklite.com/message/sendMedia/sua-instancia" \\
                   { name: "values", type: "array", required: true, description: "Opções de resposta (array de strings)", example: '["Ótimo", "Bom", "Regular", "Ruim"]' },
                   { name: "selectableCount", type: "number", required: false, description: "Máximo de opções selecionáveis (default: 1)" },
                 ]}
-                requestExample={`curl -X POST "https://api.uplinklite.com/message/sendPoll/sua-instancia" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendPoll/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -355,7 +355,7 @@ curl -X POST "https://api.uplinklite.com/message/sendMedia/sua-instancia" \\
                   { name: "footerText", type: "string", required: false, description: "Texto do rodapé" },
                   { name: "sections", type: "array", required: true, description: "Seções com itens (ver exemplo)" },
                 ]}
-                requestExample={`curl -X POST "https://api.uplinklite.com/message/sendList/sua-instancia" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendList/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{

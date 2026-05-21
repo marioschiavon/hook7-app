@@ -85,12 +85,12 @@ const GetStarted = () => {
   return (
     <>
       <SEO
-        browserTitle={isPortuguese ? "Começar Agora | UplinkLite" : "Get Started | UplinkLite"}
-        title={isPortuguese ? "Como funciona | UplinkLite" : "How it works | UplinkLite"}
+        browserTitle={isPortuguese ? "Começar Agora | Hook7" : "Get Started | Hook7"}
+        title={isPortuguese ? "Como funciona | Hook7" : "How it works | Hook7"}
         description={isPortuguese
           ? "Veja como é fácil configurar sua API WhatsApp em 3 passos simples. Comece a automatizar em minutos."
           : "See how easy it is to set up your WhatsApp API in 3 simple steps. Start automating in minutes."}
-        canonical="https://uplinklite.com/get-started"
+        canonical="https://app.hook7.com.br/get-started"
       />
 
       <div className="min-h-screen bg-background">
@@ -98,9 +98,9 @@ const GetStarted = () => {
         <header className="fixed top-0 w-full bg-background/80 backdrop-blur-xl z-50 border-b border-border/50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
-              <img src="/logo-uplink.png" alt="Uplink" width="40" height="40" className="h-10 w-10 rounded-full" />
+              <img src="/hook7-logo.svg" alt="Hook7" width="40" height="40" className="h-10 w-10 rounded-full" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Uplink
+                Hook7
               </span>
             </Link>
             <Button onClick={() => navigate("/")} variant="ghost" size="sm">

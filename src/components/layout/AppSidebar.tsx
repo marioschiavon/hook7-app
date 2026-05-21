@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { LayoutDashboard, MessageSquare, CreditCard, BookOpen, Megaphone, Activity, LogOut, Building2, Users } from "lucide-react";
 import {
   Sidebar,
@@ -83,10 +83,10 @@ export function AppSidebar() {
             isActive={isActive(item.url)}
             tooltip={isCollapsed ? item.title : undefined}
           >
-            <a href={item.url}>
+            <Link to={item.url}>
               <item.icon className="h-4 w-4" />
               {!isCollapsed && <span>{item.title}</span>}
-            </a>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}

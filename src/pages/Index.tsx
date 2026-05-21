@@ -67,8 +67,8 @@ const Index = () => {
       name: "Ricardo Mendes",
       role: isPortuguese ? "CEO - ShopFast E-commerce" : "CEO - ShopFast E-commerce",
       text: isPortuguese 
-        ? "Integramos a Uplink em nosso sistema de pedidos e reduzimos em 70% o tempo de resposta aos clientes. A configuração foi surpreendentemente simples."
-        : "We integrated Uplink into our order system and reduced customer response time by 70%. The setup was surprisingly simple.",
+        ? "Integramos a Hook7 em nosso sistema de pedidos e reduzimos em 70% o tempo de resposta aos clientes. A configuração foi surpreendentemente simples."
+        : "We integrated Hook7 into our order system and reduced customer response time by 70%. The setup was surprisingly simple.",
       rating: 5
     },
     {
@@ -104,31 +104,31 @@ const Index = () => {
   return (
     <>
       <SEO 
-        browserTitle="UplinkLite"
-        title={isPortuguese ? "Melhor API WhatsApp Brasil | UplinkLite" : "Best WhatsApp API | UplinkLite"}
+        browserTitle="Hook7"
+        title={isPortuguese ? "Melhor API WhatsApp Brasil | Hook7" : "Best WhatsApp API | Hook7"}
         description={isPortuguese 
           ? "A melhor API WhatsApp do Brasil para automações empresariais. Configure em 5 minutos, envie mensagens ilimitadas por R$ 69,90/mês. Suporte em português 24/7."
           : "The best WhatsApp API for business automation. Set up in 5 minutes, send unlimited messages for $15/month. 24/7 support."}
-        canonical="https://uplinklite.com/"
+        canonical="https://app.hook7.com.br/"
       />
       <Helmet>
         {/* Hreflang tags */}
-        <link rel="alternate" hrefLang="pt-BR" href="https://uplinklite.com/" />
-        <link rel="alternate" hrefLang="en" href="https://uplinklite.com/?lang=en" />
-        <link rel="alternate" hrefLang="x-default" href="https://uplinklite.com/" />
+        <link rel="alternate" hrefLang="pt-BR" href="https://app.hook7.com.br/" />
+        <link rel="alternate" hrefLang="en" href="https://app.hook7.com.br/?lang=en" />
+        <link rel="alternate" hrefLang="x-default" href="https://app.hook7.com.br/" />
         
         {/* Schema.org SoftwareApplication */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "UplinkLite - Best WhatsApp API",
+            "name": "Hook7 - Best WhatsApp API",
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Web",
             "description": isPortuguese 
-              ? "A UplinkLite é uma API WhatsApp que permite enviar mensagens ilimitadas. Configure em 5 minutos."
-              : "UplinkLite is a WhatsApp API that allows sending unlimited messages. Set up in 5 minutes.",
-            "url": "https://uplinklite.com",
+              ? "A Hook7 é uma API WhatsApp que permite enviar mensagens ilimitadas. Configure em 5 minutos."
+              : "Hook7 is a WhatsApp API that allows sending unlimited messages. Set up in 5 minutes.",
+            "url": "https://app.hook7.com.br",
             "featureList": [
               "Unlimited messages",
               "5-minute setup",
@@ -167,7 +167,7 @@ const Index = () => {
             "provider": {
               "@type": "Organization",
               "name": "S7",
-              "url": "https://uplinklite.com"
+              "url": "https://app.hook7.com.br"
             }
           })}
         </script>
@@ -177,9 +177,9 @@ const Index = () => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
-            "name": "UplinkLite",
-            "url": "https://uplinklite.com",
-            "logo": "https://uplinklite.com/logo-512.png",
+            "name": "Hook7",
+            "url": "https://app.hook7.com.br",
+            "logo": "https://app.hook7.com.br/logo-512.png",
             "description": isPortuguese 
               ? "A melhor API WhatsApp para automações empresariais"
               : "The best WhatsApp API for business automation",
@@ -187,7 +187,7 @@ const Index = () => {
               "@type": "ContactPoint",
               "contactType": "customer support",
               "availableLanguage": ["Portuguese", "English"],
-              "email": "suporte@uplinklite.com"
+              "email": "suporte@app.hook7.com.br"
             },
             "sameAs": []
           })}
@@ -214,7 +214,7 @@ const Index = () => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "HowTo",
-            "name": isPortuguese ? "Como configurar a API WhatsApp da UplinkLite" : "How to set up UplinkLite WhatsApp API",
+            "name": isPortuguese ? "Como configurar a API WhatsApp da Hook7" : "How to set up Hook7 WhatsApp API",
             "description": isPortuguese 
               ? "Configure sua API WhatsApp em 3 passos simples"
               : "Set up your WhatsApp API in 3 simple steps",
@@ -254,17 +254,17 @@ const Index = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg animate-pulse-glow" />
               <img 
-                src="/logo-uplink.png" 
-                alt="Uplink - WhatsApp API" 
+                src="/hook7-logo.svg" 
+                alt="Hook7 - WhatsApp API" 
                 width="40"
                 height="40"
                 className="h-10 w-10 relative drop-shadow-lg rounded-full"
               />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Uplink
+              Hook7
             </span>
-            <Badge variant="secondary" className="text-xs">Lite</Badge>
+
           </motion.div>
           
           <nav className="hidden md:flex items-center gap-8">
@@ -865,14 +865,14 @@ const Index = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <img 
-                  src="/logo-uplink.png" 
-                  alt="Uplink - WhatsApp API"
+                  src="/hook7-logo.svg" 
+                  alt="Hook7 - WhatsApp API"
                   loading="lazy"
                   width="40"
                   height="40"
                   className="h-10 w-10 rounded-full"
                 />
-                <span className="text-xl font-bold">Uplink</span>
+                <span className="text-xl font-bold">Hook7</span>
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 {t('footer.description')}
