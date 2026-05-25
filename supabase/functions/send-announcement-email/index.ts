@@ -112,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`📧 [${i + 1}/${targetEmails.length}] Enviando para: ${email}`);
         
         const emailResponse = await resend.emails.send({
-          from: "Uplink Lite <avisos@uplinklite.com>",
+          from: "Hook7 <avisos@hook7.com.br>",
           to: [email],
           subject: announcement.email_subject || announcement.title,
           html: `
@@ -136,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </p>
               </div>
               <p style="color: #666; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                Este é um anúncio automático do sistema Uplink Lite.<br>
+                Este é um anúncio automático do sistema Hook7.<br>
                 Enviado em ${new Date().toLocaleString('pt-BR')}
               </p>
             </div>

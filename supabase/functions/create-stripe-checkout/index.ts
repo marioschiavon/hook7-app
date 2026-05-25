@@ -110,7 +110,7 @@ serve(async (req) => {
       ],
       allow_promotion_codes: true,
       subscription_data: {
-        description: `Uplink - Sessão ${sessionData.name}`,
+        description: `Hook7 - Sessão ${sessionData.name}`,
         metadata: {
           session_id: session_id,
           session_name: sessionData.name,
@@ -122,8 +122,8 @@ serve(async (req) => {
         session_name: sessionData.name,
         organization_id: sessionData.organization_id,
       },
-      success_url: `${req.headers.get('origin') || 'https://uplinklite.com'}/dashboard?payment=success`,
-      cancel_url: `${req.headers.get('origin') || 'https://uplinklite.com'}/checkout?session_name=${sessionData.name}&payment=cancelled`,
+      success_url: `${req.headers.get('origin') || 'https://hook7.com.br'}/dashboard?payment=success`,
+      cancel_url: `${req.headers.get('origin') || 'https://hook7.com.br'}/checkout?session_name=${sessionData.name}&payment=cancelled`,
       locale: 'pt-BR',
       billing_address_collection: 'auto',
     });

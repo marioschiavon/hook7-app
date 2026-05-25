@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, ArrowLeft } from "lucide-react";
+import { Loader2, Mail, Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +16,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -61,13 +62,13 @@ const Login = () => {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10 pointer-events-none" />
         
-        <Link 
-          to="/" 
+        <a 
+          href="https://hook7.com.br" 
           className="absolute top-4 left-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors z-10"
         >
           <ArrowLeft className="h-4 w-4" />
           {t('nav.back')}
-        </Link>
+        </a>
         
         <Card className="w-full max-w-md relative bg-card border-border shadow-xl animate-fade-in">
           <CardHeader className="space-y-3 text-center">
@@ -111,13 +112,21 @@ const Login = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder={t('auth.passwordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-muted/50 border-border/50 pl-10"
+                    className="bg-muted/50 border-border/50 pl-10 pr-10"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
               <div className="flex items-center justify-end">

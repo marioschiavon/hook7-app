@@ -153,7 +153,7 @@ const Sessions = () => {
 
   const fetchSessionStatus = async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
-      const result = await evolutionApi.checkConnection(apiSession, apiToken);
+      const result = await evolutionApi.checkConnection(apiToken);
       setSessionsStatus(prev => ({
         ...prev,
         [sessionId]: result
@@ -169,7 +169,7 @@ const Sessions = () => {
 
   const checkConnectionStatus = useCallback(async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
-      const result = await evolutionApi.checkConnection(apiSession, apiToken);
+      const result = await evolutionApi.checkConnection(apiToken);
       
       setSessionsStatus(currentStatus => {
         const current = currentStatus[sessionId];
@@ -277,7 +277,7 @@ const Sessions = () => {
       toast.info(t('sessions.connectingApi'));
       
       // Usar Evolution API para conectar e obter QR Code
-      const qrData = await evolutionApi.connectInstance(session.api_session, session.api_token);
+      const qrData = await evolutionApi.connectInstance(session.api_token);
       
       if (qrData) {
         // Salvar pairing code se disponível
@@ -314,7 +314,7 @@ const Sessions = () => {
           toast.info("Aguardando QR Code...");
           await new Promise(resolve => setTimeout(resolve, 3000));
           
-          const retryQr = await evolutionApi.fetchQRCode(session.api_session, session.api_token);
+          const retryQr = await evolutionApi.fetchQRCode(session.api_token);
           if (retryQr?.base64) {
             setSessionsStatus(prev => ({
               ...prev,
@@ -350,7 +350,7 @@ const Sessions = () => {
     if (!session.api_session || !session.api_token) return;
     
     try {
-      const result = await evolutionApi.checkConnection(session.api_session, session.api_token);
+      const result = await evolutionApi.checkConnection(session.api_token);
       
       if (result.status === false) {
         setSessionsStatus(prev => ({
@@ -408,7 +408,7 @@ const Sessions = () => {
         if (!selectedSession.api_session || !selectedSession.api_token) return;
         
         try {
-          const qrData = await evolutionApi.fetchQRCode(selectedSession.api_session, selectedSession.api_token);
+          const qrData = await evolutionApi.fetchQRCode(selectedSession.api_token);
           
           if (qrData?.base64) {
             setSessionsStatus(prev => ({
@@ -556,7 +556,7 @@ const Sessions = () => {
     try {
       toast.info(t('sessions.fetchingQr'));
       
-      const qrData = await evolutionApi.fetchQRCode(session.api_session, session.api_token);
+      const qrData = await evolutionApi.fetchQRCode(session.api_token);
       
       if (qrData?.base64) {
         setSessionsStatus(prev => ({
@@ -599,7 +599,7 @@ const Sessions = () => {
     setClosingSession(true);
     
     try {
-      const success = await evolutionApi.logoutInstance(session.api_session, session.api_token);
+      const success = await evolutionApi.logoutInstance(session.api_token);
       
       if (success) {
         setSessionsStatus(prev => ({
@@ -654,7 +654,7 @@ const Sessions = () => {
         // PASSO 1: Logout da instância
         try {
           console.log('🔒 Fazendo logout da instância:', session.api_session);
-          await evolutionApi.logoutInstance(session.api_session, session.api_token);
+          await evolutionApi.logoutInstance(session.api_token);
           console.log('✅ Logout realizado');
         } catch (logoutError) {
           console.warn('⚠️ Erro ao fazer logout (continuando):', logoutError);

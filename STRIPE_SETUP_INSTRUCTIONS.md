@@ -42,7 +42,7 @@ Execute o arquivo `STRIPE_MIGRATION.sql` no Supabase:
      ```
      https://kfsvpbujmetlendgwnrs.supabase.co/functions/v1/stripe-webhook
      ```
-   - **Descrição:** `Webhook Uplink - Gerenciar assinaturas`
+   - **Descrição:** `Webhook Hook7 - Gerenciar assinaturas`
    
 4. Selecione os eventos:
    - ✅ `checkout.session.completed`
@@ -143,56 +143,7 @@ sequenceDiagram
 
 ---
 
-## 📊 Comparação: Antes vs Depois
 
-| Aspecto | Mercado Pago | Stripe |
-|---------|--------------|--------|
-| **Coleta de dados** | Você coleta CPF, endereço, cartão | Stripe coleta tudo |
-| **Aprovação** | ~60-70% | ~85-90% |
-| **Portal do cliente** | Link externo genérico | Portal nativo integrado |
-| **Segurança** | Você gerencia dados sensíveis | Stripe gerencia tudo |
-| **Internacional** | América Latina | 135+ países |
-| **Código** | ~590 linhas | ~379 linhas |
-
----
-
-## 🎁 Benefícios Implementados
-
-✅ **Menos código** - 211 linhas a menos  
-✅ **Mais seguro** - Dados sensíveis ficam no Stripe  
-✅ **Melhor UX** - Checkout otimizado e em português  
-✅ **Customer Portal** - Usuário gerencia sozinho  
-✅ **Webhooks assinados** - Segurança máxima  
-✅ **Pronto para global** - Suporta 135+ países  
-
----
-
-## 📝 Checklist Final
-
-Antes de marcar como concluído:
-
-- [ ] SQL migration executada
-- [ ] Webhook configurado no Stripe Dashboard
-- [ ] Testado com cartão de teste `4242 4242 4242 4242`
-- [ ] Sessão aparece como ativa após pagamento
-- [ ] Customer Portal abre e funciona
-- [ ] Logs verificados (sem erros)
-- [ ] Assinatura aparece na página "Assinaturas"
-
----
-
-## 🚨 IMPORTANTE
-
-### Assinaturas Antigas (Mercado Pago)
-As assinaturas existentes do Mercado Pago **continuarão funcionando normalmente**. O sistema agora suporta ambos os provedores simultaneamente.
-
-### Novas Assinaturas
-Todas as novas assinaturas **usarão Stripe automaticamente**.
-
-### Migração Futura (Opcional)
-Se desejar migrar assinaturas antigas do Mercado Pago para Stripe, entre em contato para um plano de migração.
-
----
 
 ## 📞 Suporte
 

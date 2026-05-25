@@ -10,11 +10,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface NavItem {
   title: string;
@@ -22,34 +24,37 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const clientItems: NavItem[] = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Sessões", url: "/sessions", icon: MessageSquare },
-  { title: "Assinaturas", url: "/subscriptions", icon: CreditCard },
-  { title: "Documentação API", url: "/api-docs", icon: BookOpen },
-];
-
-const adminItems: NavItem[] = [
-  { title: "Dashboard Admin", url: "/admin", icon: LayoutDashboard },
-  { title: "Organizações", url: "/admin/organizations", icon: Building2 },
-  { title: "Usuários", url: "/admin/users", icon: Users },
-  { title: "Assinaturas", url: "/admin/subscriptions", icon: CreditCard },
-  { title: "Monitoramento", url: "/admin/monitoring", icon: Activity },
-  { title: "Anúncios", url: "/admin/announcements", icon: Megaphone },
-];
-
-const adminToolItems: NavItem[] = [
-  { title: "Documentação API", url: "/api-docs", icon: BookOpen },
-];
-
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
   const isCollapsed = state === "collapsed";
+
+  // Menu items with i18n
+  const clientItems: NavItem[] = [
+    { title: t('sidebar.dashboard'), url: "/dashboard", icon: LayoutDashboard },
+    { title: t('sidebar.sessions'), url: "/sessions", icon: MessageSquare },
+    { title: t('sidebar.monitoring'), url: "/monitoring", icon: Activity },
+    { title: t('sidebar.subscriptions'), url: "/subscriptions", icon: CreditCard },
+    { title: t('sidebar.apiDocs'), url: "/api-docs", icon: BookOpen },
+  ];
+
+  const adminItems: NavItem[] = [
+    { title: t('sidebar.adminDashboard'), url: "/admin", icon: LayoutDashboard },
+    { title: t('sidebar.organizations'), url: "/admin/organizations", icon: Building2 },
+    { title: t('sidebar.users'), url: "/admin/users", icon: Users },
+    { title: t('sidebar.subscriptions'), url: "/admin/subscriptions", icon: CreditCard },
+    { title: t('sidebar.monitoring'), url: "/admin/monitoring", icon: Activity },
+    { title: t('sidebar.announcements'), url: "/admin/announcements", icon: Megaphone },
+  ];
+
+  const adminToolItems: NavItem[] = [
+    { title: t('sidebar.apiDocs'), url: "/api-docs", icon: BookOpen },
+  ];
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -95,12 +100,32 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r">
+      {/* Branding Header */}
+      <SidebarHeader>
+        <Link to="/dashboard" className="flex items-center gap-3 px-2 py-3 hover:opacity-80 transition-opacity">
+          <img
+            src="/hook7-logo.svg"
+            alt="Hook7"
+            width="32"
+            height="32"
+            className="h-8 w-8 rounded-full flex-shrink-0"
+          />
+          {!isCollapsed && (
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
+              Hook7
+            </span>
+          )}
+        </Link>
+      </SidebarHeader>
+
+      <Separator />
+
       <SidebarContent>
         {isSuperAdmin ? (
           <>
             <SidebarGroup>
               <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-                {isCollapsed ? "⚡" : "Admin"}
+                {isCollapsed ? "⚡" : t('sidebar.admin')}
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 {renderMenuItems(adminItems)}
@@ -111,7 +136,7 @@ export function AppSidebar() {
 
             <SidebarGroup>
               <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-                {isCollapsed ? "🔧" : "Ferramentas"}
+                {isCollapsed ? "🔧" : t('sidebar.tools')}
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 {renderMenuItems(adminToolItems)}
@@ -121,7 +146,7 @@ export function AppSidebar() {
         ) : (
           <SidebarGroup>
             <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-              {isCollapsed ? "📊" : "Menu Principal"}
+              {isCollapsed ? "📊" : t('sidebar.mainMenu')}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               {renderMenuItems(clientItems)}
@@ -135,10 +160,10 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleLogout}
-              tooltip={isCollapsed ? "Sair" : undefined}
+              tooltip={isCollapsed ? t('sidebar.logout') : undefined}
             >
               <LogOut className="h-4 w-4" />
-              {!isCollapsed && <span>Sair</span>}
+              {!isCollapsed && <span>{t('sidebar.logout')}</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

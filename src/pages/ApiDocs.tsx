@@ -434,17 +434,17 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
                 description="Enviar Localização com Mapa via WhatsApp"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
-                  { name: "name", type: "string", required: true, description: "Nome do local", example: "Loja UplinkLite" },
+                  { name: "name", type: "string", required: true, description: "Nome do local", example: "Loja Hook7" },
                   { name: "address", type: "string", required: true, description: "Endereço completo", example: "Av. Paulista, 1000 - São Paulo, SP" },
                   { name: "latitude", type: "number", required: true, description: "Latitude", example: "-23.5629" },
                   { name: "longitude", type: "number", required: true, description: "Longitude", example: "-46.6544" },
                 ]}
-                requestExample={`curl -X POST "https://api.uplinklite.com/message/sendLocation/sua-instancia" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendLocation/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
-    "name": "Loja UplinkLite",
+    "name": "Loja Hook7",
     "address": "Av. Paulista, 1000 - Bela Vista, São Paulo - SP",
     "latitude": -23.5629,
     "longitude": -46.6544
@@ -459,7 +459,7 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
     "locationMessage": {
       "degreesLatitude": -23.5629,
       "degreesLongitude": -46.6544,
-      "name": "Loja UplinkLite",
+      "name": "Loja Hook7",
       "address": "Av. Paulista, 1000 - Bela Vista, São Paulo - SP"
     }
   },
@@ -477,17 +477,17 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
                   { name: "contact", type: "array", required: true, description: "Array com dados do(s) contato(s)" },
                 ]}
-                requestExample={`curl -X POST "https://api.uplinklite.com/message/sendContact/sua-instancia" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendContact/sua-instancia" \\
   -H "apikey: sua-apikey-aqui" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
     "contact": [
       {
-        "fullName": "Suporte UplinkLite",
+        "fullName": "Suporte Hook7",
         "phoneNumber": "+55 11 99999-0000",
-        "organization": "UplinkLite",
-        "email": "suporte@uplinklite.com"
+        "organization": "Hook7",
+        "email": "suporte@hook7.com.br"
       }
     ]
   }'`}
@@ -499,8 +499,8 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
   },
   "message": {
     "contactMessage": {
-      "displayName": "Suporte UplinkLite",
-      "vcard": "BEGIN:VCARD\\nVERSION:3.0\\nFN:Suporte UplinkLite\\nORG:UplinkLite\\nTEL:+55 11 99999-0000\\nEMAIL:suporte@uplinklite.com\\nEND:VCARD"
+      "displayName": "Suporte Hook7",
+      "vcard": "BEGIN:VCARD\\nVERSION:3.0\\nFN:Suporte Hook7\\nORG:Hook7\\nTEL:+55 11 99999-0000\\nEMAIL:suporte@hook7.com.br\\nEND:VCARD"
     }
   },
   "messageTimestamp": "1234567890"
@@ -552,7 +552,7 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
 const sendMessage = async () => {
   try {
     const response = await axios.post(
-      'https://api.uplinklite.com/message/sendText/sua-instancia',
+      'https://api.hook7.com.br/message/sendText/sua-instancia',
       {
         number: '5511999999999',
         text: 'Olá! Esta é uma mensagem de teste.'
@@ -592,7 +592,7 @@ sendMessage();`}
 const sendNpsSurvey = async (customerPhone) => {
   try {
     const response = await axios.post(
-      'https://api.uplinklite.com/message/sendPoll/sua-instancia',
+      'https://api.hook7.com.br/message/sendPoll/sua-instancia',
       {
         number: customerPhone,
         name: 'De 0 a 10, qual a chance de recomendar nosso serviço?',
@@ -631,7 +631,7 @@ sendNpsSurvey('5511999999999');`}
                     code={`import requests
 
 def send_product_menu(phone):
-    url = 'https://api.uplinklite.com/message/sendList/sua-instancia'
+    url = 'https://api.hook7.com.br/message/sendList/sua-instancia'
     headers = {
         'apikey': 'sua-apikey-aqui',
         'Content-Type': 'application/json'
@@ -685,7 +685,7 @@ send_product_menu('5511999999999')`}
                     code={`import requests
 
 def send_delivery_location(phone, order_id):
-    url = 'https://api.uplinklite.com/message/sendLocation/sua-instancia'
+    url = 'https://api.hook7.com.br/message/sendLocation/sua-instancia'
     headers = {
         'apikey': 'sua-apikey-aqui',
         'Content-Type': 'application/json'
@@ -721,7 +721,7 @@ send_delivery_location('5511999999999', '12345')`}
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://api.uplinklite.com/message/sendText/sua-instancia',
+  CURLOPT_URL => 'https://api.hook7.com.br/message/sendText/sua-instancia',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_POST => true,
   CURLOPT_HTTPHEADER => array(

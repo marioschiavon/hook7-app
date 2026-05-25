@@ -125,7 +125,7 @@ const SessionMonitoring = () => {
           }
 
           try {
-            const result = await evolutionApi.checkConnection(session.api_session, session.api_token);
+            const result = await evolutionApi.checkConnection(session.api_token);
             
             if (result.message === 'QRCODE') {
               return { id: session.id, status: 'qrcode' as const, statusMessage: 'Aguardando QR Code' };

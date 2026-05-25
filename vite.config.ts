@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     host: "0.0.0.0",
     port: 3000,
     strictPort: true,
-    allowedHosts: ['uplinklite.com']
+    allowedHosts: ['app.hook7.com.br']
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

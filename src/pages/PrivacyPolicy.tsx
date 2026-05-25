@@ -93,7 +93,7 @@ export default function PrivacyPolicy() {
                 Seus dados podem ser compartilhados apenas nas seguintes situações:
               </p>
               <ul className="space-y-2 leading-relaxed list-disc list-inside ml-4">
-                <li><strong>Processadores de pagamento:</strong> Para processar assinaturas e cobranças (Stripe, Mercado Pago).</li>
+                <li><strong>Processadores de pagamento:</strong> Para processar assinaturas e cobranças (Stripe).</li>
                 <li><strong>Serviços de infraestrutura:</strong> Provedores de hospedagem e banco de dados necessários para operação da plataforma.</li>
                 <li><strong>Obrigações legais:</strong> Quando exigido por lei, ordem judicial ou autoridade competente.</li>
               </ul>

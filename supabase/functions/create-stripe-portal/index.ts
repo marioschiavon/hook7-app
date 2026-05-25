@@ -27,7 +27,7 @@ serve(async (req) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customer_id,
-      return_url: `${req.headers.get('origin') || 'https://uplinklite.com'}/subscriptions`,
+      return_url: `${req.headers.get('origin') || 'https://hook7.com.br'}/subscriptions`,
     });
 
     console.log('✅ Portal URL criada');

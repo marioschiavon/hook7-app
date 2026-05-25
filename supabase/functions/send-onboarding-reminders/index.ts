@@ -42,7 +42,7 @@ function getNoSubscriptionEmailHtml(unsubscribeToken: string): string {
   
   <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
     <p style="font-size: 16px; margin-bottom: 20px;">
-      Você criou sua conta no <strong>Uplink Lite</strong>, mas ainda não ativou sua assinatura.
+      Você criou sua conta no <strong>Hook7</strong>, mas ainda não ativou sua assinatura.
     </p>
     
     <p style="font-size: 16px; margin-bottom: 20px;">
@@ -50,7 +50,7 @@ function getNoSubscriptionEmailHtml(unsubscribeToken: string): string {
     </p>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://uplinklite.com/dashboard" 
+      <a href="https://hook7.com.br/dashboard" 
          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                 color: white; 
                 padding: 14px 28px; 
@@ -76,9 +76,9 @@ function getNoSubscriptionEmailHtml(unsubscribeToken: string): string {
   
   <div style="text-align: center; margin-top: 20px; padding: 20px;">
     <p style="font-size: 12px; color: #9ca3af;">
-      Você está recebendo este email porque criou uma conta no Uplink Lite.
+      Você está recebendo este email porque criou uma conta no Hook7.
     </p>
-    <a href="https://uplinklite.com/unsubscribe?token=${unsubscribeToken}" 
+    <a href="https://hook7.com.br/unsubscribe?token=${unsubscribeToken}" 
        style="font-size: 12px; color: #9ca3af;">
       Cancelar inscrição
     </a>
@@ -103,7 +103,7 @@ function getNoSessionEmailHtml(unsubscribeToken: string): string {
   
   <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
     <p style="font-size: 16px; margin-bottom: 20px;">
-      <strong>Ótima notícia!</strong> Sua assinatura está ativa no Uplink Lite.
+      <strong>Ótima notícia!</strong> Sua assinatura está ativa no Hook7.
     </p>
     
     <p style="font-size: 16px; margin-bottom: 20px;">
@@ -121,7 +121,7 @@ function getNoSessionEmailHtml(unsubscribeToken: string): string {
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://uplinklite.com/sessions" 
+      <a href="https://hook7.com.br/sessions" 
          style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
                 color: white; 
                 padding: 14px 28px; 
@@ -136,9 +136,9 @@ function getNoSessionEmailHtml(unsubscribeToken: string): string {
   
   <div style="text-align: center; margin-top: 20px; padding: 20px;">
     <p style="font-size: 12px; color: #9ca3af;">
-      Você está recebendo este email porque tem uma assinatura ativa no Uplink Lite.
+      Você está recebendo este email porque tem uma assinatura ativa no Hook7.
     </p>
-    <a href="https://uplinklite.com/unsubscribe?token=${unsubscribeToken}" 
+    <a href="https://hook7.com.br/unsubscribe?token=${unsubscribeToken}" 
        style="font-size: 12px; color: #9ca3af;">
       Cancelar inscrição
     </a>
@@ -261,12 +261,12 @@ serve(async (req: Request): Promise<Response> => {
         : getNoSessionEmailHtml(unsubscribeToken);
 
       const subject = reminderType === "no_subscription"
-        ? "👋 Complete sua assinatura no Uplink Lite"
+        ? "👋 Complete sua assinatura no Hook7"
         : "📱 Falta pouco! Conecte seu WhatsApp";
 
       try {
         const emailResponse = await resend.emails.send({
-          from: "Uplink Lite <noreply@uplinklite.com>",
+          from: "Hook7 <noreply@hook7.com.br>",
           to: [user.email],
           subject: subject,
           html: emailHtml,

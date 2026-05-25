@@ -303,6 +303,21 @@
     "offline": "Offline",
     "qrCode": "QR Code"
   },
+  "sidebar": {
+    "mainMenu": "Main Menu",
+    "admin": "Admin",
+    "tools": "Tools",
+    "dashboard": "Dashboard",
+    "sessions": "Sessions",
+    "subscriptions": "Subscriptions",
+    "apiDocs": "API Docs",
+    "monitoring": "Monitoring",
+    "adminDashboard": "Admin Dashboard",
+    "organizations": "Organizations",
+    "users": "Users",
+    "announcements": "Announcements",
+    "logout": "Log Out"
+  },
   "webhooks": {
     "title": "Configure Webhook",
     "description": "Receive real-time notifications when events occur",

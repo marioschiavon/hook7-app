@@ -2,10 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./components/layout/ProtectedLayout";
 import { RouteChangeTracker } from "./components/RouteChangeTracker";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
@@ -31,6 +30,12 @@ import GetStarted from "./pages/GetStarted";
 
 const queryClient = new QueryClient();
 
+/** Redirect root to the Hook7 landing page */
+const LandingRedirect = () => {
+  window.location.href = "https://hook7.com.br";
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -40,7 +45,7 @@ const App = () => (
         <RouteChangeTracker />
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<LandingRedirect />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/api-docs" element={<ApiDocs />} />

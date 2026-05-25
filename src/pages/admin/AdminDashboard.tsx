@@ -23,6 +23,7 @@ const AdminDashboard = () => {
     totalUsers: 0,
     totalSessions: 0,
     monthlyRevenue: 0,
+    totalMessagesSent: 0,
   });
   const [subsByStatus, setSubsByStatus] = useState<{ name: string; value: number }[]>([]);
   const [growthData, setGrowthData] = useState<{ month: string; users: number; sessions: number }[]>([]);
@@ -57,11 +58,15 @@ const AdminDashboard = () => {
       const activeSubs = subs.filter((s) => s.status === "active");
       const revenue = activeSubs.reduce((sum, s) => sum + Number(s.amount || 0), 0);
 
+      const allSessionsWithMessages = await supabase.from("sessions").select("messages_sent_this_month");
+      const totalMessages = allSessionsWithMessages.data?.reduce((sum, s) => sum + (s.messages_sent_this_month || 0), 0) || 0;
+
       setMetrics({
         totalOrgs: orgRes.count || 0,
         totalUsers: userRes.count || 0,
         totalSessions: sessionRes.count || 0,
         monthlyRevenue: revenue,
+        totalMessagesSent: totalMessages,
       });
 
       // Subs by status
@@ -140,6 +145,7 @@ const AdminDashboard = () => {
           { title: "Organizações", value: metrics.totalOrgs, icon: Building2, color: "blue" as const },
           { title: "Usuários", value: metrics.totalUsers, icon: Users, color: "green" as const },
           { title: "Sessões", value: metrics.totalSessions, icon: MessageSquare, color: "orange" as const },
+          { title: "Mensagens", value: metrics.totalMessagesSent, icon: Activity, color: "purple" as const },
           { title: "Receita Mensal", value: `R$ ${metrics.monthlyRevenue.toFixed(2)}`, icon: DollarSign, color: "green" as const },
         ].map((stat) => (
           <motion.div key={stat.title} variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>

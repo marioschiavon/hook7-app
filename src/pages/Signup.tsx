@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, User, Phone, ArrowLeft, Clock, MessageSquare, Headphones, XCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, Mail, Lock, User, Phone, ArrowLeft, Clock, MessageSquare, Headphones, XCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +19,7 @@ const Signup = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const formatPhone = (value: string) => {
     // Remove tudo que não for dígito
@@ -238,14 +239,22 @@ const Signup = () => {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder={t('auth.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="bg-muted/50 border-border/50 pl-10"
+                      className="bg-muted/50 border-border/50 pl-10 pr-10"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
                 <Button 

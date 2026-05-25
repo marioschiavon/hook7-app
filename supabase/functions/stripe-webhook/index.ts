@@ -157,9 +157,9 @@ serve(async (req) => {
             const amount = (stripeSubscription.items.data[0].price.unit_amount || 0) / 100;
             
             await resend.emails.send({
-              from: 'Uplink Lite <assinaturas@uplinklite.com>',
+              from: 'Hook7 <suporte@hook7.com.br>',
               to: [session.customer_details.email],
-              subject: '✅ Assinatura Ativada com Sucesso - Uplink Lite',
+              subject: '✅ Assinatura Ativada com Sucesso - Hook7',
               html: `
                 <!DOCTYPE html>
                 <html>
@@ -188,7 +188,7 @@ serve(async (req) => {
                       <div class="success-badge">✓ Pagamento Confirmado</div>
                       
                       <p style="font-size: 16px; margin-bottom: 20px;">
-                        Olá! Sua assinatura do Uplink foi ativada com sucesso e sua sessão já está pronta para uso.
+                        Olá! Sua assinatura do Hook7 foi ativada com sucesso e sua sessão já está pronta para uso.
                       </p>
                       
                       <div class="card">
@@ -296,9 +296,9 @@ serve(async (req) => {
               const periodEndDate = new Date(subscription.current_period_end * 1000);
               
               await resend.emails.send({
-                from: 'Uplink Lite <assinaturas@uplinklite.com>',
+                from: 'Hook7 <suporte@hook7.com.br>',
                 to: [(subData as any).payer_email],
-                subject: '⚠️ Cancelamento Agendado - Uplink Lite',
+                subject: '⚠️ Cancelamento Agendado - Hook7',
                 html: `
                   <!DOCTYPE html>
                   <html>
@@ -329,7 +329,7 @@ serve(async (req) => {
                         <div class="warning-badge">📅 Sua sessão continua ativa</div>
                         
                         <p style="font-size: 16px; margin-bottom: 20px;">
-                          Confirmamos o cancelamento da sua assinatura do Uplink. <strong>Mas não se preocupe!</strong> Você pode continuar usando normalmente até o fim do período que já foi pago.
+                          Confirmamos o cancelamento da sua assinatura do Hook7. <strong>Mas não se preocupe!</strong> Você pode continuar usando normalmente até o fim do período que já foi pago.
                         </p>
                         
                         <div class="card" style="border-left: 4px solid #f97316;">
@@ -441,7 +441,7 @@ serve(async (req) => {
             // PASSO 1: Fechar sessão (close-session)
             try {
               const closeResponse = await fetch(
-                `https://api.uplinklite.com/api/${sessionData.api_session}/close-session`,
+                `https://api.hook7.com.br/api/${sessionData.api_session}/close-session`,
                 {
                   method: 'POST',
                   headers: {
@@ -460,7 +460,7 @@ serve(async (req) => {
             // PASSO 2: Excluir sessão (logout-session)
             try {
               const logoutResponse = await fetch(
-                `https://api.uplinklite.com/api/${sessionData.api_session}/logout-session`,
+                `https://api.hook7.com.br/api/${sessionData.api_session}/logout-session`,
                 {
                   method: 'POST',
                   headers: {
@@ -495,9 +495,9 @@ serve(async (req) => {
               const amount = (subData as any).amount || 0;
               
               await resend.emails.send({
-                from: 'Uplink Lite <assinaturas@uplinklite.com>',
+                from: 'Hook7 <suporte@hook7.com.br>',
                 to: [(subData as any).payer_email],
-                subject: '⚠️ Assinatura Cancelada - Uplink Lite',
+                subject: '⚠️ Assinatura Cancelada - Hook7',
                 html: `
                   <!DOCTYPE html>
                   <html>
@@ -527,7 +527,7 @@ serve(async (req) => {
                         <div class="warning-badge">⊗ Sessão Desconectada</div>
                         
                         <p style="font-size: 16px; margin-bottom: 20px;">
-                          Sua assinatura do Uplink foi cancelada e sua sessão foi desconectada automaticamente.
+                          Sua assinatura do Hook7 foi cancelada e sua sessão foi desconectada automaticamente.
                         </p>
                         
                         <div class="card">
@@ -640,9 +640,9 @@ serve(async (req) => {
         if (failedSubData && (failedSubData as any).payer_email) {
           try {
             await resend.emails.send({
-              from: 'Uplink Lite <assinaturas@uplinklite.com>',
+              from: 'Hook7 <suporte@hook7.com.br>',
               to: [(failedSubData as any).payer_email],
-              subject: '⚠️ Problema com seu Pagamento - Uplink Lite',
+              subject: '⚠️ Problema com seu Pagamento - Hook7',
               html: `
                 <!DOCTYPE html>
                 <html>
@@ -672,7 +672,7 @@ serve(async (req) => {
                       <div class="error-badge">✕ Pagamento Não Processado</div>
                       
                       <p style="font-size: 16px; margin-bottom: 20px;">
-                        Não conseguimos processar o pagamento da sua assinatura do Uplink. Atualize seu método de pagamento para evitar a desconexão da sessão.
+                        Não conseguimos processar o pagamento da sua assinatura do Hook7. Atualize seu método de pagamento para evitar a desconexão da sessão.
                       </p>
                       
                       <div class="card" style="border-left: 4px solid #ef4444;">
@@ -749,26 +749,26 @@ serve(async (req) => {
         const notificationPhone = failedSessionData?.notification_phone;
         if (notificationPhone) {
           try {
-            const uplinkToken = Deno.env.get('UPLINK_WHATSAPP_TOKEN');
-            const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://api.uplinklite.com';
+            const hook7Token = Deno.env.get('HOOK7_WHATSAPP_TOKEN');
+            const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://api.hook7.com.br';
 
             const whatsappMessage = 
-              `⚠️ *Problema com seu Pagamento - Uplink Lite*\n\n` +
+              `⚠️ *Problema com seu Pagamento - Hook7*\n\n` +
               `Não conseguimos processar o pagamento da sua assinatura.\n\n` +
               `📋 *Detalhes:*\n` +
               `• Sessão: ${failedSessionName}\n` +
               `• Valor: R$ ${failedAmount.toFixed(2)}/mês\n` +
               `• Motivo: ${failureReason}\n\n` +
               `🔔 *O que fazer:*\n` +
-              `1. Acesse o painel em uplinklite.com\n` +
+              `1. Acesse o painel em hook7.com.br\n` +
               `2. Vá em Assinaturas\n` +
               `3. Clique em "Atualizar Pagamento"\n\n` +
               `⏰ Regularize para evitar a desconexão da sua sessão.`;
 
-            await fetch(`${evolutionApiUrl}/message/sendText/Uplink`, {
+            await fetch(`${evolutionApiUrl}/message/sendText/Hook7`, {
               method: 'POST',
               headers: {
-                'apikey': uplinkToken!,
+                'apikey': hook7Token!,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({

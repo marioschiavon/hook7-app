@@ -23,9 +23,9 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       console.log("📧 Enviando email 1/3: Assinatura Ativada...");
       const result1 = await resend.emails.send({
-        from: 'Uplink Lite <assinaturas@uplinklite.com>',
+        from: 'Hook7 <suporte@hook7.com.br>',
         to: [testEmail],
-        subject: '✅ [TESTE] Assinatura Ativada com Sucesso - Uplink Lite',
+        subject: '✅ [TESTE] Assinatura Ativada com Sucesso - Hook7',
         html: `
           <!DOCTYPE html>
           <html>
@@ -56,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <div class="success-badge">✓ Pagamento Confirmado</div>
                 
                 <p style="font-size: 16px; margin-bottom: 20px;">
-                  Olá! Sua assinatura do Uplink Lite foi ativada com sucesso e sua sessão já está pronta para uso.
+                  Olá! Sua assinatura do Hook7 foi ativada com sucesso e sua sessão já está pronta para uso.
                 </p>
                 
                 <div class="card">
@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
                 
                 <div class="footer">
-                  <p>Este é um email de teste do sistema Uplink Lite</p>
+                  <p>Este é um email de teste do sistema Hook7</p>
                   <p style="font-size: 12px; color: #9ca3af;">
                     Enviado em ${new Date().toLocaleString('pt-BR')}
                   </p>
@@ -113,9 +113,9 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       console.log("📧 Enviando email 2/3: Cancelamento Agendado...");
       const result2 = await resend.emails.send({
-        from: 'Uplink Lite <assinaturas@uplinklite.com>',
+        from: 'Hook7 <suporte@hook7.com.br>',
         to: [testEmail],
-        subject: '⚠️ [TESTE] Cancelamento Agendado - Uplink Lite',
+        subject: '⚠️ [TESTE] Cancelamento Agendado - Hook7',
         html: `
           <!DOCTYPE html>
           <html>
@@ -145,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <div class="warning-badge">📅 Sua sessão continua ativa</div>
                 
                 <p style="font-size: 16px; margin-bottom: 20px;">
-                  Confirmamos o cancelamento da sua assinatura do Uplink Lite. <strong>Mas não se preocupe!</strong> Você pode continuar usando normalmente até o fim do período que já foi pago.
+                  Confirmamos o cancelamento da sua assinatura do Hook7. <strong>Mas não se preocupe!</strong> Você pode continuar usando normalmente até o fim do período que já foi pago.
                 </p>
                 
                 <div class="card" style="border-left: 4px solid #f97316;">
@@ -177,7 +177,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
                 
                 <div class="footer">
-                  <p>Este é um email de teste do sistema Uplink Lite</p>
+                  <p>Este é um email de teste do sistema Hook7</p>
                   <p style="font-size: 12px; color: #9ca3af;">
                     Enviado em ${new Date().toLocaleString('pt-BR')}
                   </p>
@@ -199,9 +199,9 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       console.log("📧 Enviando email 3/3: Anúncio...");
       const result3 = await resend.emails.send({
-        from: "Uplink Lite <avisos@uplinklite.com>",
+        from: "Hook7 <avisos@hook7.com.br>",
         to: [testEmail],
-        subject: "📢 [TESTE] Anúncio do Sistema - Uplink Lite",
+        subject: "📢 [TESTE] Anúncio do Sistema - Hook7",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: #fbbf24; color: #78350f; padding: 8px; text-align: center; border-radius: 4px; margin-bottom: 20px; font-weight: 600;">
@@ -212,11 +212,11 @@ const handler = async (req: Request): Promise<Response> => {
             </h1>
             <div style="background-color: #eff6ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
               <p style="color: #333; line-height: 1.6; margin: 0;">
-                Este é um exemplo de anúncio enviado pelo sistema Uplink Lite.<br><br>
+                Este é um exemplo de anúncio enviado pelo sistema Hook7.<br><br>
                 
                 <strong>Funcionalidades testadas:</strong><br>
-                • Envio de emails de assinatura (assinaturas@uplinklite.com)<br>
-                • Envio de emails de avisos (avisos@uplinklite.com)<br>
+                • Envio de emails de assinatura (suporte@hook7.com.br)<br>
+                • Envio de emails de avisos (avisos@hook7.com.br)<br>
                 • Templates HTML responsivos<br>
                 • Integração com Resend usando novo domínio
               </p>
@@ -224,11 +224,11 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
               <p style="color: #333; line-height: 1.6; margin: 0;">
                 <strong>✅ Teste Concluído com Sucesso!</strong><br>
-                Se você está vendo este email, significa que a configuração do domínio uplinklite.com no Resend está funcionando corretamente.
+                Se você está vendo este email, significa que a configuração do domínio hook7.com.br no Resend está funcionando corretamente.
               </p>
             </div>
             <p style="color: #666; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              Este é um anúncio automático do sistema Uplink Lite.<br>
+              Este é um anúncio automático do sistema Hook7.<br>
               Enviado em ${new Date().toLocaleString('pt-BR')}
             </p>
           </div>

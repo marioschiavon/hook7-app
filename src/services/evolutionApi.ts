@@ -1,6 +1,6 @@
 /**
  * Hook7 WhatsApp API Service
- * Serviço centralizado para todas as chamadas à API de instâncias WhatsApp
+ * Serviço centralizado para todas as chamadas à Evolution GO
  */
 
 const EVOLUTION_API_URL = import.meta.env.VITE_API_URL || 'https://api.hook7.com.br';
@@ -18,17 +18,6 @@ export interface EvolutionQRCode {
   code?: string;
 }
 
-export interface EvolutionInstance {
-  instance: {
-    instanceName: string;
-    instanceId: string;
-    status: string;
-  };
-  hash: {
-    apikey: string;
-  };
-}
-
 // Normalizar resposta de conexão para manter compatibilidade
 export interface NormalizedConnectionStatus {
   status: boolean;
@@ -41,12 +30,11 @@ export interface NormalizedConnectionStatus {
  * Verificar estado da conexão de uma instância
  */
 export const checkConnection = async (
-  instanceName: string, 
   apiKey: string
 ): Promise<NormalizedConnectionStatus> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/connectionState/${instanceName}`,
+      `${EVOLUTION_API_URL}/instance/status`,
       {
         headers: {
           'apikey': apiKey
@@ -58,8 +46,8 @@ export const checkConnection = async (
       return { status: false, message: 'Offline' };
     }
 
-    const data: EvolutionConnectionState = await response.json();
-    const state = data.instance?.state;
+    const data: any = await response.json();
+    const state = data?.instance?.state || data?.state;
     
     if (state === 'open') {
       return { status: true, message: 'CONNECTED' };
@@ -78,16 +66,20 @@ export const checkConnection = async (
  * Conectar instância e obter QR Code
  */
 export const connectInstance = async (
-  instanceName: string, 
   apiKey: string
 ): Promise<EvolutionQRCode | null> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/connect/${instanceName}`,
+      `${EVOLUTION_API_URL}/instance/connect`,
       {
+        method: 'POST',
         headers: {
-          'apikey': apiKey
-        }
+          'apikey': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          immediate: true
+        })
       }
     );
 
@@ -107,12 +99,11 @@ export const connectInstance = async (
  * Buscar QR Code atual
  */
 export const fetchQRCode = async (
-  instanceName: string, 
   apiKey: string
 ): Promise<EvolutionQRCode | null> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/connect/${instanceName}`,
+      `${EVOLUTION_API_URL}/instance/qr`,
       {
         headers: {
           'apikey': apiKey
@@ -136,12 +127,11 @@ export const fetchQRCode = async (
  * Desconectar/logout de uma instância
  */
 export const logoutInstance = async (
-  instanceName: string, 
   apiKey: string
 ): Promise<boolean> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/logout/${instanceName}`,
+      `${EVOLUTION_API_URL}/instance/logout`,
       {
         method: 'DELETE',
         headers: {
@@ -161,12 +151,12 @@ export const logoutInstance = async (
  * Deletar uma instância completamente
  */
 export const deleteInstance = async (
-  instanceName: string, 
+  instanceId: string, 
   apiKey: string
 ): Promise<boolean> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/delete/${instanceName}`,
+      `${EVOLUTION_API_URL}/instance/delete/${instanceId}`,
       {
         method: 'DELETE',
         headers: {
@@ -200,7 +190,7 @@ export const fetchInstances = async (
 ): Promise<EvolutionInstanceInfo[]> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/fetchInstances`,
+      `${EVOLUTION_API_URL}/instance/all`,
       {
         headers: {
           'apikey': globalApiKey
@@ -246,94 +236,132 @@ export const isValidEvolutionToken = (token: string | null | undefined): boolean
  * Enviar mensagem de texto
  */
 export const sendText = async (
-  instanceName: string,
   apiKey: string,
-  number: string,
+  phoneNumber: string,
   text: string
-): Promise<{ success: boolean; messageId?: string; error?: string }> => {
+): Promise<{ success: boolean; data?: any; error?: string }> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/message/sendText/${instanceName}`,
+      `${EVOLUTION_API_URL}/send/text`,
       {
         method: 'POST',
         headers: {
-          'apikey': apiKey,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'apikey': apiKey
         },
         body: JSON.stringify({
-          number,
-          text
+          number: phoneNumber,
+          text: text
         })
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorText = await response.text();
-      return { success: false, error: `Erro ${response.status}: ${errorText}` };
+      return { 
+        success: false, 
+        error: data.message || data.error || 'Erro ao enviar mensagem' 
+      };
     }
 
-    const data = await response.json();
-    return { success: true, messageId: data.key?.id };
+    return { success: true, data };
   } catch (error: any) {
-    console.error('Erro ao enviar mensagem:', error);
-    return { success: false, error: error.message };
+    console.error('Erro ao enviar mensagem via Evolution API:', error);
+    return { success: false, error: error.message || 'Erro de conexão' };
+  }
+};
+
+export interface GroupInfo {
+  id: string;
+  subject: string;
+  subjectOwner?: string;
+  subjectTime?: number;
+  size?: number;
+  creation?: number;
+  owner?: string;
+  desc?: string;
+  restrict?: boolean;
+  announce?: boolean;
+  participants?: any[];
+}
+
+/**
+ * Buscar todos os grupos que a instância tem acesso
+ */
+export const fetchAllGroups = async (
+  apiKey: string
+): Promise<{ success: boolean; data?: GroupInfo[]; error?: string }> => {
+  try {
+    const response = await fetch(
+      `${EVOLUTION_API_URL}/group/list`,
+      {
+        method: 'GET',
+        headers: {
+          'apikey': apiKey
+        }
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { 
+        success: false, 
+        error: data.message || data.error || 'Erro ao buscar grupos' 
+      };
+    }
+
+    // Evolution API geralmente retorna um array ou objeto com .data
+    const groups = Array.isArray(data) ? data : data.data || [];
+    
+    return { success: true, data: groups };
+  } catch (error: any) {
+    console.error('Erro ao buscar grupos via Evolution API:', error);
+    return { success: false, error: error.message || 'Erro de conexão' };
   }
 };
 
 /**
- * Enviar mídia (imagem, áudio, documento)
+ * Criar uma nova instância na Evolution API
+ * Requer o Token Global ou token genérico compatível
  */
-export const sendMedia = async (
+export const createInstance = async (
   instanceName: string,
-  apiKey: string,
-  number: string,
-  mediaUrl: string,
-  mediaType: 'image' | 'audio' | 'document',
-  options?: { caption?: string; filename?: string }
-): Promise<{ success: boolean; messageId?: string; error?: string }> => {
+  instanceToken: string,
+  globalApiKey: string = ''
+): Promise<{ success: boolean; data?: any; error?: string }> => {
   try {
+    // Nota: O endpoint de criação na Evolution GO pode usar o globalToken,
+    // ou se aceitar o header 'apikey: instanceToken', mandamos o próprio token da instância gerado.
     const response = await fetch(
-      `${EVOLUTION_API_URL}/message/sendMedia/${instanceName}`,
+      `${EVOLUTION_API_URL}/instance/create`,
       {
         method: 'POST',
         headers: {
-          'apikey': apiKey,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'apikey': globalApiKey || instanceToken
         },
         body: JSON.stringify({
-          number,
-          mediatype: mediaType,
-          media: mediaUrl,
-          caption: options?.caption,
-          fileName: options?.filename
+          instanceId: instanceName,
+          name: instanceName,
+          token: instanceToken
         })
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorText = await response.text();
-      return { success: false, error: `Erro ${response.status}: ${errorText}` };
+      return { 
+        success: false, 
+        error: data.message || data.error || 'Erro ao criar instância' 
+      };
     }
 
-    const data = await response.json();
-    return { success: true, messageId: data.key?.id };
+    return { success: true, data };
   } catch (error: any) {
-    console.error('Erro ao enviar mídia:', error);
-    return { success: false, error: error.message };
+    console.error('Erro ao criar instância via Evolution API:', error);
+    return { success: false, error: error.message || 'Erro de conexão' };
   }
 };
-
-// Export default object para uso conveniente
-export const evolutionApi = {
-  checkConnection,
-  connectInstance,
-  fetchQRCode,
-  logoutInstance,
-  deleteInstance,
-  fetchInstances,
-  isValidEvolutionToken,
-  sendText,
-  sendMedia
-};
-
-export default evolutionApi;

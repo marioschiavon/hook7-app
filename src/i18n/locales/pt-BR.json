@@ -162,7 +162,7 @@
       },
       {
         "question": "Quanto custa a API WhatsApp da Hook7?",
-        "answer": "Consulte nossos planos em hook7.com.br/precos. Mensagens ilimitadas incluídas. O pagamento é mensal e pode ser cancelado a qualquer momento sem multas."
+        "answer": "Consulte nossos planos em hook7.com.br. Mensagens ilimitadas incluídas. O pagamento é mensal e pode ser cancelado a qualquer momento sem multas."
       },
       {
         "question": "Preciso ser BSP do WhatsApp para usar a Hook7?",
@@ -302,6 +302,21 @@
     "online": "Online",
     "offline": "Offline",
     "qrCode": "QR Code"
+  },
+  "sidebar": {
+    "mainMenu": "Menu Principal",
+    "admin": "Admin",
+    "tools": "Ferramentas",
+    "dashboard": "Dashboard",
+    "sessions": "Sessões",
+    "subscriptions": "Assinaturas",
+    "apiDocs": "Documentação API",
+    "monitoring": "Monitoramento",
+    "adminDashboard": "Dashboard Admin",
+    "organizations": "Organizações",
+    "users": "Usuários",
+    "announcements": "Anúncios",
+    "logout": "Sair"
   },
   "webhooks": {
     "title": "Configurar Webhook",

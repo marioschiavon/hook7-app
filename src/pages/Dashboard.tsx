@@ -12,6 +12,7 @@ import { OrganizationBanner } from "@/components/dashboard/OrganizationBanner";
 import { ApiKeySheet } from "@/components/dashboard/ApiKeySheet";
 import { SendTestMessageDialog } from "@/components/dashboard/SendTestMessageDialog";
 import { ConnectionHelpCard } from "@/components/dashboard/ConnectionHelpCard";
+import { MessageLogsWidget } from "@/components/dashboard/MessageLogsWidget";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { toast } from "sonner";
 import { Zap, MessageSquare, CreditCard, ArrowRight, Plus, DollarSign, Settings, Megaphone, HelpCircle } from "lucide-react";
@@ -208,7 +209,7 @@ const Dashboard = () => {
 
   const fetchSessionStatus = async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
-      const result = await evolutionApi.checkConnection(apiSession, apiToken);
+      const result = await evolutionApi.checkConnection(apiToken);
       setSessionsStatus(prev => ({
         ...prev,
         [sessionId]: result
@@ -231,7 +232,6 @@ const Dashboard = () => {
     
     try {
       const result = await evolutionApi.sendText(
-        session.api_session,
         session.api_token,
         phoneNumber,
         message
@@ -442,6 +442,17 @@ const Dashboard = () => {
           />
         </motion.div>
       </motion.div>
+
+      {/* Message Logs and Usage Widget */}
+      {orgData && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <MessageLogsWidget organizationId={orgData.id} />
+        </motion.div>
+      )}
 
       {/* Organization Banner */}
       {orgData && (

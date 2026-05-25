@@ -1,8 +1,8 @@
-# 🔐 Sistema de Assinaturas por Sessão - Uplink
+# 🔐 Sistema de Assinaturas por Sessão - Hook7
 
 ## 📋 Visão Geral
 
-O Uplink agora implementa um modelo de assinatura **por sessão**, onde cada sessão WhatsApp possui sua própria assinatura independente no Mercado Pago.
+O Hook7 agora implementa um modelo de assinatura **por sessão**, onde cada sessão WhatsApp possui sua própria assinatura independente no Stripe.
 
 ### Benefícios do Modelo:
 - ✅ **Flexibilidade**: Cliente pode ter múltiplas sessões
@@ -29,12 +29,12 @@ O Uplink agora implementa um modelo de assinatura **por sessão**, onde cada ses
 └──────┬───────┘
        │
        ├── 1. Chama generate-whatsapp-token (cria sessão)
-       ├── 2. Chama create-subscription (vincula assinatura à sessão)
-       └── 3. Redireciona para Mercado Pago
+       ├── 2. Chama create-stripe-checkout (vincula assinatura à sessão)
+       └── 3. Redireciona para Stripe
        │
        v
 ┌────────────────────┐
-│  Mercado Pago      │
+│  Stripe      │
 │  (Pagamento)       │
 └────────┬───────────┘
        │
@@ -69,7 +69,7 @@ requires_subscription BOOLEAN DEFAULT TRUE
 ```sql
 session_id UUID REFERENCES sessions(id)
 -- Vincula assinatura a uma sessão específica
--- Cada sessão = 1 assinatura no Mercado Pago
+-- Cada sessão = 1 assinatura no Stripe
 ```
 
 ---
@@ -91,9 +91,9 @@ Dashboard → Criar Sessão
           ↓
    generate-whatsapp-token (cria sessão)
           ↓
-   create-subscription (session_id)
+   create-stripe-checkout (session_id)
           ↓
-   Mercado Pago (pagamento)
+   Stripe (pagamento)
           ↓
    Webhook (confirma)
           ↓
@@ -103,12 +103,12 @@ Dashboard → Criar Sessão
 ### 3️⃣ Cliente NOVO (Segunda Sessão)
 ```
 Repete o processo da primeira sessão
-→ Nova assinatura independente no Mercado Pago
+→ Nova assinatura independente no Stripe
 ```
 
 ### 4️⃣ Cancelamento de Assinatura
 ```
-Cliente cancela no Mercado Pago
+Cliente cancela no Stripe
           ↓
    Webhook recebe notificação
           ↓
@@ -149,7 +149,7 @@ if (orgData.is_legacy) {
 
 ### Preço por Sessão
 - **R$ 69,90/mês** por sessão
-- Renovação automática via Mercado Pago
+- Renovação automática via Stripe
 - Cancelamento independente
 
 ### Limites
@@ -166,18 +166,18 @@ if (orgData.is_legacy) {
 - **Função**: Cria sessão no banco e gera token na API externa
 - **Nova coluna**: `requires_subscription = TRUE` (por padrão)
 
-### `create-subscription`
+### `create-stripe-checkout`
 - **Input**: `{ session_id: string }`
 - **Output**: `{ init_point, subscription_id }`
 - **Função**: 
   1. Verifica se session_id existe
   2. Verifica se já tem assinatura ativa
-  3. Cria assinatura no Mercado Pago
+  3. Cria assinatura no Stripe
   4. Vincula assinatura à sessão no banco
   5. Retorna URL de pagamento
 
-### `mercadopago-webhook`
-- **Input**: Notificação do Mercado Pago
+### `stripe-webhook`
+- **Input**: Notificação do Stripe
 - **Função**:
   1. Busca assinatura por `preapproval_id`
   2. Atualiza status da assinatura
@@ -208,8 +208,8 @@ if (orgData.is_legacy) {
 6. Clica "Assinar agora"
 7. ✅ Mostra "Criando sessão..."
 8. ✅ Mostra "Processando pagamento..."
-9. ✅ Redireciona para Mercado Pago
-10. Paga no Mercado Pago
+9. ✅ Redireciona para Stripe
+10. Paga no Stripe
 11. ✅ Webhook libera sessão (requires_subscription = FALSE)
 ```
 
@@ -225,7 +225,7 @@ if (orgData.is_legacy) {
 
 ### ✅ Teste 4: Cancelamento de Uma Sessão
 ```
-1. Cliente cancela assinatura no Mercado Pago
+1. Cliente cancela assinatura no Stripe
 2. ✅ Webhook recebe notificação
 3. ✅ Atualiza apenas a sessão cancelada (requires_subscription = TRUE)
 4. ✅ Outras sessões continuam funcionando
@@ -237,11 +237,11 @@ if (orgData.is_legacy) {
 
 ### Logs Importantes
 ```typescript
-// create-subscription
+// create-stripe-checkout
 console.log('Creating subscription for session:', session_id);
 console.log('Session: ${sessionData.name}, Organization: ${orgName}');
 
-// mercadopago-webhook
+// stripe-webhook
 console.log('Webhook recebido:', preapprovalId);
 console.log('Sessão ${session_id} ${subscriptionActive ? "liberada" : "bloqueada"}');
 ```
@@ -271,8 +271,8 @@ SELECT * FROM organizations WHERE is_legacy = TRUE;
 ```
 
 ### 2. Edge Functions
-- ✅ `create-subscription` (modificada)
-- ✅ `mercadopago-webhook` (modificada)
+- ✅ `create-stripe-checkout` (modificada)
+- ✅ `stripe-webhook` (modificada)
 - ✅ `generate-whatsapp-token` (sem alterações)
 
 ### 3. Frontend
@@ -303,8 +303,8 @@ SELECT * FROM organizations WHERE is_legacy = TRUE;
 
 ### Sessão não libera após pagamento
 - Webhook pode não estar chegando
-- Verificar logs: Dashboard Supabase → Edge Functions → mercadopago-webhook
-- Verificar se URL do webhook está configurada no Mercado Pago
+- Verificar logs: Dashboard Supabase → Edge Functions → stripe-webhook
+- Verificar se URL do webhook está configurada no Stripe
 
 ### Cliente legacy sendo cobrado
 - Verificar `organizations.is_legacy = TRUE`
@@ -314,6 +314,6 @@ SELECT * FROM organizations WHERE is_legacy = TRUE;
 
 ## 📚 Referências
 
-- [Documentação Mercado Pago - Assinaturas](https://www.mercadopago.com.br/developers/pt/docs/subscriptions/integration-configuration/subscriptions-creation)
+- [Documentação Stripe - Assinaturas](https://docs.stripe.com/billing/subscriptions/overview)
 - [Supabase Edge Functions](https://supabase.com/docs/guides/functions)
 - [RLS Policies Supabase](https://supabase.com/docs/guides/auth/row-level-security)

@@ -35,7 +35,9 @@ serve(async (req) => {
     }
 
     // 2. Parse webhook payload
-    const payload: WebhookPayload = await req.json();
+    const payload = await req.json();
+    console.log('Webhook payload recebido:', JSON.stringify(payload, null, 2));
+
     const eventType = payload.event || 'UNKNOWN';
     const instanceName = payload.instance;
 
@@ -71,6 +73,74 @@ serve(async (req) => {
     }
 
     console.log(`Session found: ${session.name} (${session.id})`);
+
+    // 4.2 Track message limits if event is MESSAGES_UPSERT
+    if (eventType === 'MESSAGES_UPSERT' && payload.data) {
+      // Data might be an array or single object depending on evolution version
+      const messages = Array.isArray(payload.data) ? payload.data : [payload.data];
+      
+      const outgoingMessages = [];
+      
+      for (const msg of messages) {
+        // Increment count only for outgoing messages (fromMe = true)
+        if (msg?.key?.fromMe === true) {
+          let type = 'text';
+          if (msg.message?.imageMessage) type = 'image';
+          else if (msg.message?.audioMessage) type = 'audio';
+          else if (msg.message?.documentMessage) type = 'document';
+          else if (msg.message?.videoMessage) type = 'video';
+          
+          outgoingMessages.push({
+            session_id: session.id,
+            phone_number: msg.key.remoteJid || 'unknown',
+            type: type,
+            status: 'sent',
+          });
+        }
+      }
+
+      if (outgoingMessages.length > 0) {
+        // Insert into message_logs. The DB trigger will automatically increment messages_sent_this_month.
+        const { error: insertError } = await supabaseAdmin
+          .from('message_logs')
+          .insert(outgoingMessages);
+          
+        if (insertError) {
+          console.error('Error inserting message logs:', insertError);
+        }
+
+        // Check the current count to see if we need to block the session
+        const { data: currentSession } = await supabaseAdmin
+          .from('sessions')
+          .select('message_limit, messages_sent_this_month')
+          .eq('id', session.id)
+          .single();
+
+        if (currentSession && currentSession.message_limit !== -1) {
+          if (currentSession.messages_sent_this_month >= currentSession.message_limit) {
+            console.log(`Session ${session.name} reached message limit (${currentSession.messages_sent_this_month}/${currentSession.message_limit}). Blocking...`);
+            
+            // Block the session by logging out from Evolution API
+            try {
+              const EVOLUTION_API_URL = Deno.env.get('EVOLUTION_API_URL') || 'https://api.hook7.com.br';
+              await fetch(`${EVOLUTION_API_URL}/instance/logout`, {
+                method: 'DELETE',
+                headers: { 'apikey': apiKey }
+              });
+              
+              await supabaseAdmin
+                .from('sessions')
+                .update({ status: 'blocked_limit' })
+                .eq('id', session.id);
+                
+              console.log('Session logged out successfully due to limit.');
+            } catch (err) {
+              console.error('Error logging out instance for limit breach:', err);
+            }
+          }
+        }
+      }
+    }
 
     // 4.5 Sync connection status to database on CONNECTION_UPDATE events
     if (eventType === 'CONNECTION_UPDATE' && payload.data) {
