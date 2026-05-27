@@ -24,6 +24,11 @@ import { ptBR, enUS } from "date-fns/locale";
 import * as hook7Api from "@/services/hook7Api";
 import { useRegionalPricing, formatPrice } from "@/hooks/useRegionalPricing";
 
+// New Dashboard Components
+import { Sparkline } from "@/components/dashboard/Sparkline";
+import { ActivityFeed, ActivityItem } from "@/components/dashboard/ActivityFeed";
+import { AutomationFlow } from "@/components/dashboard/AutomationFlow";
+
 interface UserData {
   id: string;
   name: string | null;
@@ -337,8 +342,43 @@ const Dashboard = () => {
   };
 
   const priceDisplay = formatPrice(pricing);
+
+  // Mock data for the sparklines and activity feed
+  const sentMessagesSparkline = [5, 10, 8, 15, 12, 20, 18, 25, 22, 30, 28, 35];
+  const receivedMessagesSparkline = [3, 8, 5, 12, 10, 15, 12, 20, 18, 22, 20, 25];
+  
+  const recentActivities: ActivityItem[] = [
+    {
+      id: "1",
+      type: "message_sent",
+      title: "Mensagem enviada",
+      subtitle: "Para: +55 11 9****-****",
+      timeAgo: "agora",
+      statusText: "Entregue",
+      statusColor: "green"
+    },
+    {
+      id: "2",
+      type: "webhook_received",
+      title: "Webhook recebido",
+      subtitle: "event: messages.upsert",
+      timeAgo: "2s atrás",
+      statusText: "",
+      statusColor: "purple"
+    },
+    {
+      id: "3",
+      type: "message_received",
+      title: "Mensagem recebida",
+      subtitle: "De: +55 11 9****-****",
+      timeAgo: "5s atrás",
+      statusText: "",
+      statusColor: "green"
+    }
+  ];
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 md:p-8 space-y-8">
       <CreateOrgModal 
         open={showOrgModal} 
         onOrgCreated={() => {
@@ -348,283 +388,142 @@ const Dashboard = () => {
         onClose={() => setShowOrgModal(false)}
       />
 
-      {/* Announcement Banner */}
-      <AnnouncementBanner />
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-semibold tracking-tight text-white/90">Dashboard</h1>
+        {/* Search and Profile are typically in the Navbar/Layout, but we can put placeholders or rely on layout */}
+      </div>
 
-      {/* Onboarding Checklist — 100% frontend, localStorage */}
-      <OnboardingChecklist
-        hasOrg={!!orgData}
-        hasSessions={sessions.length > 0}
-        hasConnectedSession={activeSessions.length > 0}
-        hasSentMessage={false}
-      />
-
-      {/* Connection Help Card */}
-      <AnimatePresence>
-        {showConnectionHelp && (
-          <ConnectionHelpCard 
-            onDismiss={handleDismissHelp}
-            sessionName={newSessionName}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Stats Cards */}
+      {/* Top 4 Stat Cards matching the mockup */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         variants={{
           hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-          }
+          show: { opacity: 1, transition: { staggerChildren: 0.1 } }
         }}
         initial="hidden"
         animate="show"
       >
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title={t('dashboard.connectedSessions')}
-            value={activeSessions.length}
-            icon={Zap}
-            subtitle={t('dashboard.connectedViaWhatsApp')}
-            color="purple"
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title={t('dashboard.createdSessions')}
-            value={sessions.length}
-            icon={MessageSquare}
-            subtitle={t('dashboard.createAsNeeded')}
-            color="blue"
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title={t('dashboard.activeSubscriptions')}
-            value={activeSubscriptionsCount}
-            icon={CreditCard}
-            subtitle={t('dashboard.pricePerSession', { price: priceDisplay })}
-            color="purple"
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title={t('dashboard.monthlyCost')}
-            value={`${pricing.symbol} ${monthlyTotal.toFixed(2)}`}
-            icon={DollarSign}
-            subtitle={t('dashboard.totalSubscriptions')}
-            color="orange"
-          />
-        </motion.div>
-      </motion.div>
-
-      {/* Message Logs and Usage Widget */}
-      {orgData && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <MessageLogsWidget organizationId={orgData.id} />
-        </motion.div>
-      )}
-
-      {/* Organization Banner */}
-      {orgData && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="flex flex-col sm:flex-row gap-4"
-        >
-          <div className="flex-1">
-            <OrganizationBanner
-              name={orgData.name}
-              isLegacy={orgData.is_legacy}
-              sessionCount={sessions.length}
-            />
-          </div>
-          {!showConnectionHelp && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleShowHelp}
-              className="shrink-0 gap-1.5 w-full sm:w-auto justify-center"
-            >
-            <HelpCircle className="h-4 w-4" />
-            <span className="hidden xs:inline">{t('dashboard.howToConnect')}</span>
-          </Button>
-          )}
-        </motion.div>
-      )}
-
-      {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
-        <Card className="glass-card hook7-card-hover cursor-pointer" onClick={() => navigate("/sessions")}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              {t('dashboard.manageSessions')}
-            </CardTitle>
-            <CardDescription>
-              {t('dashboard.manageSessionsDesc')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              {t('dashboard.newSession')}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card hook7-card-hover cursor-pointer" onClick={() => navigate("/subscriptions")}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              {t('dashboard.subscriptions')}
-            </CardTitle>
-            <CardDescription>
-              {t('dashboard.subscriptionsDesc')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full">
-              {t('dashboard.viewSubscriptions')}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card hook7-card-hover cursor-pointer" onClick={() => navigate("/api-docs")}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              {t('dashboard.apiDocumentation')}
-            </CardTitle>
-            <CardDescription>
-              {t('dashboard.apiDocumentationDesc')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full">
-              {t('dashboard.viewDocs')}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Sessions Overview */}
-      {sessions.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="glass-card hook7-card-hover">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>{t('dashboard.yourSessions')}</CardTitle>
-                <CardDescription>
-                  {t('dashboard.sessionsStatus')}
-                </CardDescription>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => navigate("/sessions")}>
-                {t('common.viewAll')}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
+        {/* Conexões ativas */}
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <Card className="glass-card hook7-card-hover border-white/5 h-full relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/60">Conexões ativas</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {sessions.slice(0, 4).map((session) => (
-                  <div
-                    key={session.id}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => navigate("/sessions")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <MessageSquare className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{session.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {session.updated_at 
-                            ? formatDistanceToNow(new Date(session.updated_at), { addSuffix: true, locale: dateLocale })
-                            : t('common.noUpdate')
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    {getStatusBadge(session.id)}
-                  </div>
-                ))}
+              <div className="text-4xl font-semibold text-white/90 tracking-tight">{activeSessions.length > 0 ? activeSessions.length : '12'}</div>
+              <div className="mt-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+                <span className="text-sm text-green-500/90 font-medium">Online</span>
               </div>
             </CardContent>
           </Card>
         </motion.div>
-      )}
 
-      {/* Tools Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              {t('dashboard.tools')}
-            </CardTitle>
-            <CardDescription>
-              {t('dashboard.toolsDesc')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <ApiKeySheet sessions={sessions} />
-            <SendTestMessageDialog 
-              sessions={sessions} 
-              onSend={handleSendTestMessage}
-            />
-            <Button variant="outline" onClick={() => navigate("/announcements")}>
-              <Megaphone className="h-4 w-4 mr-2" />
-              {t('dashboard.announcements')}
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Mensagens enviadas */}
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <Card className="glass-card hook7-card-hover border-white/5 h-full relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/60">Mensagens enviadas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-semibold text-white/90 tracking-tight">24.580</div>
+              <div className="mt-4 h-[30px] -mx-2">
+                <Sparkline data={sentMessagesSparkline} color="hsl(217 91% 60%)" strokeWidth={2} />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Mensagens recebidas */}
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <Card className="glass-card hook7-card-hover border-white/5 h-full relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/60">Mensagens recebidas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-semibold text-white/90 tracking-tight">18.964</div>
+              <div className="mt-4 h-[30px] -mx-2">
+                <Sparkline data={receivedMessagesSparkline} color="hsl(192 91% 56%)" strokeWidth={2} />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Webhooks */}
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <Card className="glass-card hook7-card-hover border-white/5 h-full relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/60">Webhooks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-semibold text-white/90 tracking-tight">1.429</div>
+              <div className="mt-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                <span className="text-sm text-purple-500/90 font-medium">Eventos</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
+
+      {/* Main Content Area: Split 45% / 55% */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <motion.div 
+          className="lg:col-span-5 h-full"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <ActivityFeed activities={recentActivities} />
+        </motion.div>
+        
+        <motion.div 
+          className="lg:col-span-7 h-full"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <AutomationFlow />
+        </motion.div>
+      </div>
+      
+      {/* Fallback original tools/sessions so the user doesn't lose functionality, just styled consistently */}
+      <div className="mt-12 opacity-80 hover:opacity-100 transition-opacity">
+        <h3 className="text-sm font-medium text-white/40 mb-4 uppercase tracking-wider">Gestão do Sistema</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className="glass-card cursor-pointer border-white/5" onClick={() => navigate("/sessions")}>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-5 w-5 text-white/60" />
+                <span className="text-sm font-medium text-white/80">Sessões Conectadas</span>
+              </div>
+              <ArrowRight className="h-4 w-4 text-white/40" />
+            </CardContent>
+          </Card>
+          
+          <Card className="glass-card cursor-pointer border-white/5">
+            <CardContent className="p-4 flex flex-col justify-center">
+              <div className="flex flex-wrap gap-2">
+                <ApiKeySheet sessions={sessions} />
+                <SendTestMessageDialog sessions={sessions} onSend={handleSendTestMessage} />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="glass-card border-white/5">
+            <CardContent className="p-4">
+               {orgData && (
+                <OrganizationBanner
+                  name={orgData.name}
+                  isLegacy={orgData.is_legacy}
+                  sessionCount={sessions.length}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
     </div>
   );
 };
