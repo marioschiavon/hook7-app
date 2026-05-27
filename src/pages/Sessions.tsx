@@ -11,7 +11,8 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { toast } from "sonner";
 import { MessageSquare, Zap, Clock, AlertTriangle, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import { evolutionApi, NormalizedConnectionStatus, isValidEvolutionToken } from "@/services/evolutionApi";
+import * as evolutionApi from "@/services/evolutionApi";
+import { NormalizedConnectionStatus, isValidEvolutionToken } from "@/services/evolutionApi";
 
 interface SessionData {
   id: string;
@@ -831,7 +832,7 @@ const Sessions = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle>Minhas Sessões WhatsApp</CardTitle>
             <CardDescription>

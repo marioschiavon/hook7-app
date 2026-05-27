@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR, enUS } from "date-fns/locale";
-import { evolutionApi } from "@/services/evolutionApi";
+import * as evolutionApi from "@/services/evolutionApi";
 import { useRegionalPricing, formatPrice } from "@/hooks/useRegionalPricing";
 
 interface UserData {
@@ -490,7 +490,7 @@ const Dashboard = () => {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/sessions")}>
+        <Card className="glass-card hook7-card-hover cursor-pointer" onClick={() => navigate("/sessions")}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
@@ -508,7 +508,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/subscriptions")}>
+        <Card className="glass-card hook7-card-hover cursor-pointer" onClick={() => navigate("/subscriptions")}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
@@ -526,7 +526,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/api-docs")}>
+        <Card className="glass-card hook7-card-hover cursor-pointer" onClick={() => navigate("/api-docs")}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
@@ -552,7 +552,7 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Card>
+          <Card className="glass-card hook7-card-hover">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>{t('dashboard.yourSessions')}</CardTitle>
@@ -602,7 +602,7 @@ const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />

@@ -99,7 +99,7 @@ export function AppSidebar() {
   );
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
+    <Sidebar collapsible="icon" className="border-r border-border/50 bg-background/80 backdrop-blur-xl">
       {/* Branding Header */}
       <SidebarHeader>
         <Link to="/dashboard" className="flex items-center gap-3 px-2 py-3 hover:opacity-80 transition-opacity">
@@ -111,7 +111,7 @@ export function AppSidebar() {
             className="h-8 w-8 rounded-full flex-shrink-0"
           />
           {!isCollapsed && (
-            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
+            <span className="text-xl font-bold font-['Space_Grotesk'] hook7-gradient-text truncate">
               Hook7
             </span>
           )}

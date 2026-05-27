@@ -3,13 +3,67 @@
 @tailwind utilities;
 
 /*
-  Hook7 Design System
-  Paleta: Violeta profundo + Azul elétrico + Dark elegante
-  Todos os valores em HSL.
+  Hook7 Design System — Dark Premium
+  Alinhado com a landing page (hook7.com.br)
+  Paleta: Deep space (#03050f) + Violeta (#8b5cf6) + Azul elétrico (#3b82f6)
 */
 
 @layer base {
+  /* ─── DARK (padrão) ─── */
   :root {
+    --background: 228 50% 3%;
+    --foreground: 210 40% 96%;
+
+    --card: 228 40% 5.5%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 228 40% 5.5%;
+    --popover-foreground: 210 40% 96%;
+
+    /* Hook7 Primary: Violeta */
+    --primary: 262 83% 62%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Hook7 Secondary: Azul elétrico */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 228 20% 12%;
+    --muted-foreground: 215 16% 52%;
+
+    --accent: 262 60% 18%;
+    --accent-foreground: 262 83% 82%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 262 40% 16%;
+    --input: 228 20% 14%;
+    --ring: 262 83% 62%;
+
+    --radius: 0.75rem;
+
+    /* Hook7 Tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(262 83% 62%), hsl(217 91% 60%));
+    --shadow-glow: 0 0 40px hsl(262 83% 62% / 0.2);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
+    --glass-bg: rgba(13, 19, 42, 0.5);
+    --glass-border: rgba(109, 77, 255, 0.18);
+    --glass-border-hover: rgba(109, 77, 255, 0.45);
+
+    /* Sidebar */
+    --sidebar-background: 228 45% 4.5%;
+    --sidebar-foreground: 210 40% 92%;
+    --sidebar-primary: 262 83% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 262 40% 14%;
+    --sidebar-accent-foreground: 262 83% 82%;
+    --sidebar-border: 262 30% 14%;
+    --sidebar-ring: 262 83% 62%;
+  }
+
+  /* ─── LIGHT (opt-in) ─── */
+  .light {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
@@ -19,19 +73,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    /* Hook7 Primary: Violeta */
     --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    /* Hook7 Secondary: Azul elétrico */
     --secondary: 217 91% 60%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 262 83% 96%;
+    --accent-foreground: 262 83% 30%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -40,19 +92,9 @@
     --input: 240 5.9% 90%;
     --ring: 262 83% 58%;
 
-    --radius: 0.75rem;
-
-    /* Hook7 Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(217 91% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(217 91% 60%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(262 83% 97%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(262 83% 98%) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 50%, hsl(262 83% 58% / 0.12), transparent 70%);
-    --shadow-glow: 0 0 40px hsl(262 83% 58% / 0.25);
-    --shadow-elegant: 0 10px 30px -10px hsl(262 83% 58% / 0.18);
-    --shadow-card: 0 4px 20px hsl(262 83% 58% / 0.08);
-    --glass-bg: hsl(0 0% 100% / 0.7);
-    --glass-border: hsl(262 83% 58% / 0.12);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(109, 77, 255, 0.12);
+    --glass-border-hover: rgba(109, 77, 255, 0.35);
 
     --sidebar-background: 240 4.8% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -62,45 +104,6 @@
     --sidebar-accent-foreground: 262 83% 30%;
     --sidebar-border: 240 5.9% 90%;
     --sidebar-ring: 262 83% 58%;
-  }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 6%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 262 83% 62%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 262 83% 62%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262 83% 62%;
-
-    --sidebar-background: 240 5.9% 8%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 262 83% 62%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 13%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 262 83% 62%;
   }
 }
 
@@ -114,6 +117,14 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(262 83% 62% / 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 60%, hsl(217 91% 60% / 0.04) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  .light body {
+    background-image: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -121,22 +132,73 @@
   }
 }
 
-/* Hook7 utility classes */
-@layer utilities {
-  .hook7-gradient-text {
-    @apply bg-gradient-to-r from-violet-500 to-blue-500 bg-clip-text text-transparent;
+/* ─── GLASS CARD ─── */
+@layer components {
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
   }
 
-  .hook7-glow {
-    box-shadow: 0 0 20px hsl(262 83% 58% / 0.3);
-  }
-
-  .hook7-card-hover {
-    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-lg;
+  .glass-card:hover {
+    border-color: var(--glass-border-hover);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   }
 }
 
-/* Animations */
+/* ─── Hook7 Utilities ─── */
+@layer utilities {
+  .hook7-gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(262 83% 72%) 0%, hsl(217 91% 65%) 50%, hsl(192 91% 56%) 100%);
+  }
+
+  .hook7-glow {
+    box-shadow: 0 0 24px hsl(262 83% 62% / 0.3);
+  }
+
+  .hook7-glow-sm {
+    box-shadow: 0 0 12px hsl(262 83% 62% / 0.25);
+  }
+
+  .hook7-card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  .hook7-card-hover:hover {
+    transform: translateY(-4px);
+    border-color: var(--glass-border-hover);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  }
+
+  .hook7-btn-glow {
+    background: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(217 91% 55%) 100%);
+    box-shadow: 0 8px 30px hsl(262 83% 62% / 0.35), inset 0 0 0 1px hsl(262 83% 72% / 0.25);
+    transition: all 0.22s ease;
+  }
+  .hook7-btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px hsl(262 83% 62% / 0.5);
+  }
+
+  .dot-status-green {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: hsl(142 76% 56%);
+    box-shadow: 0 0 8px hsl(142 76% 56%);
+  }
+
+  .dot-status-red {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: hsl(0 84% 60%);
+    box-shadow: 0 0 8px hsl(0 84% 60%);
+  }
+}
+
+/* ─── Animations ─── */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -148,8 +210,18 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 12px hsl(262 83% 58% / 0.25); }
-  50%      { box-shadow: 0 0 28px hsl(262 83% 58% / 0.45); }
+  0%, 100% { box-shadow: 0 0 12px hsl(262 83% 62% / 0.25); }
+  50%      { box-shadow: 0 0 28px hsl(262 83% 62% / 0.45); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
 }
 
 .animate-fade-in {
@@ -162,4 +234,12 @@
 
 .animate-pulse-glow {
   animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }

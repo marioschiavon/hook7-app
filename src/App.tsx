@@ -25,16 +25,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrganizations from "./pages/admin/AdminOrganizations";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
-import FAQ from "./pages/FAQ";
-import GetStarted from "./pages/GetStarted";
 
 const queryClient = new QueryClient();
-
-/** Redirect root to the Hook7 landing page */
-const LandingRedirect = () => {
-  window.location.href = "https://hook7.com.br";
-  return null;
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -44,10 +36,10 @@ const App = () => (
       <BrowserRouter>
         <RouteChangeTracker />
         <Routes>
+          {/* Root → Login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
           {/* Public Routes */}
-          <Route path="/" element={<LandingRedirect />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/get-started" element={<GetStarted />} />
           <Route path="/api-docs" element={<ApiDocs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

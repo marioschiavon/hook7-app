@@ -86,7 +86,7 @@ const SessionManagementCard = ({
       transition={{ duration: 0.2 }}
       className="h-full"
     >
-      <Card className={`hover:shadow-lg transition-all border-2 ${statusConfig.borderColor} hover:border-primary/50 h-full flex flex-col overflow-hidden`}>
+      <Card className={`glass-card hover:shadow-lg transition-all border-2 ${statusConfig.borderColor} hover:border-primary/50 h-full flex flex-col overflow-hidden`}>
         <div className={`h-1 ${statusConfig.color}`} />
         <CardContent className="p-6 space-y-4 flex-1 flex flex-col">
           {/* Status Badge */}

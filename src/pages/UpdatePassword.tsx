@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Lock } from "lucide-react";
 
@@ -57,20 +56,23 @@ export default function UpdatePassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-background to-purple-700/10 pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[radial-gradient(ellipse,hsl(262_83%_62%/0.12),transparent_70%)] pointer-events-none" />
       
-      <Card className="w-full max-w-md relative backdrop-blur-sm bg-card/90 border-border/50 shadow-elegant animate-fade-in">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-glow">
-            <Lock className="h-8 w-8 text-primary-foreground" />
+      <div className="w-full max-w-md relative animate-fade-in">
+        <div className="glass-card p-8 space-y-6">
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center hook7-glow-sm">
+              <Lock className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Nova Senha</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Digite sua nova senha
+              </p>
+            </div>
           </div>
-          <CardTitle className="text-2xl">Nova Senha</CardTitle>
-          <CardDescription>
-            Digite sua nova senha
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">Nova Senha</Label>
@@ -84,7 +86,7 @@ export default function UpdatePassword() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="bg-muted/50 border-border/50 pl-10"
+                  className="pl-10 bg-muted/30 border-border/50 focus:border-primary/50"
                 />
               </div>
             </div>
@@ -101,12 +103,12 @@ export default function UpdatePassword() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="bg-muted/50 border-border/50 pl-10"
+                  className="pl-10 bg-muted/30 border-border/50 focus:border-primary/50"
                 />
               </div>
             </div>
             
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 hook7-btn-glow text-white font-semibold" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -117,8 +119,8 @@ export default function UpdatePassword() {
               )}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

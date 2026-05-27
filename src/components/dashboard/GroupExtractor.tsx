@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Copy, Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { evolutionApi } from "@/services/evolutionApi";
+import * as evolutionApi from "@/services/evolutionApi";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GroupExtractorProps {

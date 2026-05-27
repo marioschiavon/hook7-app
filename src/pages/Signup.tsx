@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, User, Phone, ArrowLeft, Clock, MessageSquare, Headphones, XCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { SEO } from "@/components/SEO";
@@ -106,19 +106,17 @@ const Signup = () => {
         description="Crie sua conta Hook7 gratuita and start using the WhatsApp API in minutes."
         canonical="https://app.hook7.com.br/signup"
       />
-      <div className="min-h-screen flex bg-background">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10 pointer-events-none" />
+      <div className="min-h-screen flex relative overflow-hidden">
+        <div className="absolute top-0 left-1/3 w-[600px] h-[400px] bg-[radial-gradient(ellipse,hsl(262_83%_62%/0.12),transparent_70%)] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(ellipse,hsl(217_91%_60%/0.06),transparent_70%)] pointer-events-none" />
 
         {/* Back button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/")}
-          className="absolute top-4 left-4 z-10 gap-2"
+        <a
+          href="https://hook7.com.br"
+          className="absolute top-6 left-6 z-10 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
         >
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
+          ← {t('common.back')}
+        </a>
 
         <div className="relative flex flex-col lg:flex-row w-full max-w-6xl mx-auto items-center justify-center px-4 py-16 gap-12 lg:gap-20">
           {/* Left side - Benefits */}
@@ -154,7 +152,7 @@ const Signup = () => {
             <div className="space-y-4">
               {benefits.map((benefit, index) => (
                 <div key={index} className="flex items-start gap-3 text-left">
-                  <div className="mt-0.5 flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <div className="mt-0.5 flex-shrink-0 w-9 h-9 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center">
                     <benefit.icon className="h-4 w-4 text-primary" />
                   </div>
                   <div>
@@ -172,8 +170,8 @@ const Signup = () => {
           </div>
 
           {/* Right side - Form */}
-          <Card className="w-full max-w-md relative bg-card border-border shadow-xl animate-fade-in">
-            <CardContent className="pt-8 pb-6 px-6 md:px-8">
+          <div className="w-full max-w-md relative animate-fade-in">
+            <div className="glass-card pt-8 pb-6 px-6 md:px-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold">{isPortuguese ? "Criar conta" : "Create account"}</h2>
                 <p className="text-muted-foreground text-sm mt-1">
@@ -259,7 +257,7 @@ const Signup = () => {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-secondary to-primary hover:opacity-90 transition-opacity" 
+                  className="w-full h-11 hook7-btn-glow text-white font-semibold" 
                   disabled={loading}
                 >
                   {loading ? (
@@ -281,8 +279,8 @@ const Signup = () => {
               <div className="mt-4 text-center text-xs text-muted-foreground/60">
                 {t('common.poweredBy')} <span className="font-medium">S7</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </>

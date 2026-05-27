@@ -1,10 +1,9 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Mail, ArrowLeft } from "lucide-react";
 
@@ -20,7 +19,7 @@ export default function ResetPassword() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://Hook7.com/update-password',
+        redirectTo: `${window.location.origin}/update-password`,
       });
 
       if (error) throw error;
@@ -35,22 +34,27 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-background to-purple-700/10 pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[radial-gradient(ellipse,hsl(262_83%_62%/0.12),transparent_70%)] pointer-events-none" />
       
-      <Card className="w-full max-w-md relative backdrop-blur-sm bg-card/90 border-border/50 shadow-elegant animate-fade-in">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-glow">
-            <Mail className="h-8 w-8 text-primary-foreground" />
+      <div className="w-full max-w-md relative animate-fade-in">
+        <div className="glass-card p-8 space-y-6">
+          {/* Icon + Title */}
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center hook7-glow-sm">
+              <Mail className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Recuperar Senha</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {sent 
+                  ? "Email enviado! Verifique sua caixa de entrada."
+                  : "Digite seu email para receber instruções de recuperação"}
+              </p>
+            </div>
           </div>
-          <CardTitle className="text-2xl">Recuperar Senha</CardTitle>
-          <CardDescription>
-            {sent 
-              ? "Email enviado! Verifique sua caixa de entrada."
-              : "Digite seu email para receber instruções de recuperação"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+
+          {/* Form */}
           {!sent ? (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
@@ -64,11 +68,11 @@ export default function ResetPassword() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-muted/50 border-border/50 pl-10"
+                    className="pl-10 bg-muted/30 border-border/50 focus:border-primary/50"
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full h-11 hook7-btn-glow text-white font-semibold" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -80,20 +84,19 @@ export default function ResetPassword() {
               </Button>
             </form>
           ) : (
-            <Button onClick={() => navigate("/login")} className="w-full">
+            <Button onClick={() => navigate("/login")} className="w-full h-11 hook7-btn-glow text-white font-semibold">
               Voltar para Login
             </Button>
           )}
           
-          <div className="mt-4 text-center">
-            <Link to="/login" className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-2">
+          <div className="text-center">
+            <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-2 transition-colors">
               <ArrowLeft className="h-4 w-4" />
               Voltar para login
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
-

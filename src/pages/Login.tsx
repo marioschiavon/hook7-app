@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 
@@ -54,45 +53,53 @@ const Login = () => {
   return (
     <>
       <SEO 
-        title="Login | Hook7 - API WhatsApp"
+        title="Login | Hook7"
         description="Acesse sua conta Hook7 e gerencie suas sessões de API WhatsApp."
         canonical="https://app.hook7.com.br/login"
         noindex={true}
       />
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10 pointer-events-none" />
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Ambient glow effects */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[radial-gradient(ellipse,hsl(262_83%_62%/0.15),transparent_70%)] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(ellipse,hsl(217_91%_60%/0.08),transparent_70%)] pointer-events-none" />
         
+        {/* Back to landing */}
         <a 
           href="https://hook7.com.br" 
-          className="absolute top-4 left-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors z-10"
+          className="absolute top-6 left-6 text-sm text-muted-foreground hover:text-foreground transition-colors z-10 flex items-center gap-1.5"
         >
-          <ArrowLeft className="h-4 w-4" />
-          {t('nav.back')}
+          ← {t('nav.back')}
         </a>
-        
-        <Card className="w-full max-w-md relative bg-card border-border shadow-xl animate-fade-in">
-          <CardHeader className="space-y-3 text-center">
-            <div className="mx-auto w-20 h-20 flex items-center justify-center">
-              <img 
-                src="/hook7-logo.svg" 
-                alt="Hook7 - API WhatsApp"
-                loading="lazy"
-                width="80"
-                height="80"
-                className="w-full h-full object-contain drop-shadow-2xl animate-scale-in rounded-full"
-              />
+
+        {/* Login Card */}
+        <div className="w-full max-w-md relative animate-fade-in">
+          <div className="glass-card p-8 space-y-6">
+            {/* Logo + Title */}
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-20 h-20 relative">
+                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse-glow" />
+                <img 
+                  src="/hook7-logo.svg" 
+                  alt="Hook7"
+                  width="80"
+                  height="80"
+                  className="w-full h-full object-contain drop-shadow-2xl animate-scale-in rounded-full relative"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">
+                  {t('auth.loginTitle')}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('auth.loginSubtitle')}
+                </p>
+              </div>
             </div>
-            <CardTitle className="text-3xl font-bold">
-              {t('auth.loginTitle')}
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              {t('auth.loginSubtitle')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+
+            {/* Form */}
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{t('auth.email')}</Label>
+                <Label htmlFor="email" className="text-sm font-medium">{t('auth.email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -102,12 +109,12 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-muted/50 border-border/50 pl-10"
+                    className="pl-10 bg-muted/30 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-colors"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">{t('auth.password')}</Label>
+                <Label htmlFor="password" className="text-sm font-medium">{t('auth.password')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -117,7 +124,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-muted/50 border-border/50 pl-10 pr-10"
+                    className="pl-10 pr-10 bg-muted/30 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-colors"
                   />
                   <button
                     type="button"
@@ -132,14 +139,14 @@ const Login = () => {
               <div className="flex items-center justify-end">
                 <Link 
                   to="/reset-password" 
-                  className="text-sm text-primary hover:text-primary/80 font-medium"
+                  className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                 >
                   {t('auth.forgotPassword')}
                 </Link>
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity" 
+                className="w-full h-11 hook7-btn-glow text-white font-semibold" 
                 disabled={loading}
               >
                 {loading ? (
@@ -152,17 +159,21 @@ const Login = () => {
                 )}
               </Button>
             </form>
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              {t('auth.noAccount')}{" "}
-              <Link to="/signup" className="text-primary hover:text-primary/80 font-medium">
-                {t('auth.signupLink')}
-              </Link>
+
+            {/* Footer links */}
+            <div className="space-y-3 pt-2">
+              <div className="text-center text-sm text-muted-foreground">
+                {t('auth.noAccount')}{" "}
+                <Link to="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                  {t('auth.signupLink')}
+                </Link>
+              </div>
+              <div className="text-center text-xs text-muted-foreground/50">
+                {t('common.poweredBy')} <span className="font-medium">S7</span>
+              </div>
             </div>
-            <div className="mt-4 text-center text-xs text-muted-foreground/60">
-              {t('common.poweredBy')} <span className="font-medium">S7</span>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </>
   );

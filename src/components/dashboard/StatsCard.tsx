@@ -44,16 +44,15 @@ export function StatsCard({
     >
       <Card
         className={cn(
-          "relative overflow-hidden border bg-gradient-to-br",
-          colorClasses[color],
-          "hover:shadow-lg transition-shadow duration-200"
+          "glass-card relative overflow-hidden hook7-card-hover",
+          colorClasses[color]
         )}
       >
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">{title}</p>
-              <p className="text-3xl font-bold">{value}</p>
+              <p className="text-3xl font-bold font-['Space_Grotesk']">{value}</p>
               {subtitle && (
                 <p className="text-xs text-muted-foreground">{subtitle}</p>
               )}

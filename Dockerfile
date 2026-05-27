@@ -25,8 +25,8 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copia os arquivos construídos da etapa anterior para o diretório do Nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copia uma configuração personalizada do Nginx, se necessário (opcional)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copia uma configuração personalizada do Nginx para suportar React Router SPA
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expõe a porta 80 (porta padrão do Nginx)
 EXPOSE 80

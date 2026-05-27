@@ -33,8 +33,11 @@ export function ProtectedLayout() {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <AppHeader />
-          <main className="flex-1 overflow-auto bg-gradient-to-br from-background to-muted/20">
-            <Outlet />
+          <main className="flex-1 overflow-auto bg-background/50 relative">
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse,hsl(262_83%_62%/0.08),transparent_70%)] pointer-events-none" />
+            <div className="relative z-10">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

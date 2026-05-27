@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { evolutionApi } from "@/services/evolutionApi";
+import * as evolutionApi from "@/services/evolutionApi";
 
 interface SessionData {
   id: string;
