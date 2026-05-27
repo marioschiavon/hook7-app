@@ -223,7 +223,7 @@ serve(async (req) => {
                       </div>
                       
                       <div style="text-align: center;">
-                        <a href="https://kfsvpbujmetlendgwnrs.lovable.app" class="button">
+                        <a href="https://app.hook7.com.br" class="button">
                           Acessar Painel
                         </a>
                       </div>
@@ -377,11 +377,11 @@ serve(async (req) => {
                         </div>
                         
                         <div style="text-align: center;">
-                          <a href="https://kfsvpbujmetlendgwnrs.lovable.app/subscriptions" class="button button-secondary">
+                          <a href="https://app.hook7.com.br/subscriptions" class="button button-secondary">
                             ↩️ Reverter Cancelamento
                           </a>
                           <br>
-                          <a href="https://kfsvpbujmetlendgwnrs.lovable.app" class="button" style="margin-top: 10px;">
+                          <a href="https://app.hook7.com.br" class="button" style="margin-top: 10px;">
                             Acessar Painel
                           </a>
                         </div>
@@ -571,11 +571,11 @@ serve(async (req) => {
                         </div>
                         
                         <div style="text-align: center;">
-                          <a href="https://kfsvpbujmetlendgwnrs.lovable.app/subscriptions" class="button">
+                          <a href="https://app.hook7.com.br/subscriptions" class="button">
                             Reativar Assinatura
                           </a>
                           <br>
-                          <a href="https://kfsvpbujmetlendgwnrs.lovable.app" class="button button-secondary" style="margin-top: 10px;">
+                          <a href="https://app.hook7.com.br" class="button button-secondary" style="margin-top: 10px;">
                             Acessar Painel
                           </a>
                         </div>
@@ -717,11 +717,11 @@ serve(async (req) => {
                       </div>
                       
                       <div style="text-align: center;">
-                        <a href="https://kfsvpbujmetlendgwnrs.lovable.app/subscriptions" class="button button-danger">
+                        <a href="https://app.hook7.com.br/subscriptions" class="button button-danger">
                           Atualizar Método de Pagamento
                         </a>
                         <br>
-                        <a href="https://kfsvpbujmetlendgwnrs.lovable.app" class="button" style="margin-top: 10px;">
+                        <a href="https://app.hook7.com.br" class="button" style="margin-top: 10px;">
                           Acessar Painel
                         </a>
                       </div>

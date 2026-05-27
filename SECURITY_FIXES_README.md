@@ -51,7 +51,7 @@ WHERE email = 'contato@upevolution.com.br';
 
 ### Step 3: Refresh Database Types
 
-After running the SQL, the Lovable project will automatically regenerate the TypeScript types for the new tables.
+After running the SQL, you will need to regenerate the TypeScript types for the new tables.
 
 ---
 
