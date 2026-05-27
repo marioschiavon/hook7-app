@@ -4,7 +4,7 @@ import type { Database } from './types';
 
 // Use environment variables — configure no .env.local para desenvolvimento
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const SUPABASE_PUBLISHABLE_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) as string;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
