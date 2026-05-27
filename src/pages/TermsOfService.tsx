@@ -43,7 +43,7 @@ export default function TermsOfService() {
                 com endereço na Rua Alexandre Foggiatto, Brasil.
               </p>
               <p>
-                Contato oficial: <a href="mailto:contato@upevolution.com.br" className="text-primary hover:underline">contato@upevolution.com.br</a>
+                Contato oficial: <a href="mailto:contato@hook7.com.br" className="text-primary hover:underline">contato@hook7.com.br</a>
               </p>
               <p className="font-medium">
                 Ao utilizar a Hook7, você concorda integralmente com estes Termos de Uso. 
@@ -188,7 +188,7 @@ export default function TermsOfService() {
             <section className="space-y-3" aria-labelledby="section-12">
               <h2 id="section-12" className="text-2xl font-semibold text-foreground">12. CONTATO</h2>
               <p className="leading-relaxed">
-                E-mail: <a href="mailto:contato@upevolution.com.br" className="text-primary hover:underline">contato@upevolution.com.br</a>
+                E-mail: <a href="mailto:contato@hook7.com.br" className="text-primary hover:underline">contato@hook7.com.br</a>
               </p>
               <p className="leading-relaxed">
                 Responsável: Mario R Schiavon

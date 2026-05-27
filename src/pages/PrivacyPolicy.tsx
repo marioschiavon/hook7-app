@@ -176,8 +176,8 @@ export default function PrivacyPolicy() {
               </ul>
               <p className="leading-relaxed">
                 Para exercer seus direitos, entre em contato através do e-mail: 
-                <a href="mailto:contato@upevolution.com.br" className="text-primary hover:underline ml-1">
-                  contato@upevolution.com.br
+                <a href="mailto:contato@hook7.com.br" className="text-primary hover:underline ml-1">
+                  contato@hook7.com.br
                 </a>
               </p>
             </section>
@@ -233,7 +233,7 @@ export default function PrivacyPolicy() {
                 <li>Titular: Mario R Schiavon</li>
                 <li>CNPJ: 46.214.207/0001-60</li>
                 <li>Endereço: Rua Alexandre Foggiatto, Brasil</li>
-                <li>E-mail: <a href="mailto:contato@upevolution.com.br" className="text-primary hover:underline">contato@upevolution.com.br</a></li>
+                <li>E-mail: <a href="mailto:contato@hook7.com.br" className="text-primary hover:underline">contato@hook7.com.br</a></li>
               </ul>
             </section>
 
@@ -245,7 +245,7 @@ export default function PrivacyPolicy() {
                 ou ao tratamento de seus dados pessoais, entre em contato conosco:
               </p>
               <ul className="space-y-2 leading-relaxed ml-4">
-                <li>E-mail: <a href="mailto:contato@upevolution.com.br" className="text-primary hover:underline">contato@upevolution.com.br</a></li>
+                <li>E-mail: <a href="mailto:contato@hook7.com.br" className="text-primary hover:underline">contato@hook7.com.br</a></li>
                 <li>Responsável: Mario R Schiavon</li>
               </ul>
               <p className="leading-relaxed">

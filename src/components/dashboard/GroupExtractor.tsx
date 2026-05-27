@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Copy, Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import * as evolutionApi from "@/services/evolutionApi";
+import * as hook7Api from "@/services/hook7Api";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GroupExtractorProps {
@@ -26,7 +26,7 @@ export const GroupExtractor = ({ sessionName, apiToken }: GroupExtractorProps) =
     try {
       if (refreshing) return;
       setRefreshing(true);
-      const data = await evolutionApi.fetchAllGroups(apiToken);
+      const data = await hook7Api.fetchAllGroups(apiToken);
       setGroups(data || []);
     } catch (error) {
       console.error("Error fetching groups:", error);

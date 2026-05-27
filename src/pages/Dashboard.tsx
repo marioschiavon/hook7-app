@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR, enUS } from "date-fns/locale";
-import * as evolutionApi from "@/services/evolutionApi";
+import * as hook7Api from "@/services/hook7Api";
 import { useRegionalPricing, formatPrice } from "@/hooks/useRegionalPricing";
 
 interface UserData {
@@ -209,7 +209,7 @@ const Dashboard = () => {
 
   const fetchSessionStatus = async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
-      const result = await evolutionApi.checkConnection(apiToken);
+      const result = await hook7Api.checkConnection(apiToken);
       setSessionsStatus(prev => ({
         ...prev,
         [sessionId]: result
@@ -231,7 +231,7 @@ const Dashboard = () => {
     }
     
     try {
-      const result = await evolutionApi.sendText(
+      const result = await hook7Api.sendText(
         session.api_token,
         phoneNumber,
         message

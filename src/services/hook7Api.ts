@@ -1,18 +1,18 @@
 /**
  * Hook7 WhatsApp API Service
- * Serviço centralizado para todas as chamadas à Evolution GO
+ * Serviço centralizado para todas as chamadas à Hook7 API
  */
 
-const EVOLUTION_API_URL = import.meta.env.VITE_API_URL || 'https://api.hook7.com.br';
+const HOOK7_GO_URL = import.meta.env.VITE_API_URL || 'https://api.hook7.com.br';
 
-export interface EvolutionConnectionState {
+export interface Hook7ConnectionState {
   instance: {
     instanceName: string;
     state: 'open' | 'close' | 'connecting';
   };
 }
 
-export interface EvolutionQRCode {
+export interface Hook7QRCode {
   base64?: string;
   pairingCode?: string;
   code?: string;
@@ -34,7 +34,7 @@ export const checkConnection = async (
 ): Promise<NormalizedConnectionStatus> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/status`,
+      `${HOOK7_GO_URL}/instance/status`,
       {
         headers: {
           'apikey': apiKey
@@ -67,10 +67,10 @@ export const checkConnection = async (
  */
 export const connectInstance = async (
   apiKey: string
-): Promise<EvolutionQRCode | null> => {
+): Promise<Hook7QRCode | null> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/connect`,
+      `${HOOK7_GO_URL}/instance/connect`,
       {
         method: 'POST',
         headers: {
@@ -87,7 +87,7 @@ export const connectInstance = async (
       throw new Error(`Erro ao conectar: ${response.status}`);
     }
 
-    const data: EvolutionQRCode = await response.json();
+    const data: Hook7QRCode = await response.json();
     return data;
   } catch (error) {
     console.error('Erro ao conectar instância:', error);
@@ -100,10 +100,10 @@ export const connectInstance = async (
  */
 export const fetchQRCode = async (
   apiKey: string
-): Promise<EvolutionQRCode | null> => {
+): Promise<Hook7QRCode | null> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/qr`,
+      `${HOOK7_GO_URL}/instance/qr`,
       {
         headers: {
           'apikey': apiKey
@@ -115,7 +115,7 @@ export const fetchQRCode = async (
       return null;
     }
 
-    const data: EvolutionQRCode = await response.json();
+    const data: Hook7QRCode = await response.json();
     return data;
   } catch (error) {
     console.error('Erro ao buscar QR Code:', error);
@@ -131,7 +131,7 @@ export const logoutInstance = async (
 ): Promise<boolean> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/logout`,
+      `${HOOK7_GO_URL}/instance/logout`,
       {
         method: 'DELETE',
         headers: {
@@ -156,7 +156,7 @@ export const deleteInstance = async (
 ): Promise<boolean> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/delete/${instanceId}`,
+      `${HOOK7_GO_URL}/instance/delete/${instanceId}`,
       {
         method: 'DELETE',
         headers: {
@@ -175,7 +175,7 @@ export const deleteInstance = async (
 /**
  * Interface para instância retornada pelo fetchInstances
  */
-export interface EvolutionInstanceInfo {
+export interface Hook7InstanceInfo {
   name: string;
   token: string;
   status?: string;
@@ -187,10 +187,10 @@ export interface EvolutionInstanceInfo {
  */
 export const fetchInstances = async (
   globalApiKey: string
-): Promise<EvolutionInstanceInfo[]> => {
+): Promise<Hook7InstanceInfo[]> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/all`,
+      `${HOOK7_GO_URL}/instance/all`,
       {
         headers: {
           'apikey': globalApiKey
@@ -205,7 +205,7 @@ export const fetchInstances = async (
 
     const data = await response.json();
     
-    // A Evolution API retorna um array de instâncias
+    // A Hook7 API retorna um array de instâncias
     if (Array.isArray(data)) {
       return data.map((instance: any) => ({
         name: instance.name || instance.instanceName,
@@ -222,12 +222,12 @@ export const fetchInstances = async (
 };
 
 /**
- * Verificar se o token tem formato válido da Evolution API
+ * Verificar se o token tem formato válido da Hook7 API
  * Tokens válidos são UUIDs no formato: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
  */
-export const isValidEvolutionToken = (token: string | null | undefined): boolean => {
+export const isValidHook7Token = (token: string | null | undefined): boolean => {
   if (!token) return false;
-  // UUID pattern para Evolution API tokens
+  // UUID pattern para Hook7 API tokens
   const uuidPattern = /^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$/i;
   return uuidPattern.test(token);
 };
@@ -242,7 +242,7 @@ export const sendText = async (
 ): Promise<{ success: boolean; data?: any; error?: string }> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/send/text`,
+      `${HOOK7_GO_URL}/send/text`,
       {
         method: 'POST',
         headers: {
@@ -267,7 +267,7 @@ export const sendText = async (
 
     return { success: true, data };
   } catch (error: any) {
-    console.error('Erro ao enviar mensagem via Evolution API:', error);
+    console.error('Erro ao enviar mensagem via Hook7 API:', error);
     return { success: false, error: error.message || 'Erro de conexão' };
   }
 };
@@ -294,7 +294,7 @@ export const fetchAllGroups = async (
 ): Promise<{ success: boolean; data?: GroupInfo[]; error?: string }> => {
   try {
     const response = await fetch(
-      `${EVOLUTION_API_URL}/group/list`,
+      `${HOOK7_GO_URL}/group/list`,
       {
         method: 'GET',
         headers: {
@@ -312,18 +312,18 @@ export const fetchAllGroups = async (
       };
     }
 
-    // Evolution API geralmente retorna um array ou objeto com .data
+    // Hook7 API geralmente retorna um array ou objeto com .data
     const groups = Array.isArray(data) ? data : data.data || [];
     
     return { success: true, data: groups };
   } catch (error: any) {
-    console.error('Erro ao buscar grupos via Evolution API:', error);
+    console.error('Erro ao buscar grupos via Hook7 API:', error);
     return { success: false, error: error.message || 'Erro de conexão' };
   }
 };
 
 /**
- * Criar uma nova instância na Evolution API
+ * Criar uma nova instância na Hook7 API
  * Requer o Token Global ou token genérico compatível
  */
 export const createInstance = async (
@@ -332,10 +332,10 @@ export const createInstance = async (
   globalApiKey: string = ''
 ): Promise<{ success: boolean; data?: any; error?: string }> => {
   try {
-    // Nota: O endpoint de criação na Evolution GO pode usar o globalToken,
+    // Nota: O endpoint de criação na Hook7 API pode usar o globalToken,
     // ou se aceitar o header 'apikey: instanceToken', mandamos o próprio token da instância gerado.
     const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/create`,
+      `${HOOK7_GO_URL}/instance/create`,
       {
         method: 'POST',
         headers: {
@@ -361,7 +361,7 @@ export const createInstance = async (
 
     return { success: true, data };
   } catch (error: any) {
-    console.error('Erro ao criar instância via Evolution API:', error);
+    console.error('Erro ao criar instância via Hook7 API:', error);
     return { success: false, error: error.message || 'Erro de conexão' };
   }
 };

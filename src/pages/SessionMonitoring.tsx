@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import * as evolutionApi from "@/services/evolutionApi";
+import * as hook7Api from "@/services/hook7Api";
 
 interface SessionData {
   id: string;
@@ -118,14 +118,14 @@ const SessionMonitoring = () => {
 
         setSessions(sessionsWithStatus);
 
-        // Verificar status de cada sessão em paralelo usando Evolution API
+        // Verificar status de cada sessão em paralelo usando Hook7 API
         const statusPromises = (sessionsData as any[]).map(async (session) => {
           if (!session.api_session || !session.api_token) {
             return { id: session.id, status: 'no-session' as const, statusMessage: 'Sem sessão ativa' };
           }
 
           try {
-            const result = await evolutionApi.checkConnection(session.api_token);
+            const result = await hook7Api.checkConnection(session.api_token);
             
             if (result.message === 'QRCODE') {
               return { id: session.id, status: 'qrcode' as const, statusMessage: 'Aguardando QR Code' };

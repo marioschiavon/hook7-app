@@ -11,8 +11,8 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { toast } from "sonner";
 import { MessageSquare, Zap, Clock, AlertTriangle, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import * as evolutionApi from "@/services/evolutionApi";
-import { NormalizedConnectionStatus, isValidEvolutionToken } from "@/services/evolutionApi";
+import * as hook7Api from "@/services/hook7Api";
+import { NormalizedConnectionStatus, isValidHook7Token } from "@/services/hook7Api";
 
 interface SessionData {
   id: string;
@@ -154,7 +154,7 @@ const Sessions = () => {
 
   const fetchSessionStatus = async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
-      const result = await evolutionApi.checkConnection(apiToken);
+      const result = await hook7Api.checkConnection(apiToken);
       setSessionsStatus(prev => ({
         ...prev,
         [sessionId]: result
@@ -170,7 +170,7 @@ const Sessions = () => {
 
   const checkConnectionStatus = useCallback(async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
-      const result = await evolutionApi.checkConnection(apiToken);
+      const result = await hook7Api.checkConnection(apiToken);
       
       setSessionsStatus(currentStatus => {
         const current = currentStatus[sessionId];
@@ -214,8 +214,8 @@ const Sessions = () => {
   };
 
   const handleStartSession = useCallback(async (session: SessionData) => {
-    // Verificar se o token é válido para Evolution API
-    if (session.api_token && !isValidEvolutionToken(session.api_token)) {
+    // Verificar se o token é válido para Hook7 API
+    if (session.api_token && !isValidHook7Token(session.api_token)) {
       toast.warning(t('sessions.outdatedToken'));
       await handleReconfigureSession(session);
       return;
@@ -277,8 +277,8 @@ const Sessions = () => {
     try {
       toast.info(t('sessions.connectingApi'));
       
-      // Usar Evolution API para conectar e obter QR Code
-      const qrData = await evolutionApi.connectInstance(session.api_token);
+      // Usar Hook7 API para conectar e obter QR Code
+      const qrData = await hook7Api.connectInstance(session.api_token);
       
       if (qrData) {
         // Salvar pairing code se disponível
@@ -290,7 +290,7 @@ const Sessions = () => {
           console.log('Pairing code salvo:', qrData.pairingCode);
         }
 
-        // QR Code vem em base64 diretamente da Evolution API
+        // QR Code vem em base64 diretamente da Hook7 API
         if (qrData.base64) {
           setSessionsStatus(prev => ({
             ...prev,
@@ -315,7 +315,7 @@ const Sessions = () => {
           toast.info("Aguardando QR Code...");
           await new Promise(resolve => setTimeout(resolve, 3000));
           
-          const retryQr = await evolutionApi.fetchQRCode(session.api_token);
+          const retryQr = await hook7Api.fetchQRCode(session.api_token);
           if (retryQr?.base64) {
             setSessionsStatus(prev => ({
               ...prev,
@@ -334,7 +334,7 @@ const Sessions = () => {
           }
         }
       } else {
-        throw new Error(t('sessions.evolutionConnectionError'));
+        throw new Error(t('sessions.hook7ConnectionError'));
       }
       
     } catch (error: any) {
@@ -351,7 +351,7 @@ const Sessions = () => {
     if (!session.api_session || !session.api_token) return;
     
     try {
-      const result = await evolutionApi.checkConnection(session.api_token);
+      const result = await hook7Api.checkConnection(session.api_token);
       
       if (result.status === false) {
         setSessionsStatus(prev => ({
@@ -409,7 +409,7 @@ const Sessions = () => {
         if (!selectedSession.api_session || !selectedSession.api_token) return;
         
         try {
-          const qrData = await evolutionApi.fetchQRCode(selectedSession.api_token);
+          const qrData = await hook7Api.fetchQRCode(selectedSession.api_token);
           
           if (qrData?.base64) {
             setSessionsStatus(prev => ({
@@ -557,7 +557,7 @@ const Sessions = () => {
     try {
       toast.info(t('sessions.fetchingQr'));
       
-      const qrData = await evolutionApi.fetchQRCode(session.api_token);
+      const qrData = await hook7Api.fetchQRCode(session.api_token);
       
       if (qrData?.base64) {
         setSessionsStatus(prev => ({
@@ -600,7 +600,7 @@ const Sessions = () => {
     setClosingSession(true);
     
     try {
-      const success = await evolutionApi.logoutInstance(session.api_token);
+      const success = await hook7Api.logoutInstance(session.api_token);
       
       if (success) {
         setSessionsStatus(prev => ({
@@ -655,7 +655,7 @@ const Sessions = () => {
         // PASSO 1: Logout da instância
         try {
           console.log('🔒 Fazendo logout da instância:', session.api_session);
-          await evolutionApi.logoutInstance(session.api_token);
+          await hook7Api.logoutInstance(session.api_token);
           console.log('✅ Logout realizado');
         } catch (logoutError) {
           console.warn('⚠️ Erro ao fazer logout (continuando):', logoutError);
@@ -664,7 +664,7 @@ const Sessions = () => {
         // PASSO 2: Deletar instância
         try {
           console.log('🗑️ Deletando instância:', session.api_session);
-          await evolutionApi.deleteInstance(session.api_session, session.api_token);
+          await hook7Api.deleteInstance(session.api_session, session.api_token);
           console.log('✅ Instância deletada');
         } catch (deleteError) {
           console.warn('⚠️ Erro ao deletar instância (continuando):', deleteError);

@@ -158,7 +158,7 @@
     "questions": [
       {
         "question": "Por que a Hook7 é a melhor API WhatsApp do Brasil?",
-        "answer": "A Hook7 é uma API WhatsApp de nova geração powered by Evolution Go. Permite configuração em minutos, oferece suporte 24/7, integra com Make, Zapier, n8n e TypeBot, e não exige aprovação como BSP (Business Solution Provider)."
+        "answer": "A Hook7 é uma API WhatsApp de nova geração powered by Hook7 API. Permite configuração em minutos, oferece suporte 24/7, integra com Make, Zapier, n8n e TypeBot, e não exige aprovação como BSP (Business Solution Provider)."
       },
       {
         "question": "Quanto custa a API WhatsApp da Hook7?",
@@ -411,15 +411,15 @@
     "sessionConfigured": "Sessão configurada! Clique em 'Iniciar Sessão' novamente para conectar.",
     "configuringError": "Erro ao configurar sessão",
     "tokenNotFound": "Token não encontrado.",
-    "connectingApi": "Conectando à Evolution API, aguarde...",
+    "connectingApi": "Conectando à Hook7 API, aguarde...",
     "qrGenerated": "QR Code gerado! Escaneie para conectar.",
     "awaitingQrCode": "Aguardando QR Code...",
     "qrNotAvailable": "QR Code não disponível. Tente novamente.",
-    "evolutionConnectionError": "Falha ao conectar com a Evolution API",
+    "hook7ConnectionError": "Falha ao conectar com a Hook7 API",
     "startSessionError": "Erro ao iniciar sessão",
     "subscriptionRequired": "Esta sessão requer assinatura ativa. Finalize o pagamento primeiro.",
     "outdatedToken": "Token desatualizado detectado. Reconfigurando sessão...",
-    "reconfiguringSession": "Reconfigurando sessão para Evolution API...",
+    "reconfiguringSession": "Reconfigurando sessão para Hook7 API...",
     "sessionReconfigured": "Sessão reconfigurada com sucesso! O novo token foi salvo.",
     "reconfigureError": "Erro ao reconfigurar sessão",
     "qrExpiredMessage": "QR Code expirou e a sessão ainda está desconectada. Clique em 'Iniciar Sessão' para tentar novamente.",
