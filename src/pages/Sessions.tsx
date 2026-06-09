@@ -4,6 +4,16 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import CreateSessionModal from "@/components/CreateSessionModal";
 import SessionQrModal from "@/components/SessionQrModal";
 import { SessionsGrid } from "@/components/dashboard/SessionsGrid";
@@ -66,6 +76,7 @@ const Sessions = () => {
   const [generatingQrCode, setGeneratingQrCode] = useState(false);
   const [qrCodeKey, setQrCodeKey] = useState<string>("");
   const [reconfiguringSession, setReconfiguringSession] = useState<string | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
 
   const fetchSessions = async () => {
     try {
@@ -624,13 +635,13 @@ const Sessions = () => {
   const handleDeleteSession = async (sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId);
     if (!session) return;
-    
+
     // Bloquear deleção de sessões com pagamento pendente
     if (session.status === 'pending_payment') {
       toast.warning(t('sessions.pendingPaymentDelete'));
       return;
     }
-    
+
     // Verificar se existe checkout pendente no Stripe para esta sessão
     const { data: pendingSub } = await supabase
       .from('subscriptions' as any)
@@ -638,16 +649,23 @@ const Sessions = () => {
       .eq('session_id', sessionId)
       .eq('status', 'pending')
       .maybeSingle();
-      
+
     if (pendingSub) {
       toast.warning(t('sessions.pendingPaymentDelete'));
       return;
     }
-    
-    if (!confirm(`Tem certeza que deseja excluir a sessão "${session.name}"? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
-    
+
+    setSessionToDelete(sessionId);
+  };
+
+  const confirmDeleteSession = async () => {
+    const sessionId = sessionToDelete;
+    setSessionToDelete(null);
+    if (!sessionId) return;
+
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) return;
+
     setLoggingOut(true);
     
     try {
@@ -700,6 +718,29 @@ const Sessions = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Diálogo de confirmação de exclusão */}
+      <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => { if (!open) setSessionToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir sessão?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a sessão{" "}
+              <strong>"{sessions.find(s => s.id === sessionToDelete)?.name}"</strong>?
+              {" "}Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteSession}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <CreateSessionModal
         open={showCreateSessionModal}
         onSessionCreated={(sessionName) => handleCreateSession(sessionName)}

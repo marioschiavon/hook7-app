@@ -1,10 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
-import { QrCode, Play, Trash2 } from "lucide-react";
+import { QrCode, Play, Trash2, MoreVertical, Wifi, WifiOff } from "lucide-react";
 
 interface SessionData {
   id: string;
@@ -82,61 +88,72 @@ const SessionManagementCard = ({
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.18 }}
       className="h-full"
     >
-      <Card className={`glass-card hover:shadow-lg transition-all border-2 ${statusConfig.borderColor} hover:border-primary/50 h-full flex flex-col overflow-hidden`}>
-        <div className={`h-1 ${statusConfig.color}`} />
-        <CardContent className="p-6 space-y-4 flex-1 flex flex-col">
-          {/* Status Badge */}
+      <Card className={`glass-card transition-all border ${statusConfig.borderColor} hover:border-primary/40 h-full flex flex-col overflow-hidden`}>
+        {/* Barra de status no topo */}
+        <div className={`h-0.5 ${statusConfig.color} opacity-80`} />
+
+        <CardContent className="p-5 flex-1 flex flex-col gap-3">
+          {/* Header: badge + menu */}
           <div className="flex items-center justify-between">
-            <Badge className={`${statusConfig.bgColor} ${statusConfig.textColor} border-0 font-medium`}>
-              <span className={`inline-block w-2 h-2 rounded-full ${statusConfig.color} mr-2 animate-pulse`} />
+            <Badge className={`${statusConfig.bgColor} ${statusConfig.textColor} border-0 font-medium text-xs px-2 py-0.5`}>
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${statusConfig.color} mr-1.5 ${isOnline ? 'animate-pulse' : ''}`} />
               {statusConfig.label}
             </Badge>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir sessão
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {/* Nome da Sessão */}
+          {/* Nome e ID */}
           <div className="flex-1">
-            <h3 className="font-bold text-lg truncate">{session.name}</h3>
-            <p className="text-sm text-muted-foreground truncate font-mono">
-              {session.api_session || 'Sem sessão configurada'}
+            <h3 className="font-semibold text-base leading-tight truncate">{session.name}</h3>
+            <p className="text-xs text-muted-foreground truncate font-mono mt-0.5">
+              {session.api_session || 'Sessão não configurada'}
             </p>
           </div>
 
-          {/* Informações */}
+          {/* Timestamp */}
           {session.updated_at && (
-            <div className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground/70">
               Atualizado{' '}
               {formatDistanceToNow(new Date(session.updated_at), {
                 addSuffix: true,
                 locale: ptBR
               })}
-            </div>
+            </p>
           )}
 
-          {/* Botões de Ação */}
-          <div className="space-y-2 pt-2 border-t">
+          {/* Ações principais */}
+          <div className="space-y-2 pt-2 border-t border-white/5">
             {hasQrCode && (
-              <Button
-                onClick={onViewQr}
-                className="w-full gap-2"
-                variant="default"
-              >
-                <QrCode className="w-4 h-4" />
-                Ver QR Code
+              <Button onClick={onViewQr} className="w-full gap-2" size="sm">
+                <QrCode className="w-3.5 h-3.5" />
+                Escanear QR Code
               </Button>
             )}
-            
+
             {!isOnline && !hasQrCode && (session.requires_subscription === undefined || session.requires_subscription === false || hasActiveSubscription) && (
-              <Button
-                onClick={onStartSession}
-                className="w-full gap-2"
-                variant="default"
-              >
-                <Play className="w-4 h-4" />
-                Iniciar Sessão
+              <Button onClick={onStartSession} className="w-full gap-2" size="sm">
+                <Play className="w-3.5 h-3.5" />
+                Conectar
               </Button>
             )}
 
@@ -144,31 +161,18 @@ const SessionManagementCard = ({
               <Button
                 onClick={() => window.location.href = `/checkout?session_name=${session.name}`}
                 className="w-full gap-2"
-                variant="default"
+                size="sm"
               >
                 Assinar para Ativar
               </Button>
             )}
 
             {isOnline && (
-              <Button
-                onClick={onViewQr}
-                className="w-full gap-2"
-                variant="outline"
-              >
+              <Button onClick={onViewQr} className="w-full gap-2" variant="outline" size="sm">
+                <Wifi className="w-3.5 h-3.5" />
                 Ver Detalhes
               </Button>
             )}
-            
-            <Button
-              onClick={onDelete}
-              className="w-full gap-2"
-              variant="destructive"
-              size="sm"
-            >
-              <Trash2 className="w-4 h-4" />
-              Excluir
-            </Button>
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, CreditCard, BookOpen, Megaphone, Activity, LogOut, Building2, Users } from "lucide-react";
+import { LayoutDashboard, MessageSquare, CreditCard, BookOpen, Megaphone, Activity, LogOut, Building2, Users, ChevronUp } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,10 +9,19 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuBadge,
   SidebarFooter,
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -31,6 +40,7 @@ export function AppSidebar() {
   const { t } = useTranslation();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [activeSessions, setActiveSessions] = useState<number | null>(null);
 
   const isCollapsed = state === "collapsed";
 
@@ -67,6 +77,20 @@ export function AppSidebar() {
           .eq("user_id", user.id)
           .maybeSingle();
         setIsSuperAdmin(!!data);
+
+        // Buscar count de sessões para o badge
+        const { data: userRecord } = await supabase
+          .from("users")
+          .select("organization_id")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (userRecord?.organization_id) {
+          const { count } = await supabase
+            .from("sessions")
+            .select("*", { count: "exact", head: true })
+            .eq("organization_id", userRecord.organization_id);
+          setActiveSessions(count ?? 0);
+        }
       }
     };
     checkAdmin();
@@ -78,6 +102,8 @@ export function AppSidebar() {
     await supabase.auth.signOut();
     navigate("/login");
   };
+
+  const getInitials = (email: string) => email.substring(0, 2).toUpperCase();
 
   const renderMenuItems = (items: NavItem[]) => (
     <SidebarMenu>
@@ -93,6 +119,10 @@ export function AppSidebar() {
               {!isCollapsed && <span>{item.title}</span>}
             </Link>
           </SidebarMenuButton>
+          {/* Badge de sessões no item Sessões */}
+          {item.url === "/sessions" && activeSessions !== null && activeSessions > 0 && (
+            <SidebarMenuBadge>{activeSessions}</SidebarMenuBadge>
+          )}
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
@@ -155,23 +185,48 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              tooltip={isCollapsed ? t('sidebar.logout') : undefined}
-            >
-              <LogOut className="h-4 w-4" />
-              {!isCollapsed && <span>{t('sidebar.logout')}</span>}
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent"
+                  tooltip={isCollapsed ? userEmail : undefined}
+                >
+                  <Avatar className="h-7 w-7 shrink-0">
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
+                      {getInitials(userEmail)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {!isCollapsed && (
+                    <>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-xs font-medium leading-tight truncate">{userEmail}</p>
+                        <p className="text-[10px] text-muted-foreground leading-tight">
+                          {isSuperAdmin ? "Superadmin" : "Usuário"}
+                        </p>
+                      </div>
+                      <ChevronUp className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    </>
+                  )}
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" className="w-56 mb-1">
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-medium truncate">{userEmail}</p>
+                  <p className="text-xs text-muted-foreground">{isSuperAdmin ? "Superadmin" : "Usuário"}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t('sidebar.logout')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
-        {!isCollapsed && userEmail && (
-          <div className="px-3 py-2 text-xs text-muted-foreground truncate">
-            {userEmail}
-          </div>
-        )}
       </SidebarFooter>
     </Sidebar>
   );

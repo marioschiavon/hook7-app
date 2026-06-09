@@ -243,3 +243,29 @@
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
+
+/* ─── Custom Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(262 40% 25% / 0.6);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(262 60% 45% / 0.7);
+}
+
+/* ─── Sidebar active item glow ─── */
+[data-sidebar="menu-button"][data-active="true"] {
+  box-shadow: inset 2px 0 0 hsl(var(--primary));
+}
+
+/* ─── Smooth page transitions ─── */
+main > div {
+  animation: fade-in 0.25s ease-out both;
+}

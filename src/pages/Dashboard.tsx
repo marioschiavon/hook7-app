@@ -487,42 +487,79 @@ const Dashboard = () => {
         </motion.div>
       </div>
       
-      {/* Fallback original tools/sessions so the user doesn't lose functionality, just styled consistently */}
-      <div className="mt-12 opacity-80 hover:opacity-100 transition-opacity">
-        <h3 className="text-sm font-medium text-white/40 mb-4 uppercase tracking-wider">Gestão do Sistema</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="glass-card cursor-pointer border-white/5" onClick={() => navigate("/sessions")}>
+      {/* Ferramentas Rápidas */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.4 }}
+      >
+        <h3 className="text-xs font-semibold text-white/35 mb-3 uppercase tracking-widest">Ferramentas</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Ir para Sessões */}
+          <Card
+            className="glass-card cursor-pointer border-white/5 group"
+            onClick={() => navigate("/sessions")}
+          >
             <CardContent className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-white/60" />
-                <span className="text-sm font-medium text-white/80">Sessões Conectadas</span>
+                <div className="p-2 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+                  <MessageSquare className="h-4 w-4 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white/85">Sessões</p>
+                  <p className="text-xs text-white/40">{sessions.length} criada{sessions.length !== 1 ? "s" : ""}</p>
+                </div>
               </div>
-              <ArrowRight className="h-4 w-4 text-white/40" />
+              <ArrowRight className="h-4 w-4 text-white/25 group-hover:text-white/60 transition-colors" />
             </CardContent>
           </Card>
-          
-          <Card className="glass-card cursor-pointer border-white/5">
-            <CardContent className="p-4 flex flex-col justify-center">
-              <div className="flex flex-wrap gap-2">
+
+          {/* API Key */}
+          <Card className="glass-card border-white/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Zap className="h-4 w-4 text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white/85 mb-1">Chave de API</p>
                 <ApiKeySheet sessions={sessions} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Testar Mensagem */}
+          <Card className="glass-card border-white/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <MessageSquare className="h-4 w-4 text-purple-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white/85 mb-1">Teste Rápido</p>
                 <SendTestMessageDialog sessions={sessions} onSend={handleSendTestMessage} />
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="glass-card border-white/5">
-            <CardContent className="p-4">
-               {orgData && (
-                <OrganizationBanner
-                  name={orgData.name}
-                  isLegacy={orgData.is_legacy}
-                  sessionCount={sessions.length}
-                />
-              )}
-            </CardContent>
-          </Card>
+
+          {/* Organização */}
+          {orgData && (
+            <Card className="glass-card border-white/5">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-orange-500/10">
+                  <Settings className="h-4 w-4 text-orange-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white/40 mb-0.5">Organização</p>
+                  <OrganizationBanner
+                    name={orgData.name}
+                    isLegacy={orgData.is_legacy}
+                    sessionCount={sessions.length}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
-      </div>
+      </motion.div>
 
     </div>
   );
