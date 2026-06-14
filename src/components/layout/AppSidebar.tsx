@@ -1,5 +1,18 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, CreditCard, BookOpen, Megaphone, Activity, LogOut, Building2, Users, ChevronUp } from "lucide-react";
+import {
+  LayoutDashboard,
+  MessageSquare,
+  CreditCard,
+  BookOpen,
+  Megaphone,
+  Activity,
+  LogOut,
+  Building2,
+  Users,
+  ChevronUp,
+  Webhook,
+  Bell,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,6 +47,13 @@ interface NavItem {
   icon: React.ElementType;
 }
 
+interface OrgInfo {
+  name: string;
+  plan: string | null;
+  sessionCount: number;
+  onlineSessions: number;
+}
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -41,59 +62,81 @@ export function AppSidebar() {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [activeSessions, setActiveSessions] = useState<number | null>(null);
+  const [orgInfo, setOrgInfo] = useState<OrgInfo | null>(null);
 
   const isCollapsed = state === "collapsed";
 
-  // Menu items with i18n
   const clientItems: NavItem[] = [
-    { title: t('sidebar.dashboard'), url: "/dashboard", icon: LayoutDashboard },
-    { title: t('sidebar.sessions'), url: "/sessions", icon: MessageSquare },
-    { title: t('sidebar.monitoring'), url: "/monitoring", icon: Activity },
-    { title: t('sidebar.subscriptions'), url: "/subscriptions", icon: CreditCard },
-    { title: t('sidebar.apiDocs'), url: "/api-docs", icon: BookOpen },
+    { title: t("sidebar.dashboard"), url: "/dashboard", icon: LayoutDashboard },
+    { title: t("sidebar.sessions"), url: "/sessions", icon: MessageSquare },
+    { title: t("sidebar.monitoring"), url: "/monitoring", icon: Activity },
+    { title: t("sidebar.webhooks"), url: "/webhooks", icon: Webhook },
+    { title: t("sidebar.subscriptions"), url: "/subscriptions", icon: CreditCard },
+    { title: t("sidebar.apiDocs"), url: "/api-docs", icon: BookOpen },
   ];
 
   const adminItems: NavItem[] = [
-    { title: t('sidebar.adminDashboard'), url: "/admin", icon: LayoutDashboard },
-    { title: t('sidebar.organizations'), url: "/admin/organizations", icon: Building2 },
-    { title: t('sidebar.users'), url: "/admin/users", icon: Users },
-    { title: t('sidebar.subscriptions'), url: "/admin/subscriptions", icon: CreditCard },
-    { title: t('sidebar.monitoring'), url: "/admin/monitoring", icon: Activity },
-    { title: t('sidebar.announcements'), url: "/admin/announcements", icon: Megaphone },
+    { title: t("sidebar.adminDashboard"), url: "/admin", icon: LayoutDashboard },
+    { title: t("sidebar.organizations"), url: "/admin/organizations", icon: Building2 },
+    { title: t("sidebar.users"), url: "/admin/users", icon: Users },
+    { title: t("sidebar.subscriptions"), url: "/admin/subscriptions", icon: CreditCard },
+    { title: t("sidebar.monitoring"), url: "/admin/monitoring", icon: Activity },
+    { title: t("sidebar.announcements"), url: "/admin/announcements", icon: Megaphone },
   ];
 
   const adminToolItems: NavItem[] = [
-    { title: t('sidebar.apiDocs'), url: "/api-docs", icon: BookOpen },
+    { title: t("sidebar.apiDocs"), url: "/api-docs", icon: BookOpen },
   ];
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || "");
-        const { data } = await supabase
-          .from("superadmin_users" as any)
-          .select("user_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        setIsSuperAdmin(!!data);
+    const loadData = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
-        // Buscar count de sessões para o badge
-        const { data: userRecord } = await supabase
-          .from("users")
-          .select("organization_id")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (userRecord?.organization_id) {
-          const { count } = await supabase
+      setUserEmail(user.email || "");
+
+      const { data: adminData } = await supabase
+        .from("superadmin_users" as any)
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setIsSuperAdmin(!!adminData);
+
+      const { data: userRecord } = await supabase
+        .from("users")
+        .select("organization_id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (userRecord?.organization_id) {
+        const orgId = userRecord.organization_id;
+
+        const [{ count: sessionCount }, { data: org }] = await Promise.all([
+          supabase
             .from("sessions")
             .select("*", { count: "exact", head: true })
-            .eq("organization_id", userRecord.organization_id);
-          setActiveSessions(count ?? 0);
+            .eq("organization_id", orgId),
+          supabase
+            .from("organizations")
+            .select("name, plan")
+            .eq("id", orgId)
+            .maybeSingle(),
+        ]);
+
+        setActiveSessions(sessionCount ?? 0);
+        if (org) {
+          setOrgInfo({
+            name: org.name,
+            plan: org.plan,
+            sessionCount: sessionCount ?? 0,
+            onlineSessions: 0,
+          });
         }
       }
     };
-    checkAdmin();
+    loadData();
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
@@ -104,6 +147,11 @@ export function AppSidebar() {
   };
 
   const getInitials = (email: string) => email.substring(0, 2).toUpperCase();
+
+  const planLabel = (plan: string | null) => {
+    if (!plan) return "Free";
+    return plan.charAt(0).toUpperCase() + plan.slice(1);
+  };
 
   const renderMenuItems = (items: NavItem[]) => (
     <SidebarMenu>
@@ -119,7 +167,6 @@ export function AppSidebar() {
               {!isCollapsed && <span>{item.title}</span>}
             </Link>
           </SidebarMenuButton>
-          {/* Badge de sessões no item Sessões */}
           {item.url === "/sessions" && activeSessions !== null && activeSessions > 0 && (
             <SidebarMenuBadge>{activeSessions}</SidebarMenuBadge>
           )}
@@ -130,9 +177,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50 bg-background/80 backdrop-blur-xl">
-      {/* Branding Header */}
+      {/* Logo */}
       <SidebarHeader>
-        <Link to="/dashboard" className="flex items-center gap-3 px-2 py-3 hover:opacity-80 transition-opacity">
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-3 px-2 py-3 hover:opacity-80 transition-opacity"
+        >
           <img
             src="/hook7-logo.svg"
             alt="Hook7"
@@ -155,37 +205,48 @@ export function AppSidebar() {
           <>
             <SidebarGroup>
               <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-                {isCollapsed ? "⚡" : t('sidebar.admin')}
+                {isCollapsed ? "⚡" : t("sidebar.admin")}
               </SidebarGroupLabel>
-              <SidebarGroupContent>
-                {renderMenuItems(adminItems)}
-              </SidebarGroupContent>
+              <SidebarGroupContent>{renderMenuItems(adminItems)}</SidebarGroupContent>
             </SidebarGroup>
-
             <Separator />
-
             <SidebarGroup>
               <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-                {isCollapsed ? "🔧" : t('sidebar.tools')}
+                {isCollapsed ? "🔧" : t("sidebar.tools")}
               </SidebarGroupLabel>
-              <SidebarGroupContent>
-                {renderMenuItems(adminToolItems)}
-              </SidebarGroupContent>
+              <SidebarGroupContent>{renderMenuItems(adminToolItems)}</SidebarGroupContent>
             </SidebarGroup>
           </>
         ) : (
           <SidebarGroup>
             <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-              {isCollapsed ? "📊" : t('sidebar.mainMenu')}
+              {isCollapsed ? "📊" : t("sidebar.mainMenu")}
             </SidebarGroupLabel>
-            <SidebarGroupContent>
-              {renderMenuItems(clientItems)}
-            </SidebarGroupContent>
+            <SidebarGroupContent>{renderMenuItems(clientItems)}</SidebarGroupContent>
           </SidebarGroup>
         )}
       </SidebarContent>
 
+      {/* Footer: org info + user dropdown */}
       <SidebarFooter className="pb-2">
+        {/* Org summary — only when expanded */}
+        {!isCollapsed && orgInfo && (
+          <div className="mx-2 mb-2 rounded-lg border border-border/40 bg-muted/30 px-3 py-2">
+            <p className="truncate text-[11px] font-medium text-foreground/70">{orgInfo.name}</p>
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <Badge
+                variant="outline"
+                className="h-4 border-primary/30 px-1.5 py-0 text-[9px] font-medium text-primary/80"
+              >
+                {planLabel(orgInfo.plan)}
+              </Badge>
+              <span className="text-[10px] text-muted-foreground">
+                {orgInfo.sessionCount} sess{orgInfo.sessionCount !== 1 ? "ões" : "ão"}
+              </span>
+            </div>
+          </div>
+        )}
+
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -205,7 +266,7 @@ export function AppSidebar() {
                       <div className="flex-1 min-w-0 text-left">
                         <p className="text-xs font-medium leading-tight truncate">{userEmail}</p>
                         <p className="text-[10px] text-muted-foreground leading-tight">
-                          {isSuperAdmin ? "Superadmin" : "Usuário"}
+                          {isSuperAdmin ? "Superadmin" : planLabel(orgInfo?.plan ?? null)}
                         </p>
                       </div>
                       <ChevronUp className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -216,12 +277,17 @@ export function AppSidebar() {
               <DropdownMenuContent side="top" align="start" className="w-56 mb-1">
                 <div className="px-2 py-1.5">
                   <p className="text-xs font-medium truncate">{userEmail}</p>
-                  <p className="text-xs text-muted-foreground">{isSuperAdmin ? "Superadmin" : "Usuário"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isSuperAdmin ? "Superadmin" : planLabel(orgInfo?.plan ?? null)}
+                  </p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive focus:text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
-                  {t('sidebar.logout')}
+                  {t("sidebar.logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

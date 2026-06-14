@@ -316,6 +316,7 @@
     "organizations": "Organizações",
     "users": "Usuários",
     "announcements": "Anúncios",
+    "webhooks": "Webhooks",
     "logout": "Sair"
   },
   "webhooks": {

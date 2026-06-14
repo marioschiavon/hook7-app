@@ -21,6 +21,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Unsubscribe from "./pages/Unsubscribe";
+import Webhooks from "./pages/Webhooks";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrganizations from "./pages/admin/AdminOrganizations";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -58,7 +59,8 @@ const App = () => (
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/monitoring" element={<SessionMonitoring />} />
-            
+            <Route path="/webhooks" element={<Webhooks />} />
+
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/organizations" element={<AdminOrganizations />} />

@@ -2,8 +2,15 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,13 +23,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import CreateSessionModal from "@/components/CreateSessionModal";
 import SessionQrModal from "@/components/SessionQrModal";
-import { SessionsGrid } from "@/components/dashboard/SessionsGrid";
-import { StatsCard } from "@/components/dashboard/StatsCard";
+import SessionManagementCard from "@/components/SessionManagementCard";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { MessageSquare, Zap, Clock, AlertTriangle, Plus } from "lucide-react";
+import { Plus, Search, Wifi, QrCode, WifiOff, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import * as hook7Api from "@/services/hook7Api";
-import { NormalizedConnectionStatus, isValidHook7Token } from "@/services/hook7Api";
+import { isValidHook7Token } from "@/services/hook7Api";
 
 interface SessionData {
   id: string;
@@ -77,14 +84,15 @@ const Sessions = () => {
   const [qrCodeKey, setQrCodeKey] = useState<string>("");
   const [reconfiguringSession, setReconfiguringSession] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // ─── Data fetching ──────────────────────────────────────────────────────────
 
   const fetchSessions = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login");
-        return;
-      }
+      if (!user) { navigate("/login"); return; }
 
       const { data: userRecord, error: userError } = await supabase
         .from("users")
@@ -95,7 +103,7 @@ const Sessions = () => {
       if (userError) throw userError;
 
       if (!userRecord.organization_id) {
-        toast.error(t('sessions.organizationNotFound'));
+        toast.error(t("sessions.organizationNotFound"));
         navigate("/dashboard");
         return;
       }
@@ -107,27 +115,25 @@ const Sessions = () => {
         .single();
 
       if (orgError) throw orgError;
-      
-      const orgDataTyped: OrgData = {
+
+      setOrgData({
         id: org.id,
         name: org.name,
         plan: org.plan,
         session_limit: org.session_limit,
-        is_legacy: (org as any).is_legacy || false
-      };
-      
-      setOrgData(orgDataTyped);
+        is_legacy: (org as any).is_legacy || false,
+      });
 
       const { data: sessionsData, error: sessionsError } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('organization_id', userRecord.organization_id)
-        .order('created_at', { ascending: false });
+        .from("sessions")
+        .select("*")
+        .eq("organization_id", userRecord.organization_id)
+        .order("created_at", { ascending: false });
 
       if (sessionsError) {
-        console.error('Error fetching sessions:', sessionsError);
-      } else if (sessionsData && sessionsData.length > 0) {
-        const typedSessions: SessionData[] = sessionsData.map((s: any) => ({
+        console.error("Error fetching sessions:", sessionsError);
+      } else if (sessionsData?.length) {
+        const typed: SessionData[] = sessionsData.map((s: any) => ({
           id: s.id,
           name: s.name,
           api_session: s.api_session,
@@ -142,22 +148,23 @@ const Sessions = () => {
           pairing_code: s.pairing_code,
           webhook_url: s.webhook_url,
           webhook_enabled: s.webhook_enabled,
-          webhook_events: s.webhook_events
+          webhook_events: s.webhook_events,
         }));
-        
-        setSessions(typedSessions);
-        
+
+        setSessions(typed);
         await Promise.all(
-          typedSessions.map(async (session) => {
-            if (session.api_session && session.api_token) {
-              await fetchSessionStatus(session.id, session.api_session, session.api_token);
-            }
-          })
+          typed.map((s) =>
+            s.api_session && s.api_token
+              ? fetchSessionStatus(s.id, s.api_session, s.api_token)
+              : Promise.resolve()
+          )
         );
+      } else {
+        setSessions([]);
       }
     } catch (error: any) {
       console.error("❌ Error fetching data:", error);
-      toast.error(`${t('dashboard.errorLoadingData')}: ${error.message || t('common.error')}`);
+      toast.error(`${t("dashboard.errorLoadingData")}: ${error.message || t("common.error")}`);
     } finally {
       setLoading(false);
     }
@@ -166,436 +173,252 @@ const Sessions = () => {
   const fetchSessionStatus = async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
       const result = await hook7Api.checkConnection(apiToken);
-      setSessionsStatus(prev => ({
+      setSessionsStatus((prev) => ({ ...prev, [sessionId]: result }));
+    } catch {
+      setSessionsStatus((prev) => ({
         ...prev,
-        [sessionId]: result
-      }));
-    } catch (error) {
-      console.error(`Error fetching session status for ${sessionId}:`, error);
-      setSessionsStatus(prev => ({
-        ...prev,
-        [sessionId]: { status: false, message: 'Offline' }
+        [sessionId]: { status: false, message: "Offline" },
       }));
     }
   };
 
-  const checkConnectionStatus = useCallback(async (sessionId: string, apiSession: string, apiToken: string) => {
-    try {
-      const result = await hook7Api.checkConnection(apiToken);
-      
-      setSessionsStatus(currentStatus => {
-        const current = currentStatus[sessionId];
-        if (result.status === true) {
-          return { ...currentStatus, [sessionId]: result };
-        }
-        if (!current?.qrCode) {
-          return { ...currentStatus, [sessionId]: result };
-        }
-        return currentStatus;
-      });
-    } catch (error) {
-      console.error('Erro ao verificar conexão:', error);
-    }
-  }, []);
+  const checkConnectionStatus = useCallback(
+    async (sessionId: string, apiSession: string, apiToken: string) => {
+      try {
+        const result = await hook7Api.checkConnection(apiToken);
+        setSessionsStatus((currentStatus) => {
+          const current = currentStatus[sessionId];
+          if (result.status === true) return { ...currentStatus, [sessionId]: result };
+          if (!current?.qrCode) return { ...currentStatus, [sessionId]: result };
+          return currentStatus;
+        });
+      } catch {
+        // silently ignore polling errors
+      }
+    },
+    []
+  );
+
+  // ─── Session actions ─────────────────────────────────────────────────────────
 
   const handleReconfigureSession = async (session: SessionData) => {
     setReconfiguringSession(session.id);
-    
     try {
-      toast.info(t('sessions.reconfiguringSession'));
-      
-      const { data, error } = await supabase.functions.invoke('generate-whatsapp-token', {
-        body: { session_name: session.name }
+      toast.info(t("sessions.reconfiguringSession"));
+      const { data, error } = await supabase.functions.invoke("generate-whatsapp-token", {
+        body: { session_name: session.name },
       });
-      
       if (error) throw error;
-      
       if (data.success) {
-        toast.success(t('sessions.sessionReconfigured'));
+        toast.success(t("sessions.sessionReconfigured"));
         await fetchSessions();
       } else {
-        throw new Error(data.error || t('sessions.reconfigureError'));
+        throw new Error(data.error || t("sessions.reconfigureError"));
       }
     } catch (error: any) {
-      console.error('Erro ao reconfigurar sessão:', error);
-      toast.error(error.message || t('sessions.reconfigureError'));
+      toast.error(error.message || t("sessions.reconfigureError"));
     } finally {
       setReconfiguringSession(null);
     }
   };
 
-  const handleStartSession = useCallback(async (session: SessionData) => {
-    // Verificar se o token é válido para Hook7 API
-    if (session.api_token && !isValidHook7Token(session.api_token)) {
-      toast.warning(t('sessions.outdatedToken'));
-      await handleReconfigureSession(session);
-      return;
-    }
-
-    // Validar se precisa de assinatura
-    if (session.requires_subscription) {
-      const { data: subscription } = await supabase
-        .from('subscriptions' as any)
-        .select('status')
-        .eq('session_id', session.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (!subscription) {
-        toast.error(t('sessions.subscriptionRequired'));
-        navigate(`/checkout?session_name=${session.name}`);
+  const handleStartSession = useCallback(
+    async (session: SessionData) => {
+      if (session.api_token && !isValidHook7Token(session.api_token)) {
+        toast.warning(t("sessions.outdatedToken"));
+        await handleReconfigureSession(session);
         return;
       }
-    }
 
-    // Se não tem api_session ainda, gerar token primeiro
-    if (!session.api_session) {
-      toast.info(t('sessions.configuringSession'));
+      if (session.requires_subscription) {
+        const { data: subscription } = await supabase
+          .from("subscriptions" as any)
+          .select("status")
+          .eq("session_id", session.id)
+          .eq("status", "active")
+          .maybeSingle();
+        if (!subscription) {
+          toast.error(t("sessions.subscriptionRequired"));
+          navigate(`/checkout?session_name=${session.name}`);
+          return;
+        }
+      }
+
+      if (!session.api_session) {
+        toast.info(t("sessions.configuringSession"));
+        setStartingSession(true);
+        try {
+          const { data: tokenData, error: tokenError } = await supabase.functions.invoke(
+            "generate-whatsapp-token",
+            { body: { session_name: session.name } }
+          );
+          if (tokenError || !tokenData.success)
+            throw new Error(tokenError?.message || t("sessions.configuringError"));
+          toast.success(t("sessions.sessionConfigured"));
+          await fetchSessions();
+        } catch (error: any) {
+          toast.error(error.message || t("sessions.configuringError"));
+        } finally {
+          setStartingSession(false);
+        }
+        return;
+      }
+
+      if (!session.api_token) { toast.error(t("sessions.tokenNotFound")); return; }
+
       setStartingSession(true);
-      
+      setGeneratingQrCode(true);
+      setSelectedSession(session);
+      setShowSessionModal(true);
+
       try {
-        const { data: tokenData, error: tokenError } = await supabase.functions.invoke(
-          'generate-whatsapp-token',
-          { body: { session_name: session.name } }
-        );
-        
-        if (tokenError || !tokenData.success) {
-          throw new Error(tokenError?.message || t('sessions.configuringError'));
-        }
-        
-        toast.success(t('sessions.sessionConfigured'));
-        await fetchSessions();
-        return;
-      } catch (error: any) {
-        console.error('Erro ao configurar sessão:', error);
-        toast.error(error.message || t('sessions.configuringError'));
-        return;
-      } finally {
-        setStartingSession(false);
-      }
-    }
+        toast.info(t("sessions.connectingApi"));
+        const qrData = await hook7Api.connectInstance(session.api_token);
 
-    if (!session.api_token) {
-      toast.error(t('sessions.tokenNotFound'));
-      return;
-    }
-    
-    setStartingSession(true);
-    setGeneratingQrCode(true);
-    setSelectedSession(session);
-    setShowSessionModal(true);
-    
-    try {
-      toast.info(t('sessions.connectingApi'));
-      
-      // Usar Hook7 API para conectar e obter QR Code
-      const qrData = await hook7Api.connectInstance(session.api_token);
-      
-      if (qrData) {
-        // Salvar pairing code se disponível
-        if (qrData.pairingCode) {
-          await supabase
-            .from('sessions')
-            .update({ pairing_code: qrData.pairingCode } as any)
-            .eq('id', session.id);
-          console.log('Pairing code salvo:', qrData.pairingCode);
-        }
-
-        // QR Code vem em base64 diretamente da Hook7 API
-        if (qrData.base64) {
-          setSessionsStatus(prev => ({
-            ...prev,
-            [session.id]: {
-              status: false,
-              message: 'qrcode',
-              qrCode: qrData.base64,
-              pairingCode: qrData.pairingCode
-            }
-          }));
-          setQrCodeKey(Date.now().toString());
-          setGeneratingQrCode(false);
-          toast.success(t('sessions.qrGenerated'));
-          
-          // Atualizar timestamp da última ação
-          await supabase
-            .from('sessions')
-            .update({ updated_at: new Date().toISOString() })
-            .eq('id', session.id);
-        } else {
-          // Se não veio QR, aguardar um pouco e buscar novamente
-          toast.info("Aguardando QR Code...");
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          
-          const retryQr = await hook7Api.fetchQRCode(session.api_token);
-          if (retryQr?.base64) {
-            setSessionsStatus(prev => ({
+        if (qrData) {
+          if (qrData.pairingCode) {
+            await supabase.from("sessions").update({ pairing_code: qrData.pairingCode } as any).eq("id", session.id);
+          }
+          if (qrData.base64) {
+            setSessionsStatus((prev) => ({
               ...prev,
-              [session.id]: {
-                status: false,
-                message: 'qrcode',
-                qrCode: retryQr.base64,
-                pairingCode: retryQr.pairingCode
-              }
+              [session.id]: { status: false, message: "qrcode", qrCode: qrData.base64, pairingCode: qrData.pairingCode },
             }));
             setQrCodeKey(Date.now().toString());
             setGeneratingQrCode(false);
-            toast.success(t('sessions.qrGenerated'));
+            toast.success(t("sessions.qrGenerated"));
+            await supabase.from("sessions").update({ updated_at: new Date().toISOString() }).eq("id", session.id);
           } else {
-            throw new Error(t('sessions.qrNotAvailable'));
+            toast.info("Aguardando QR Code...");
+            await new Promise((r) => setTimeout(r, 3000));
+            const retryQr = await hook7Api.fetchQRCode(session.api_token);
+            if (retryQr?.base64) {
+              setSessionsStatus((prev) => ({
+                ...prev,
+                [session.id]: { status: false, message: "qrcode", qrCode: retryQr.base64, pairingCode: retryQr.pairingCode },
+              }));
+              setQrCodeKey(Date.now().toString());
+              setGeneratingQrCode(false);
+              toast.success(t("sessions.qrGenerated"));
+            } else {
+              throw new Error(t("sessions.qrNotAvailable"));
+            }
           }
+        } else {
+          throw new Error(t("sessions.hook7ConnectionError"));
         }
-      } else {
-        throw new Error(t('sessions.hook7ConnectionError'));
+      } catch (error: any) {
+        toast.error(error.message || t("sessions.startSessionError"));
+        setGeneratingQrCode(false);
+        setShowSessionModal(false);
+      } finally {
+        setStartingSession(false);
       }
-      
-    } catch (error: any) {
-      console.error('Erro ao iniciar sessão:', error);
-      toast.error(error.message || t('sessions.startSessionError'));
-      setGeneratingQrCode(false);
-      setShowSessionModal(false);
-    } finally {
-      setStartingSession(false);
-    }
-  }, [navigate]);
+    },
+    [navigate]
+  );
 
   const handleQrExpiration = async (session: SessionData) => {
     if (!session.api_session || !session.api_token) return;
-    
     try {
       const result = await hook7Api.checkConnection(session.api_token);
-      
       if (result.status === false) {
-        setSessionsStatus(prev => ({
-          ...prev,
-          [session.id]: {
-            status: false,
-            message: 'Disconnected'
-          }
-        }));
-        
+        setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: false, message: "Disconnected" } }));
         setShowSessionModal(false);
         setSelectedSession(null);
-        
-        toast.info(
-          t('sessions.qrExpiredMessage'),
-          { duration: 5000 }
-        );
+        toast.info(t("sessions.qrExpiredMessage"), { duration: 5000 });
       } else if (result.status === true) {
-        setSessionsStatus(prev => ({
-          ...prev,
-          [session.id]: result
-        }));
-        toast.success(t('sessions.sessionConnectedSuccess'));
+        setSessionsStatus((prev) => ({ ...prev, [session.id]: result }));
+        toast.success(t("sessions.sessionConnectedSuccess"));
       }
-    } catch (error) {
-      console.error('Erro ao verificar status na expiração:', error);
-    }
+    } catch { /* ignore */ }
   };
-
-  useEffect(() => {
-    fetchSessions();
-  }, []);
-
-  useEffect(() => {
-    if (sessions.length === 0) return;
-    
-    const intervalId = setInterval(() => {
-      sessions.forEach(session => {
-        if (session.api_session && session.api_token) {
-          checkConnectionStatus(session.id, session.api_session, session.api_token);
-        }
-      });
-    }, 10000);
-    
-    return () => clearInterval(intervalId);
-  }, [sessions, checkConnectionStatus]);
-
-  useEffect(() => {
-    if (!selectedSession || !showSessionModal) return;
-    
-    const sessionStatus = sessionsStatus[selectedSession.id];
-    
-    if (sessionStatus?.status === false && (generatingQrCode || sessionStatus.qrCode)) {
-      const intervalId = setInterval(async () => {
-        if (!selectedSession.api_session || !selectedSession.api_token) return;
-        
-        try {
-          const qrData = await hook7Api.fetchQRCode(selectedSession.api_token);
-          
-          if (qrData?.base64) {
-            setSessionsStatus(prev => ({
-              ...prev,
-              [selectedSession.id]: {
-                status: false,
-                message: 'qrcode',
-                qrCode: qrData.base64,
-                pairingCode: qrData.pairingCode
-              }
-            }));
-            setGeneratingQrCode(false);
-          }
-        } catch (error) {
-          console.error('Erro no polling de QR Code:', error);
-        }
-      }, 5000);
-      
-      return () => clearInterval(intervalId);
-    }
-  }, [selectedSession, showSessionModal, sessionsStatus, generatingQrCode]);
-
-  useEffect(() => {
-    if (selectedSession && sessionsStatus[selectedSession.id]?.qrCode && qrCodeKey) {
-      setQrExpiresIn(120);
-      
-      const intervalId = setInterval(() => {
-        setQrExpiresIn(prev => {
-          if (prev === null || prev <= 1) {
-            clearInterval(intervalId);
-            
-            if (selectedSession) {
-              handleQrExpiration(selectedSession);
-            }
-            
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
-      return () => clearInterval(intervalId);
-    } else {
-      setQrExpiresIn(null);
-    }
-  }, [selectedSession, qrCodeKey]);
 
   const handleCreateSession = async (sessionName: string) => {
     if (!orgData) return;
-    
+
     if (orgData.is_legacy) {
-      const activeSessionsCount = sessions.length;
-      if (orgData.session_limit && activeSessionsCount >= orgData.session_limit) {
-        toast.error(t('sessions.limitReached', { limit: orgData.session_limit }));
+      if (orgData.session_limit && sessions.length >= orgData.session_limit) {
+        toast.error(t("sessions.limitReached", { limit: orgData.session_limit }));
         return;
       }
-      
       setCreatingSession(true);
-      
       try {
-        const { data, error } = await supabase.functions.invoke('generate-whatsapp-token', {
-          body: { session_name: sessionName }
+        const { data, error } = await supabase.functions.invoke("generate-whatsapp-token", {
+          body: { session_name: sessionName },
         });
-
         if (error) throw error;
-
         if (data.success && data.session_id) {
           await fetchSessions();
           setShowCreateSessionModal(false);
-          toast.success(t('sessions.sessionCreatedSuccess'));
+          toast.success(t("sessions.sessionCreatedSuccess"));
         } else {
-          throw new Error(data.error || t('sessions.tokenError'));
+          throw new Error(data.error || t("sessions.tokenError"));
         }
       } catch (error: any) {
-        console.error("Erro ao criar sessão:", error);
-        toast.error(error.message || t('sessions.startSessionError'));
+        toast.error(error.message || t("sessions.startSessionError"));
       } finally {
         setCreatingSession(false);
       }
       return;
     }
-    
-    // Primeiro criar a sessão para obter o ID, depois redirecionar com ambos parâmetros
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
       const { data: userRecord } = await supabase
         .from("users")
         .select("organization_id")
         .eq("id", user.id)
         .single();
-
       if (!userRecord?.organization_id) return;
 
-      // Verificar se sessão já existe
       const { data: existingSession } = await supabase
-        .from('sessions')
-        .select('id, status')
-        .eq('name', sessionName)
-        .eq('organization_id', userRecord.organization_id)
+        .from("sessions")
+        .select("id, status")
+        .eq("name", sessionName)
+        .eq("organization_id", userRecord.organization_id)
         .maybeSingle();
 
       if (existingSession) {
-        // Sessão já existe, redirecionar com ID
-        toast.info(t('sessions.configurePayment'));
+        toast.info(t("sessions.configurePayment"));
         navigate(`/checkout?session_id=${existingSession.id}&session_name=${encodeURIComponent(sessionName)}`);
       } else {
-        // Criar nova sessão pendente
         const { data: newSession, error } = await supabase
-          .from('sessions')
-          .insert({
-            name: sessionName,
-            organization_id: userRecord.organization_id,
-            requires_subscription: true,
-            status: 'pending_payment'
-          })
+          .from("sessions")
+          .insert({ name: sessionName, organization_id: userRecord.organization_id, requires_subscription: true, status: "pending_payment" })
           .select()
           .single();
-
-        if (error) {
-          console.error('Erro ao criar sessão:', error);
-          toast.error(t('sessions.startSessionError'));
-          return;
-        }
-
-        toast.info(t('sessions.configurePayment'));
+        if (error) { toast.error(t("sessions.startSessionError")); return; }
+        toast.info(t("sessions.configurePayment"));
         navigate(`/checkout?session_id=${newSession.id}&session_name=${encodeURIComponent(sessionName)}`);
       }
-    } catch (error) {
-      console.error('Erro ao preparar checkout:', error);
-      toast.error(t('sessions.startSessionError'));
+    } catch {
+      toast.error(t("sessions.startSessionError"));
     }
   };
 
   const handleRefreshQr = async (session: SessionData) => {
-    if (!session.api_session || !session.api_token) {
-      toast.error(t('sessions.sessionNotFound'));
-      return;
-    }
-    
+    if (!session.api_session || !session.api_token) { toast.error(t("sessions.sessionNotFound")); return; }
     setRefreshingQr(true);
     setGeneratingQrCode(true);
-    
     try {
-      toast.info(t('sessions.fetchingQr'));
-      
+      toast.info(t("sessions.fetchingQr"));
       const qrData = await hook7Api.fetchQRCode(session.api_token);
-      
       if (qrData?.base64) {
-        setSessionsStatus(prev => ({
+        setSessionsStatus((prev) => ({
           ...prev,
-          [session.id]: {
-            status: false,
-            message: 'qrcode',
-            qrCode: qrData.base64,
-            pairingCode: qrData.pairingCode
-          }
+          [session.id]: { status: false, message: "qrcode", qrCode: qrData.base64, pairingCode: qrData.pairingCode },
         }));
         setQrCodeKey(Date.now().toString());
         setGeneratingQrCode(false);
-        toast.success(t('sessions.qrUpdated'));
-        
-        // Atualizar timestamp da última ação
-        await supabase
-          .from('sessions')
-          .update({ updated_at: new Date().toISOString() })
-          .eq('id', session.id);
+        toast.success(t("sessions.qrUpdated"));
+        await supabase.from("sessions").update({ updated_at: new Date().toISOString() }).eq("id", session.id);
       } else {
-        throw new Error(t('sessions.qrNotAvailable'));
+        throw new Error(t("sessions.qrNotAvailable"));
       }
-      
     } catch (error: any) {
-      console.error('Erro ao atualizar QR Code:', error);
-      toast.error(error.message || t('sessions.qrUpdateError'));
+      toast.error(error.message || t("sessions.qrUpdateError"));
       setGeneratingQrCode(false);
     } finally {
       setRefreshingQr(false);
@@ -603,57 +426,36 @@ const Sessions = () => {
   };
 
   const handleCloseSession = async (session: SessionData) => {
-    if (!session.api_session || !session.api_token) {
-      toast.error(t('sessions.sessionNotFound'));
-      return;
-    }
-    
+    if (!session.api_session || !session.api_token) { toast.error(t("sessions.sessionNotFound")); return; }
     setClosingSession(true);
-    
     try {
       const success = await hook7Api.logoutInstance(session.api_token);
-      
       if (success) {
-        setSessionsStatus(prev => ({
-          ...prev,
-          [session.id]: { status: false, message: 'offline' }
-        }));
-        
-        toast.success(t('sessions.sessionDisconnected'));
+        setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: false, message: "offline" } }));
+        toast.success(t("sessions.sessionDisconnected"));
         await fetchSessions();
       } else {
-        throw new Error(t('sessions.disconnectError'));
+        throw new Error(t("sessions.disconnectError"));
       }
     } catch (error: any) {
-      console.error('Erro ao fechar sessão:', error);
-      toast.error(error.message || t('sessions.disconnectError'));
+      toast.error(error.message || t("sessions.disconnectError"));
     } finally {
       setClosingSession(false);
     }
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    const session = sessions.find(s => s.id === sessionId);
+    const session = sessions.find((s) => s.id === sessionId);
     if (!session) return;
+    if (session.status === "pending_payment") { toast.warning(t("sessions.pendingPaymentDelete")); return; }
 
-    // Bloquear deleção de sessões com pagamento pendente
-    if (session.status === 'pending_payment') {
-      toast.warning(t('sessions.pendingPaymentDelete'));
-      return;
-    }
-
-    // Verificar se existe checkout pendente no Stripe para esta sessão
     const { data: pendingSub } = await supabase
-      .from('subscriptions' as any)
-      .select('status')
-      .eq('session_id', sessionId)
-      .eq('status', 'pending')
+      .from("subscriptions" as any)
+      .select("status")
+      .eq("session_id", sessionId)
+      .eq("status", "pending")
       .maybeSingle();
-
-    if (pendingSub) {
-      toast.warning(t('sessions.pendingPaymentDelete'));
-      return;
-    }
+    if (pendingSub) { toast.warning(t("sessions.pendingPaymentDelete")); return; }
 
     setSessionToDelete(sessionId);
   };
@@ -663,70 +465,118 @@ const Sessions = () => {
     setSessionToDelete(null);
     if (!sessionId) return;
 
-    const session = sessions.find(s => s.id === sessionId);
+    const session = sessions.find((s) => s.id === sessionId);
     if (!session) return;
 
     setLoggingOut(true);
-    
     try {
       if (session.api_session && session.api_token) {
-        // PASSO 1: Logout da instância
-        try {
-          console.log('🔒 Fazendo logout da instância:', session.api_session);
-          await hook7Api.logoutInstance(session.api_token);
-          console.log('✅ Logout realizado');
-        } catch (logoutError) {
-          console.warn('⚠️ Erro ao fazer logout (continuando):', logoutError);
-        }
-
-        // PASSO 2: Deletar instância
-        try {
-          console.log('🗑️ Deletando instância:', session.api_session);
-          await hook7Api.deleteInstance(session.api_session, session.api_token);
-          console.log('✅ Instância deletada');
-        } catch (deleteError) {
-          console.warn('⚠️ Erro ao deletar instância (continuando):', deleteError);
-        }
+        try { await hook7Api.logoutInstance(session.api_token); } catch { /* continue */ }
+        try { await hook7Api.deleteInstance(session.api_session, session.api_token); } catch { /* continue */ }
       }
-      
-      const { error } = await supabase
-        .from('sessions')
-        .delete()
-        .eq('id', session.id);
-      
+      const { error } = await supabase.from("sessions").delete().eq("id", session.id);
       if (error) throw error;
-      
-      setSessions(prev => prev.filter(s => s.id !== session.id));
-      
-      if (selectedSession?.id === session.id) {
-        setSelectedSession(null);
-        setShowSessionModal(false);
-      }
-      
+      setSessions((prev) => prev.filter((s) => s.id !== session.id));
+      if (selectedSession?.id === session.id) { setSelectedSession(null); setShowSessionModal(false); }
       toast.success("Sessão excluída com sucesso!");
-      
     } catch (error: any) {
-      console.error('Erro ao excluir sessão:', error);
       toast.error(error.message || "Erro ao excluir sessão");
     } finally {
       setLoggingOut(false);
     }
   };
 
-  const activeSessions = sessions.filter(s => sessionsStatus[s.id]?.status === true);
-  const qrCodeSessions = sessions.filter(s => sessionsStatus[s.id]?.qrCode || sessionsStatus[s.id]?.message?.toUpperCase() === 'QRCODE');
+  // ─── Effects ─────────────────────────────────────────────────────────────────
+
+  useEffect(() => { fetchSessions(); }, []);
+
+  useEffect(() => {
+    if (!sessions.length) return;
+    const id = setInterval(() => {
+      sessions.forEach((s) => {
+        if (s.api_session && s.api_token) checkConnectionStatus(s.id, s.api_session, s.api_token);
+      });
+    }, 10000);
+    return () => clearInterval(id);
+  }, [sessions, checkConnectionStatus]);
+
+  useEffect(() => {
+    if (!selectedSession || !showSessionModal) return;
+    const sessionStatus = sessionsStatus[selectedSession.id];
+    if (sessionStatus?.status === false && (generatingQrCode || sessionStatus.qrCode)) {
+      const id = setInterval(async () => {
+        if (!selectedSession.api_session || !selectedSession.api_token) return;
+        try {
+          const qrData = await hook7Api.fetchQRCode(selectedSession.api_token);
+          if (qrData?.base64) {
+            setSessionsStatus((prev) => ({
+              ...prev,
+              [selectedSession.id]: { status: false, message: "qrcode", qrCode: qrData.base64, pairingCode: qrData.pairingCode },
+            }));
+            setGeneratingQrCode(false);
+          }
+        } catch { /* ignore */ }
+      }, 5000);
+      return () => clearInterval(id);
+    }
+  }, [selectedSession, showSessionModal, sessionsStatus, generatingQrCode]);
+
+  useEffect(() => {
+    if (selectedSession && sessionsStatus[selectedSession.id]?.qrCode && qrCodeKey) {
+      setQrExpiresIn(120);
+      const id = setInterval(() => {
+        setQrExpiresIn((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(id);
+            if (selectedSession) handleQrExpiration(selectedSession);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(id);
+    } else {
+      setQrExpiresIn(null);
+    }
+  }, [selectedSession, qrCodeKey]);
+
+  // ─── Derived ─────────────────────────────────────────────────────────────────
+
+  const activeSessions = sessions.filter((s) => sessionsStatus[s.id]?.status === true);
+  const qrCodeSessions = sessions.filter(
+    (s) => sessionsStatus[s.id]?.qrCode || sessionsStatus[s.id]?.message?.toUpperCase() === "QRCODE"
+  );
+  const offlineSessions = sessions.filter(
+    (s) => !sessionsStatus[s.id]?.status && !sessionsStatus[s.id]?.qrCode && sessionsStatus[s.id]?.message?.toUpperCase() !== "QRCODE"
+  );
+
+  const filteredSessions = sessions.filter((s) => {
+    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const st = sessionsStatus[s.id];
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "online" && st?.status === true) ||
+      (statusFilter === "offline" && !st?.status && !st?.qrCode) ||
+      (statusFilter === "qrcode" && (st?.qrCode || st?.message?.toUpperCase() === "QRCODE"));
+    return matchesSearch && matchesStatus;
+  });
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Diálogo de confirmação de exclusão */}
-      <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => { if (!open) setSessionToDelete(null); }}>
+    <>
+      {/* Delete confirmation */}
+      <AlertDialog
+        open={!!sessionToDelete}
+        onOpenChange={(open) => { if (!open) setSessionToDelete(null); }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir sessão?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a sessão{" "}
-              <strong>"{sessions.find(s => s.id === sessionToDelete)?.name}"</strong>?
-              {" "}Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir{" "}
+              <strong>"{sessions.find((s) => s.id === sessionToDelete)?.name}"</strong>?
+              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -743,7 +593,7 @@ const Sessions = () => {
 
       <CreateSessionModal
         open={showCreateSessionModal}
-        onSessionCreated={(sessionName) => handleCreateSession(sessionName)}
+        onSessionCreated={handleCreateSession}
         onClose={() => setShowCreateSessionModal(false)}
         isCreating={creatingSession}
       />
@@ -752,11 +602,7 @@ const Sessions = () => {
         session={selectedSession}
         status={selectedSession ? sessionsStatus[selectedSession.id] : null}
         open={showSessionModal}
-        onClose={() => {
-          setShowSessionModal(false);
-          setQrExpiresIn(null);
-          setQrCodeKey("");
-        }}
+        onClose={() => { setShowSessionModal(false); setQrExpiresIn(null); setQrCodeKey(""); }}
         onRefreshQr={() => selectedSession && handleRefreshQr(selectedSession)}
         onCloseSession={() => selectedSession && handleCloseSession(selectedSession)}
         onLogoutSession={() => selectedSession && handleDeleteSession(selectedSession.id)}
@@ -767,135 +613,156 @@ const Sessions = () => {
         qrExpiresIn={qrExpiresIn}
       />
 
-      {/* Header with New Session Button */}
-      <motion.div
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('sessions.title')}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t('sessions.subtitle')}
-          </p>
-        </div>
-        <Button
-          onClick={() => setShowCreateSessionModal(true)}
-          size="lg"
-          className="gap-2 shadow-lg hover:shadow-xl transition-all"
-          disabled={creatingSession}
-        >
-          <Plus className="h-5 w-5" />
-          {t('sessions.newSession')}
-        </Button>
-      </motion.div>
-
-      {/* Stats Cards */}
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-        variants={{
-          hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-          }
-        }}
-        initial="hidden"
-        animate="show"
-      >
+      <div className="container mx-auto p-4 md:p-8 space-y-6">
+        {/* ── Toolbar ────────────────────────────────────────────────────── */}
         <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
+          className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
         >
-          <StatsCard
-            title="Sessões Ativas"
-            value={activeSessions.length}
-            icon={Zap}
-            subtitle={`${activeSessions.length} de ${sessions.length} online`}
-            color="green"
-            progress={sessions.length > 0 ? (activeSessions.length / sessions.length) * 100 : 0}
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title="Total de Sessões"
-            value={sessions.length}
-            icon={MessageSquare}
-            subtitle={`Limite: ${orgData?.session_limit || '∞'}`}
-            color="blue"
-            progress={orgData?.session_limit ? (sessions.length / orgData.session_limit) * 100 : 0}
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title="Aguardando QR"
-            value={qrCodeSessions.length}
-            icon={Clock}
-            subtitle="Esperando conexão"
-            color="orange"
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title="Limite Disponível"
-            value={orgData?.session_limit ? Math.max(0, orgData.session_limit - sessions.length) : '∞'}
-            icon={AlertTriangle}
-            subtitle={orgData?.is_legacy ? "Cliente Legacy" : "Slots restantes"}
-            color="purple"
-          />
-        </motion.div>
-      </motion.div>
-
-      {/* Sessions Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle>Minhas Sessões WhatsApp</CardTitle>
-            <CardDescription>
-              {sessions.length}/{orgData?.session_limit || '∞'} sessões criadas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SessionsGrid
-              sessions={sessions}
-              sessionStatuses={sessionsStatus}
-              onViewQr={(session) => {
-                setSelectedSession(session);
-                setShowSessionModal(true);
-              }}
-              onStartSession={handleStartSession}
-              onDeleteSession={handleDeleteSession}
-              loading={loading}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar sessão..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 bg-muted/30 border-white/10 focus:border-primary/40"
             />
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
+          </div>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-44 bg-muted/30 border-white/10">
+              <SelectValue placeholder="Filtrar status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="online">Online</SelectItem>
+              <SelectItem value="qrcode">Aguardando QR</SelectItem>
+              <SelectItem value="offline">Offline</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            onClick={() => setShowCreateSessionModal(true)}
+            disabled={creatingSession}
+            className="hook7-btn-glow gap-2 shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+            {t("sessions.newSession")}
+          </Button>
+        </motion.div>
+
+        {/* ── Stats strip ────────────────────────────────────────────────── */}
+        <motion.div
+          className="flex flex-wrap gap-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          {[
+            {
+              icon: MessageSquare,
+              label: "Total",
+              value: sessions.length,
+              sub: orgData?.session_limit ? `de ${orgData.session_limit}` : "",
+              dot: "bg-white/30",
+            },
+            {
+              icon: Wifi,
+              label: "Online",
+              value: activeSessions.length,
+              sub: "",
+              dot: "bg-green-500",
+            },
+            {
+              icon: QrCode,
+              label: "Aguardando QR",
+              value: qrCodeSessions.length,
+              sub: "",
+              dot: "bg-yellow-500",
+            },
+            {
+              icon: WifiOff,
+              label: "Offline",
+              value: offlineSessions.length,
+              sub: "",
+              dot: "bg-red-500",
+            },
+          ].map(({ icon: Icon, label, value, sub, dot }) => (
+            <div
+              key={label}
+              className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2"
+            >
+              <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${dot}`} />
+              <span className="text-xs text-white/50">{label}</span>
+              <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+              {sub && <span className="text-xs text-white/30">{sub}</span>}
+            </div>
+          ))}
+        </motion.div>
+
+        {/* ── Session cards ──────────────────────────────────────────────── */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-48 rounded-xl" />
+            ))}
+          </div>
+        ) : filteredSessions.length === 0 ? (
+          <motion.div
+            className="flex flex-col items-center justify-center py-20 gap-3 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="p-4 rounded-2xl bg-white/5">
+              <MessageSquare className="h-8 w-8 text-white/20" />
+            </div>
+            <p className="text-sm text-white/40">
+              {searchTerm || statusFilter !== "all"
+                ? "Nenhuma sessão encontrada com os filtros aplicados"
+                : "Nenhuma sessão criada ainda"}
+            </p>
+            {!searchTerm && statusFilter === "all" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-1 border-white/10 text-white/60 hover:text-white"
+                onClick={() => setShowCreateSessionModal(true)}
+              >
+                <Plus className="h-4 w-4 mr-1.5" />
+                Criar primeira sessão
+              </Button>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+            }}
+            initial="hidden"
+            animate="show"
+          >
+            {filteredSessions.map((session) => (
+              <motion.div
+                key={session.id}
+                variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }}
+              >
+                <SessionManagementCard
+                  session={session}
+                  status={sessionsStatus[session.id] || null}
+                  onViewQr={() => { setSelectedSession(session); setShowSessionModal(true); }}
+                  onStartSession={() => handleStartSession(session)}
+                  onDelete={() => handleDeleteSession(session.id)}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </div>
+    </>
   );
 };
 
