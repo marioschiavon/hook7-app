@@ -56,47 +56,71 @@ const AdminUsers = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="container mx-auto p-6 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-96 rounded-lg" />
+      <div className="container mx-auto p-4 md:p-8 space-y-4">
+        <Skeleton className="h-8 w-40 rounded" />
+        <Skeleton className="h-80 rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="h-6 w-6" />
-          Usuários
-        </h1>
-        <p className="text-muted-foreground">{users.length} usuários cadastrados</p>
+    <div className="container mx-auto p-4 md:p-8 space-y-5">
+      {/* summary strip */}
+      <div className="flex flex-wrap gap-3">
+        {[
+          { label: "Total", value: users.length, dot: "bg-white/30" },
+          { label: "Admins", value: users.filter((u) => u.role === "admin").length, dot: "bg-blue-500" },
+          { label: "Sem organização", value: users.filter((u) => !u.organization_id).length, dot: "bg-red-500" },
+        ].map(({ label, value, dot }) => (
+          <div key={label} className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+            <span className="text-xs text-white/50">{label}</span>
+            <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+          </div>
+        ))}
       </div>
 
-      <Card>
+      <Card className="glass-card border-white/5 overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Organização</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Criação</TableHead>
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-white/40 text-xs font-medium">Usuário</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Organização</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Role</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Criação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.name || "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                  <TableCell>{u.org_name || <span className="text-muted-foreground">Sem org</span>}</TableCell>
+                <TableRow key={u.id} className="border-white/5 hover:bg-white/3">
                   <TableCell>
-                    <Badge variant={u.role === "superadmin" ? "default" : "outline"}>
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-[11px] font-semibold text-primary flex-shrink-0">
+                        {(u.name || u.email || "?").substring(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-white/80">{u.name || "—"}</p>
+                        <p className="text-[10px] text-white/40">{u.email}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-white/50 text-sm">
+                    {u.org_name || <span className="text-white/25">Sem org</span>}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] h-5 px-1.5 ${
+                        u.role === "superadmin"
+                          ? "border-purple-500/30 text-purple-400"
+                          : "border-white/10 text-white/40"
+                      }`}
+                    >
                       {u.role || "admin"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
+                  <TableCell className="text-white/40 text-xs">
                     {u.created_at ? format(new Date(u.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
                   </TableCell>
                 </TableRow>

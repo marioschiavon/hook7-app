@@ -2,17 +2,38 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatsCard } from "@/components/dashboard/StatsCard";
-import { Building2, Users, MessageSquare, DollarSign, Activity, AlertTriangle } from "lucide-react";
+import { Building2, Users, MessageSquare, DollarSign, Activity, AlertTriangle, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { format, subMonths, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const COLORS = ["hsl(142, 76%, 36%)", "hsl(38, 92%, 50%)", "hsl(0, 62%, 50%)", "hsl(215, 20%, 65%)"];
+const PIE_COLORS = [
+  "hsl(142 76% 42%)",
+  "hsl(38 92% 50%)",
+  "hsl(0 62% 52%)",
+  "hsl(262 83% 62%)",
+];
+
+const STAGGER = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+const ITEM = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } };
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -32,9 +53,7 @@ const AdminDashboard = () => {
   const [alerts, setAlerts] = useState<{ type: string; message: string }[]>([]);
 
   useEffect(() => {
-    if (!authLoading && !isSuperAdmin) {
-      navigate("/dashboard");
-    }
+    if (!authLoading && !isSuperAdmin) navigate("/dashboard");
   }, [authLoading, isSuperAdmin, navigate]);
 
   useEffect(() => {
@@ -44,22 +63,38 @@ const AdminDashboard = () => {
 
   const fetchAll = async () => {
     try {
-      const [orgRes, userRes, sessionRes, subsRes, recentUsersRes, recentSubsRes] = await Promise.all([
-        supabase.from("organizations").select("*", { count: "exact", head: true }),
-        supabase.from("users").select("*", { count: "exact", head: true }),
-        supabase.from("sessions").select("*", { count: "exact", head: true }),
-        supabase.from("subscriptions").select("status, amount"),
-        supabase.from("users").select("id, email, name, role, created_at, organization_id").order("created_at", { ascending: false }).limit(5),
-        supabase.from("subscriptions").select("id, status, amount, payment_provider, created_at, organization_id, plan_name, organizations(name)").order("created_at", { ascending: false }).limit(5),
-      ]);
+      const [orgRes, userRes, sessionRes, subsRes, recentUsersRes, recentSubsRes] =
+        await Promise.all([
+          supabase.from("organizations").select("*", { count: "exact", head: true }),
+          supabase.from("users").select("*", { count: "exact", head: true }),
+          supabase.from("sessions").select("*", { count: "exact", head: true }),
+          supabase.from("subscriptions").select("status, amount"),
+          supabase
+            .from("users")
+            .select("id, email, name, role, created_at, organization_id")
+            .order("created_at", { ascending: false })
+            .limit(5),
+          supabase
+            .from("subscriptions")
+            .select(
+              "id, status, amount, payment_provider, created_at, organization_id, plan_name, organizations(name)"
+            )
+            .order("created_at", { ascending: false })
+            .limit(5),
+        ]);
 
-      // Metrics
       const subs = subsRes.data || [];
       const activeSubs = subs.filter((s) => s.status === "active");
       const revenue = activeSubs.reduce((sum, s) => sum + Number(s.amount || 0), 0);
 
-      const allSessionsWithMessages = await supabase.from("sessions").select("messages_sent_this_month");
-      const totalMessages = allSessionsWithMessages.data?.reduce((sum, s) => sum + (s.messages_sent_this_month || 0), 0) || 0;
+      const allSessionsWithMessages = await supabase
+        .from("sessions")
+        .select("messages_sent_this_month");
+      const totalMessages =
+        allSessionsWithMessages.data?.reduce(
+          (sum, s) => sum + (s.messages_sent_this_month || 0),
+          0
+        ) || 0;
 
       setMetrics({
         totalOrgs: orgRes.count || 0,
@@ -69,45 +104,43 @@ const AdminDashboard = () => {
         totalMessagesSent: totalMessages,
       });
 
-      // Subs by status
       const statusMap: Record<string, number> = {};
       subs.forEach((s) => {
         statusMap[s.status] = (statusMap[s.status] || 0) + 1;
       });
-      setSubsByStatus(Object.entries(statusMap).map(([name, value]) => ({ name, value })));
+      setSubsByStatus(
+        Object.entries(statusMap).map(([name, value]) => ({ name, value }))
+      );
 
-      // Recent
       setRecentUsers(recentUsersRes.data || []);
       setRecentSubs(recentSubsRes.data || []);
 
-      // Growth data (last 6 months)
-      const allUsers = await supabase.from("users").select("created_at");
-      const allSessions = await supabase.from("sessions").select("created_at");
+      const [allUsers, allSessions] = await Promise.all([
+        supabase.from("users").select("created_at"),
+        supabase.from("sessions").select("created_at"),
+      ]);
       const months: { month: string; users: number; sessions: number }[] = [];
       for (let i = 5; i >= 0; i--) {
         const start = startOfMonth(subMonths(new Date(), i));
         const end = startOfMonth(subMonths(new Date(), i - 1));
         const label = format(start, "MMM", { locale: ptBR });
-        const usersInMonth = (allUsers.data || []).filter(
-          (u) => new Date(u.created_at) >= start && new Date(u.created_at) < end
+        const u = (allUsers.data || []).filter(
+          (x) => new Date(x.created_at) >= start && new Date(x.created_at) < end
         ).length;
-        const sessionsInMonth = (allSessions.data || []).filter(
-          (s) => new Date(s.created_at) >= start && new Date(s.created_at) < end
+        const s = (allSessions.data || []).filter(
+          (x) => new Date(x.created_at) >= start && new Date(x.created_at) < end
         ).length;
-        months.push({ month: label, users: usersInMonth, sessions: sessionsInMonth });
+        months.push({ month: label, users: u, sessions: s });
       }
       setGrowthData(months);
 
-      // Alerts
       const alertsList: { type: string; message: string }[] = [];
       const pastDue = subs.filter((s) => s.status === "past_due");
-      if (pastDue.length > 0) {
+      if (pastDue.length > 0)
         alertsList.push({ type: "warning", message: `${pastDue.length} assinatura(s) com pagamento atrasado` });
-      }
       const cancelled = subs.filter((s) => s.status === "cancelled");
-      if (cancelled.length > 0) {
+      if (cancelled.length > 0)
         alertsList.push({ type: "info", message: `${cancelled.length} assinatura(s) cancelada(s)` });
-      }
       setAlerts(alertsList);
     } catch (error) {
       console.error("Error fetching admin data:", error);
@@ -116,143 +149,221 @@ const AdminDashboard = () => {
     }
   };
 
+  // ─── Loading ─────────────────────────────────────────────────────────────────
   if (authLoading || loading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 rounded-lg" />)}
+      <div className="container mx-auto p-4 md:p-8 space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
-        <Skeleton className="h-64 rounded-lg" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Painel Administrativo</h1>
-        <p className="text-muted-foreground">Visão geral do sistema</p>
-      </div>
+  const tooltipStyle = {
+    backgroundColor: "hsl(228 40% 5.5%)",
+    border: "1px solid hsl(262 40% 16%)",
+    borderRadius: "8px",
+    color: "hsl(210 40% 96%)",
+    fontSize: "12px",
+  };
 
-      {/* Metrics */}
+  return (
+    <div className="container mx-auto p-4 md:p-8 space-y-7">
+      {/* ── Alerts ──────────────────────────────────────────────────────────── */}
+      {alerts.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {alerts.map((alert, i) => (
+            <div
+              key={i}
+              className={`flex items-center gap-2.5 rounded-lg border px-4 py-2.5 text-sm ${
+                alert.type === "warning"
+                  ? "border-yellow-500/30 bg-yellow-500/8 text-yellow-400"
+                  : "border-blue-500/30 bg-blue-500/8 text-blue-400"
+              }`}
+            >
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              {alert.message}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Stats ───────────────────────────────────────────────────────────── */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-        variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        variants={STAGGER}
         initial="hidden"
         animate="show"
       >
         {[
-          { title: "Organizações", value: metrics.totalOrgs, icon: Building2, color: "blue" as const },
-          { title: "Usuários", value: metrics.totalUsers, icon: Users, color: "green" as const },
-          { title: "Sessões", value: metrics.totalSessions, icon: MessageSquare, color: "orange" as const },
-          { title: "Mensagens", value: metrics.totalMessagesSent, icon: Activity, color: "purple" as const },
-          { title: "Receita Mensal", value: `R$ ${metrics.monthlyRevenue.toFixed(2)}`, icon: DollarSign, color: "green" as const },
-        ].map((stat) => (
-          <motion.div key={stat.title} variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
-            <StatsCard title={stat.title} value={stat.value} icon={stat.icon} color={stat.color} />
+          { label: "Organizações",   value: metrics.totalOrgs,         color: "border-t-blue-500",   dot: "bg-blue-500",   icon: Building2 },
+          { label: "Usuários",       value: metrics.totalUsers,        color: "border-t-green-500",  dot: "bg-green-500",  icon: Users },
+          { label: "Sessões",        value: metrics.totalSessions,     color: "border-t-purple-500", dot: "bg-purple-500", icon: MessageSquare },
+          { label: "Receita mensal", value: `R$ ${metrics.monthlyRevenue.toFixed(2)}`, color: "border-t-cyan-500", dot: "bg-cyan-500", icon: DollarSign },
+        ].map(({ label, value, color, dot, icon: Icon }) => (
+          <motion.div key={label} variants={ITEM}>
+            <Card className={`glass-card border-t-2 border-x-white/5 border-b-white/5 ${color}`}>
+              <CardHeader className="pb-1 pt-4">
+                <CardDescription className="text-white/50 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Icon className="h-3 w-3" />
+                  {label}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="text-3xl font-semibold text-white/90 tracking-tight tabular-nums">
+                  {value}
+                </div>
+                <div className="mt-2 flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+                  <span className="text-xs text-white/35">ao vivo</span>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* Alerts */}
-      {alerts.length > 0 && (
-        <Card className="border-destructive/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-              Alertas do Sistema
-            </CardTitle>
+      {/* ── Charts ──────────────────────────────────────────────────────────── */}
+      <motion.div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <Card className="glass-card border-white/5">
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+              <TrendingUp className="h-3 w-3" />
+              Crescimento — últimos 6 meses
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {alerts.map((alert, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <Badge variant={alert.type === "warning" ? "destructive" : "secondary"}>{alert.type}</Badge>
-                <span>{alert.message}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Crescimento (últimos 6 meses)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={growthData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="month" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip />
-                <Bar dataKey="users" name="Usuários" fill="hsl(142, 76%, 36%)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="sessions" name="Sessões" fill="hsl(142, 76%, 56%)" radius={[4, 4, 0, 0]} />
+          <CardContent className="px-2 pb-4">
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={growthData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Bar dataKey="users" name="Usuários" fill="hsl(142 76% 42%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sessions" name="Sessões" fill="hsl(262 83% 62%)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Assinaturas por Status</CardTitle>
+        <Card className="glass-card border-white/5">
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
+              Assinaturas por status
+            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4">
             {subsByStatus.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={subsByStatus} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie
+                    data={subsByStatus}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    innerRadius={40}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={{ stroke: "rgba(255,255,255,0.2)" }}
+                  >
                     {subsByStatus.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-muted-foreground">Sem dados</div>
+              <div className="h-[220px] flex items-center justify-center text-white/25 text-sm">
+                Sem dados de assinatura
+              </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Últimos Usuários</CardTitle>
+      {/* ── Recent activity ─────────────────────────────────────────────────── */}
+      <motion.div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.35 }}
+      >
+        {/* Recent users */}
+        <Card className="glass-card border-white/5">
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+              <Users className="h-3 w-3" />
+              Últimos usuários
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="px-5 pb-4 divide-y divide-white/5">
             {recentUsers.map((u) => (
-              <div key={u.id} className="flex items-center justify-between text-sm">
-                <div>
-                  <p className="font-medium">{u.name || u.email}</p>
-                  <p className="text-muted-foreground text-xs">{u.email}</p>
+              <div key={u.id} className="flex items-center justify-between py-2.5 gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-[11px] font-semibold text-primary flex-shrink-0">
+                    {(u.name || u.email || "?").substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-white/80 truncate">{u.name || u.email}</p>
+                    <p className="text-[10px] text-white/35 truncate">{u.email}</p>
+                  </div>
                 </div>
-                <Badge variant="outline">{u.role}</Badge>
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-white/10 text-white/50 flex-shrink-0">
+                  {u.role}
+                </Badge>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Últimas Assinaturas</CardTitle>
+        {/* Recent subscriptions */}
+        <Card className="glass-card border-white/5">
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+              <DollarSign className="h-3 w-3" />
+              Últimas assinaturas
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="px-5 pb-4 divide-y divide-white/5">
             {recentSubs.map((s) => (
-              <div key={s.id} className="flex items-center justify-between text-sm">
-                <div>
-                  <p className="font-medium">{(s as any).organizations?.name || "—"} · {s.plan_name}</p>
-                  <p className="text-muted-foreground text-xs">R$ {Number(s.amount).toFixed(2)} · {s.payment_provider}</p>
+              <div key={s.id} className="flex items-center justify-between py-2.5 gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">
+                    {(s as any).organizations?.name || "—"}
+                    {s.plan_name ? ` · ${s.plan_name}` : ""}
+                  </p>
+                  <p className="text-[10px] text-white/35">
+                    R$ {Number(s.amount).toFixed(2)} · {s.payment_provider}
+                  </p>
                 </div>
-                <Badge variant={s.status === "active" ? "default" : "secondary"}>{s.status}</Badge>
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] h-5 px-1.5 flex-shrink-0 ${
+                    s.status === "active"
+                      ? "border-green-500/30 text-green-400"
+                      : s.status === "past_due"
+                      ? "border-yellow-500/30 text-yellow-400"
+                      : "border-white/10 text-white/40"
+                  }`}
+                >
+                  {s.status}
+                </Badge>
               </div>
             ))}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 };

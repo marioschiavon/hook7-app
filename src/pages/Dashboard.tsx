@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
@@ -104,7 +103,6 @@ const STAGGER = {
 const ITEM = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
 
 const Dashboard = () => {
-  const { isSuperAdmin, loading: superAdminLoading } = useSuperAdmin();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const pricing = useRegionalPricing();
@@ -118,10 +116,6 @@ const Dashboard = () => {
   const [sessionsStatus, setSessionsStatus] = useState<Record<string, SessionStatus>>({});
   const [showConnectionHelp, setShowConnectionHelp] = useState(false);
   const [newSessionName, setNewSessionName] = useState<string | undefined>();
-
-  useEffect(() => {
-    if (!superAdminLoading && isSuperAdmin) navigate("/admin", { replace: true });
-  }, [superAdminLoading, isSuperAdmin, navigate]);
 
   const fetchSessionStatus = async (
     sessionId: string,

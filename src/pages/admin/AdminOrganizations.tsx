@@ -86,53 +86,89 @@ const AdminOrganizations = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="container mx-auto p-6 space-y-4">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-96 rounded-lg" />
+      <div className="container mx-auto p-4 md:p-8 space-y-4">
+        <Skeleton className="h-8 w-40 rounded" />
+        <Skeleton className="h-80 rounded-xl" />
       </div>
     );
   }
 
+  const activeOrgs = orgs.filter((o) => o.realSubStatus === "active").length;
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Building2 className="h-6 w-6" />
-          Organizações
-        </h1>
-        <p className="text-muted-foreground">{orgs.length} organizações cadastradas</p>
+    <div className="container mx-auto p-4 md:p-8 space-y-5">
+      {/* summary strip */}
+      <div className="flex flex-wrap gap-3">
+        {[
+          { label: "Total", value: orgs.length, dot: "bg-white/30" },
+          { label: "Com assinatura ativa", value: activeOrgs, dot: "bg-green-500" },
+          { label: "Legacy", value: orgs.filter((o) => o.is_legacy).length, dot: "bg-yellow-500" },
+        ].map(({ label, value, dot }) => (
+          <div key={label} className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+            <span className="text-xs text-white/50">{label}</span>
+            <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+          </div>
+        ))}
       </div>
 
-      <Card>
+      <Card className="glass-card border-white/5 overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Plano</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Legacy</TableHead>
-                <TableHead>Criação</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-white/40 text-xs font-medium">Nome</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Plano</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Status</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Legacy</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Criação</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orgs.map((org) => (
-                <TableRow key={org.id}>
-                  <TableCell className="font-medium">{org.name}</TableCell>
-                  <TableCell><Badge variant="outline">{org.plan || "starter"}</Badge></TableCell>
+                <TableRow key={org.id} className="border-white/5 hover:bg-white/3">
+                  <TableCell className="font-medium text-white/80 text-sm">{org.name}</TableCell>
                   <TableCell>
-                    <Badge variant={org.realSubStatus === "active" ? "default" : "secondary"}>
+                    <Badge variant="outline" className="text-[10px] border-white/15 text-white/50 h-5 px-1.5">
+                      {org.plan || "starter"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] h-5 px-1.5 ${
+                        org.realSubStatus === "active"
+                          ? "border-green-500/30 text-green-400"
+                          : org.realSubStatus === "past_due"
+                          ? "border-yellow-500/30 text-yellow-400"
+                          : "border-white/10 text-white/35"
+                      }`}
+                    >
                       {org.realSubStatus || "Sem assinatura"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{org.is_legacy ? <Badge variant="secondary">Legacy</Badge> : "—"}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
+                  <TableCell>
+                    {org.is_legacy ? (
+                      <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-yellow-400 h-5 px-1.5">
+                        Legacy
+                      </Badge>
+                    ) : (
+                      <span className="text-white/25 text-xs">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-white/40 text-xs">
                     {org.created_at ? format(new Date(org.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openDetails(org)}>
-                      <Eye className="h-4 w-4 mr-1" /> Detalhes
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2.5 text-xs text-white/50 hover:text-white border border-white/10 hover:border-white/20"
+                      onClick={() => openDetails(org)}
+                    >
+                      <Eye className="h-3.5 w-3.5 mr-1" />
+                      Detalhes
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -146,53 +182,90 @@ const AdminOrganizations = () => {
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedOrg?.name}</DialogTitle>
+            <DialogTitle className="text-white/90">{selectedOrg?.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><span className="text-muted-foreground">Plano:</span> {selectedOrg?.plan || "starter"}</div>
-              <div><span className="text-muted-foreground">Legacy:</span> {selectedOrg?.is_legacy ? "Sim" : "Não"}</div>
-              <div><span className="text-muted-foreground">Limite sessões:</span> {selectedOrg?.session_limit || 1}</div>
-              <div><span className="text-muted-foreground">Status:</span> {selectedOrg?.realSubStatus || "Sem assinatura"}</div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold flex items-center gap-2 mb-2"><MessageSquare className="h-4 w-4" /> Sessões ({orgSessions.length})</h3>
-              {orgSessions.map((s) => (
-                <div key={s.id} className="flex items-center justify-between py-2 border-b last:border-0 text-sm">
-                  <span>{s.name || "Sem nome"}</span>
-                  <Badge variant="outline">{s.status || "N/A"}</Badge>
+          <div className="space-y-5 mt-2">
+            {/* Meta */}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Plano", value: selectedOrg?.plan || "starter" },
+                { label: "Legacy", value: selectedOrg?.is_legacy ? "Sim" : "Não" },
+                { label: "Limite sessões", value: String(selectedOrg?.session_limit || 1) },
+                { label: "Status", value: selectedOrg?.realSubStatus || "Sem assinatura" },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+                  <p className="text-[10px] text-white/35 uppercase tracking-wider mb-0.5">{label}</p>
+                  <p className="text-sm font-medium text-white/70">{value}</p>
                 </div>
               ))}
-              {orgSessions.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma sessão</p>}
             </div>
 
+            {/* Sessions */}
             <div>
-              <h3 className="font-semibold flex items-center gap-2 mb-2"><Users className="h-4 w-4" /> Usuários ({orgUsers.length})</h3>
-              {orgUsers.map((u) => (
-                <div key={u.id} className="flex items-center justify-between py-2 border-b last:border-0 text-sm">
-                  <div>
-                    <p className="font-medium">{u.name || u.email}</p>
-                    <p className="text-xs text-muted-foreground">{u.email}</p>
+              <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <MessageSquare className="h-3 w-3" /> Sessões ({orgSessions.length})
+              </p>
+              <div className="divide-y divide-white/5 rounded-lg border border-white/8 overflow-hidden">
+                {orgSessions.length === 0 ? (
+                  <p className="text-xs text-white/30 p-3">Nenhuma sessão</p>
+                ) : orgSessions.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <span className="text-white/70">{s.name || "Sem nome"}</span>
+                    <Badge variant="outline" className="text-[10px] border-white/10 text-white/40 h-5 px-1.5">
+                      {s.status || "N/A"}
+                    </Badge>
                   </div>
-                  <Badge variant="outline">{u.role}</Badge>
-                </div>
-              ))}
-              {orgUsers.length === 0 && <p className="text-sm text-muted-foreground">Nenhum usuário</p>}
+                ))}
+              </div>
             </div>
 
+            {/* Users */}
             <div>
-              <h3 className="font-semibold mb-2">Assinaturas ({orgSubs.length})</h3>
-              {orgSubs.map((s) => (
-                <div key={s.id} className="flex items-center justify-between py-2 border-b last:border-0 text-sm">
-                  <div>
-                    <p className="font-medium">{s.plan_name} · R$ {Number(s.amount).toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">{s.payment_provider}</p>
+              <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <Users className="h-3 w-3" /> Usuários ({orgUsers.length})
+              </p>
+              <div className="divide-y divide-white/5 rounded-lg border border-white/8 overflow-hidden">
+                {orgUsers.length === 0 ? (
+                  <p className="text-xs text-white/30 p-3">Nenhum usuário</p>
+                ) : orgUsers.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <div>
+                      <p className="text-white/70">{u.name || u.email}</p>
+                      <p className="text-[10px] text-white/35">{u.email}</p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] border-white/10 text-white/40 h-5 px-1.5">
+                      {u.role}
+                    </Badge>
                   </div>
-                  <Badge variant={s.status === "active" ? "default" : "secondary"}>{s.status}</Badge>
-                </div>
-              ))}
-              {orgSubs.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma assinatura</p>}
+                ))}
+              </div>
+            </div>
+
+            {/* Subscriptions */}
+            <div>
+              <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2">
+                Assinaturas ({orgSubs.length})
+              </p>
+              <div className="divide-y divide-white/5 rounded-lg border border-white/8 overflow-hidden">
+                {orgSubs.length === 0 ? (
+                  <p className="text-xs text-white/30 p-3">Nenhuma assinatura</p>
+                ) : orgSubs.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <div>
+                      <p className="text-white/70">{s.plan_name} · R$ {Number(s.amount).toFixed(2)}</p>
+                      <p className="text-[10px] text-white/35">{s.payment_provider}</p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] h-5 px-1.5 ${
+                        s.status === "active" ? "border-green-500/30 text-green-400" : "border-white/10 text-white/40"
+                      }`}
+                    >
+                      {s.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </DialogContent>

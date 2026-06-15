@@ -60,58 +60,79 @@ const AdminSubscriptions = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="container mx-auto p-6 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-96 rounded-lg" />
+      <div className="container mx-auto p-4 md:p-8 space-y-4">
+        <Skeleton className="h-8 w-40 rounded" />
+        <Skeleton className="h-80 rounded-xl" />
       </div>
     );
   }
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "active": return "default" as const;
-      case "past_due": return "destructive" as const;
-      default: return "secondary" as const;
-    }
+  const statusBadge = (status: string) => {
+    if (status === "active") return "border-green-500/30 text-green-400";
+    if (status === "past_due") return "border-yellow-500/30 text-yellow-400";
+    if (status === "cancelled") return "border-red-500/30 text-red-400";
+    return "border-white/10 text-white/40";
   };
 
+  const activeCount = subs.filter((s) => s.status === "active").length;
+  const pastDueCount = subs.filter((s) => s.status === "past_due").length;
+  const revenue = subs.filter((s) => s.status === "active").reduce((sum, s) => sum + Number(s.amount), 0);
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <CreditCard className="h-6 w-6" />
-          Assinaturas
-        </h1>
-        <p className="text-muted-foreground">{subs.length} assinaturas no sistema</p>
+    <div className="container mx-auto p-4 md:p-8 space-y-5">
+      {/* summary strip */}
+      <div className="flex flex-wrap gap-3">
+        {[
+          { label: "Total", value: subs.length, dot: "bg-white/30" },
+          { label: "Ativas", value: activeCount, dot: "bg-green-500" },
+          { label: "Atrasadas", value: pastDueCount, dot: "bg-yellow-500" },
+          { label: "Receita mensal", value: `R$ ${revenue.toFixed(2)}`, dot: "bg-cyan-500" },
+        ].map(({ label, value, dot }) => (
+          <div key={label} className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+            <span className="text-xs text-white/50">{label}</span>
+            <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+          </div>
+        ))}
       </div>
 
-      <Card>
+      <Card className="glass-card border-white/5 overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Organização</TableHead>
-                <TableHead>Sessão</TableHead>
-                <TableHead>Plano</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Provedor</TableHead>
-                <TableHead>Próx. Cobrança</TableHead>
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-white/40 text-xs font-medium">Organização</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Sessão</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Plano</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Valor</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Status</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Provedor</TableHead>
+                <TableHead className="text-white/40 text-xs font-medium">Próx. cobrança</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {subs.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-medium">{s.org_name || "—"}</TableCell>
-                  <TableCell>{s.session_name || "—"}</TableCell>
-                  <TableCell><Badge variant="outline">{s.plan_name}</Badge></TableCell>
-                  <TableCell>R$ {s.amount.toFixed(2)}</TableCell>
+                <TableRow key={s.id} className="border-white/5 hover:bg-white/3">
+                  <TableCell className="text-sm font-medium text-white/80">{s.org_name || "—"}</TableCell>
+                  <TableCell className="text-sm text-white/50">{s.session_name || "—"}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusVariant(s.status)}>{s.status}</Badge>
+                    <Badge variant="outline" className="text-[10px] border-white/15 text-white/50 h-5 px-1.5">
+                      {s.plan_name}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{s.payment_provider || "—"}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {s.next_payment_date ? format(new Date(s.next_payment_date), "dd/MM/yyyy", { locale: ptBR }) : "—"}
+                  <TableCell className="text-sm text-white/70 tabular-nums">
+                    R$ {Number(s.amount).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${statusBadge(s.status)}`}>
+                      {s.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-white/40 text-xs">{s.payment_provider || "—"}</TableCell>
+                  <TableCell className="text-white/40 text-xs">
+                    {s.next_payment_date
+                      ? format(new Date(s.next_payment_date), "dd/MM/yyyy", { locale: ptBR })
+                      : "—"}
                   </TableCell>
                 </TableRow>
               ))}

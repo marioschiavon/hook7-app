@@ -201,29 +201,25 @@ export function AppSidebar() {
       <Separator />
 
       <SidebarContent>
-        {isSuperAdmin ? (
+        {/* Menu do usuário — sempre visível */}
+        <SidebarGroup>
+          <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
+            {isCollapsed ? "📊" : t("sidebar.mainMenu")}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>{renderMenuItems(clientItems)}</SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Menu admin — apenas para superadmin, abaixo do menu de usuário */}
+        {isSuperAdmin && (
           <>
+            <Separator />
             <SidebarGroup>
               <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
                 {isCollapsed ? "⚡" : t("sidebar.admin")}
               </SidebarGroupLabel>
               <SidebarGroupContent>{renderMenuItems(adminItems)}</SidebarGroupContent>
             </SidebarGroup>
-            <Separator />
-            <SidebarGroup>
-              <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-                {isCollapsed ? "🔧" : t("sidebar.tools")}
-              </SidebarGroupLabel>
-              <SidebarGroupContent>{renderMenuItems(adminToolItems)}</SidebarGroupContent>
-            </SidebarGroup>
           </>
-        ) : (
-          <SidebarGroup>
-            <SidebarGroupLabel className={isCollapsed ? "justify-center" : ""}>
-              {isCollapsed ? "📊" : t("sidebar.mainMenu")}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>{renderMenuItems(clientItems)}</SidebarGroupContent>
-          </SidebarGroup>
         )}
       </SidebarContent>
 
