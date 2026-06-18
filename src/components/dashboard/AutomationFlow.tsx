@@ -4,9 +4,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export const AutomationFlow = () => {
   return (
-    <Card className="glass-card hook7-card-hover border-white/5 h-full overflow-hidden relative">
+    <Card className="glass-card hook7-card-hover border-foreground/5 h-full overflow-hidden relative">
       <CardHeader className="pb-8">
-        <CardTitle className="text-lg font-medium text-white/90">Fluxo de automação</CardTitle>
+        <CardTitle className="text-lg font-medium text-foreground/90">Fluxo de automação</CardTitle>
       </CardHeader>
       <CardContent className="relative flex flex-col items-center justify-center min-h-[250px] pt-4">
         
@@ -31,7 +31,7 @@ export const AutomationFlow = () => {
               <div className="absolute inset-0 rounded-2xl border border-green-500/50 scale-[0.85]" />
               <MessageSquare className="h-6 w-6 text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
             </div>
-            <span className="text-xs text-white/70 font-medium">WhatsApp</span>
+            <span className="text-xs text-foreground/70 font-medium">WhatsApp</span>
           </motion.div>
 
           {/* Arrow 1 */}
@@ -39,7 +39,7 @@ export const AutomationFlow = () => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 40, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="h-[1px] bg-white/20 relative mx-2 flex-1 max-w-[40px]"
+            className="h-[1px] bg-foreground/20 relative mx-2 flex-1 max-w-[40px]"
           >
             <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[6px] border-l-white/40" />
           </motion.div>
@@ -55,7 +55,7 @@ export const AutomationFlow = () => {
               <div className="absolute inset-0 rounded-2xl border border-purple-500/50 scale-[0.85]" />
               <RefreshCw className="h-6 w-6 text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
             </div>
-            <span className="text-xs text-white/70 font-medium">Webhook</span>
+            <span className="text-xs text-foreground/70 font-medium">Webhook</span>
           </motion.div>
 
           {/* Arrow 2 */}
@@ -63,7 +63,7 @@ export const AutomationFlow = () => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 40, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.5 }}
-            className="h-[1px] bg-white/20 relative mx-2 flex-1 max-w-[40px]"
+            className="h-[1px] bg-foreground/20 relative mx-2 flex-1 max-w-[40px]"
           >
             <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[6px] border-l-white/40" />
           </motion.div>
@@ -79,7 +79,7 @@ export const AutomationFlow = () => {
               <div className="absolute inset-0 rounded-2xl border border-blue-500/50 scale-[0.85]" />
               <Server className="h-6 w-6 text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
             </div>
-            <span className="text-xs text-white/70 font-medium">Seu Sistema</span>
+            <span className="text-xs text-foreground/70 font-medium">Seu Sistema</span>
           </motion.div>
         </div>
 
@@ -120,7 +120,7 @@ export const AutomationFlow = () => {
               <div className="absolute inset-0 rounded-2xl border border-yellow-500/50 scale-[0.85]" />
               <Zap className="h-6 w-6 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
             </div>
-            <span className="text-xs text-white/70 font-medium">Resposta automática</span>
+            <span className="text-xs text-foreground/70 font-medium">Resposta automática</span>
           </motion.div>
 
         </div>

@@ -10,6 +10,7 @@ import { PaymentStep } from "./PaymentStep";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { Hook7Logo } from "@/components/Hook7Logo";
 
 interface OnboardingWizardProps {
   initialStep?: number;
@@ -177,10 +178,9 @@ export function OnboardingWizard({ initialStep = 0, existingOrgId = null }: Onbo
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
-          <img 
-            src="/hook7-logo.svg" 
-            alt="Hook7"
-            className="w-16 h-16 mx-auto mb-4 rounded-full"
+          <Hook7Logo
+            size={64}
+            className="w-16 h-16 mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold text-foreground">
             {t('onboarding.welcome')}

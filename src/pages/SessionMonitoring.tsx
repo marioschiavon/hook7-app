@@ -37,8 +37,8 @@ const STATUS_CONFIG = {
   online:     { label: "Online",       dot: "bg-green-500",  badge: "border-green-500/30 text-green-400" },
   qrcode:     { label: "QR Code",      dot: "bg-yellow-500", badge: "border-yellow-500/30 text-yellow-400" },
   offline:    { label: "Offline",      dot: "bg-red-500",    badge: "border-red-500/30 text-red-400" },
-  "no-session": { label: "Sem sessão", dot: "bg-white/20",   badge: "border-white/10 text-white/35" },
-  loading:    { label: "Verificando",  dot: "bg-white/20",   badge: "border-white/10 text-white/35" },
+  "no-session": { label: "Sem sessão", dot: "bg-foreground/20",   badge: "border-foreground/10 text-foreground/35" },
+  loading:    { label: "Verificando",  dot: "bg-foreground/20",   badge: "border-foreground/10 text-foreground/35" },
 };
 
 const STAGGER = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } };
@@ -177,7 +177,7 @@ const SessionMonitoring = () => {
         >
           {(
             [
-              { f: "all" as FilterType,    label: "Todas",   dot: "bg-white/30", count: count("all") },
+              { f: "all" as FilterType,    label: "Todas",   dot: "bg-foreground/30", count: count("all") },
               { f: "online" as FilterType, label: "Online",  dot: "bg-green-500", count: count("online") },
               { f: "qrcode" as FilterType, label: "QR Code", dot: "bg-yellow-500", count: count("qrcode") },
               { f: "offline" as FilterType,label: "Offline", dot: "bg-red-500",   count: count("offline") },
@@ -190,7 +190,7 @@ const SessionMonitoring = () => {
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                 filter === f
                   ? "border-primary/50 bg-primary/10 text-primary"
-                  : "border-white/8 bg-muted/20 text-white/50 hover:border-white/15 hover:text-white/70"
+                  : "border-foreground/8 bg-muted/20 text-foreground/50 hover:border-foreground/15 hover:text-foreground/70"
               }`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
@@ -205,7 +205,7 @@ const SessionMonitoring = () => {
           variant="outline"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="border-white/10 text-white/60 hover:text-white hover:border-white/20 h-9"
+          className="border-foreground/10 text-foreground/60 hover:text-foreground hover:border-foreground/20 h-9"
         >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
           Atualizar
@@ -213,30 +213,30 @@ const SessionMonitoring = () => {
       </div>
 
       {/* Table */}
-      <Card className="glass-card border-white/5 overflow-hidden">
+      <Card className="glass-card border-foreground/5 overflow-hidden">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <Activity className="h-8 w-8 text-white/15" />
-              <p className="text-sm text-white/30">Nenhuma sessão com este filtro</p>
+              <Activity className="h-8 w-8 text-foreground/15" />
+              <p className="text-sm text-foreground/30">Nenhuma sessão com este filtro</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/5 hover:bg-transparent">
-                  <TableHead className="text-white/40 text-xs font-medium">Status</TableHead>
-                  <TableHead className="text-white/40 text-xs font-medium">Nome</TableHead>
-                  <TableHead className="text-white/40 text-xs font-medium">API Session</TableHead>
-                  <TableHead className="text-white/40 text-xs font-medium">Plano</TableHead>
-                  <TableHead className="text-white/40 text-xs font-medium">Última ação</TableHead>
-                  <TableHead className="text-white/40 text-xs font-medium text-right">Ações</TableHead>
+                <TableRow className="border-foreground/5 hover:bg-transparent">
+                  <TableHead className="text-foreground/40 text-xs font-medium">Status</TableHead>
+                  <TableHead className="text-foreground/40 text-xs font-medium">Nome</TableHead>
+                  <TableHead className="text-foreground/40 text-xs font-medium">API Session</TableHead>
+                  <TableHead className="text-foreground/40 text-xs font-medium">Plano</TableHead>
+                  <TableHead className="text-foreground/40 text-xs font-medium">Última ação</TableHead>
+                  <TableHead className="text-foreground/40 text-xs font-medium text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((session) => {
                   const cfg = STATUS_CONFIG[session.status ?? "loading"];
                   return (
-                    <TableRow key={session.id} className="border-white/5 hover:bg-white/3">
+                    <TableRow key={session.id} className="border-foreground/5 hover:bg-foreground/3">
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
@@ -245,18 +245,18 @@ const SessionMonitoring = () => {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm font-medium text-white/80">
+                      <TableCell className="text-sm font-medium text-foreground/80">
                         {session.name || "Sem nome"}
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-white/40">
+                      <TableCell className="font-mono text-xs text-foreground/40">
                         {session.api_session || "—"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-[10px] border-white/15 text-white/50 h-5 px-1.5">
+                        <Badge variant="outline" className="text-[10px] border-foreground/15 text-foreground/50 h-5 px-1.5">
                           {session.plan || "N/A"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-white/40">
+                      <TableCell className="text-xs text-foreground/40">
                         {formatDistanceToNow(new Date(session.updated_at), { addSuffix: true, locale: ptBR })}
                       </TableCell>
                       <TableCell className="text-right">
@@ -264,7 +264,7 @@ const SessionMonitoring = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => { setSelectedSession(session); setModalOpen(true); }}
-                          className="h-7 px-2.5 text-xs text-white/50 hover:text-white border border-white/10 hover:border-white/20"
+                          className="h-7 px-2.5 text-xs text-foreground/50 hover:text-foreground border border-foreground/10 hover:border-foreground/20"
                         >
                           <Eye className="h-3.5 w-3.5 mr-1" />
                           Detalhes

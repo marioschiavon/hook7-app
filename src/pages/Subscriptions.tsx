@@ -160,7 +160,7 @@ const Subscriptions = () => {
       case "pending":   return <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-[10px] h-5 px-1.5">Pendente</Badge>;
       case "cancelled":
       case "paused":    return <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px] h-5 px-1.5">Cancelada</Badge>;
-      default:          return <Badge variant="outline" className="border-white/10 text-white/40 text-[10px] h-5 px-1.5">{s.subscription.status}</Badge>;
+      default:          return <Badge variant="outline" className="border-foreground/10 text-foreground/40 text-[10px] h-5 px-1.5">{s.subscription.status}</Badge>;
     }
   };
 
@@ -191,7 +191,7 @@ const Subscriptions = () => {
         animate="show"
       >
         {[
-          { label: "Total", value: sessions.length, dot: "bg-white/30" },
+          { label: "Total", value: sessions.length, dot: "bg-foreground/30" },
           { label: "Ativas", value: activeCount, dot: "bg-green-500" },
           { label: "Pendentes", value: pendingCount, dot: "bg-yellow-500" },
           {
@@ -203,11 +203,11 @@ const Subscriptions = () => {
           <motion.div
             key={label}
             variants={ITEM}
-            className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2"
+            className="flex items-center gap-2 rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2"
           >
             <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-            <span className="text-xs text-white/50">{label}</span>
-            <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+            <span className="text-xs text-foreground/50">{label}</span>
+            <span className="text-sm font-semibold text-foreground/80 tabular-nums">{value}</span>
           </motion.div>
         ))}
       </motion.div>
@@ -225,8 +225,8 @@ const Subscriptions = () => {
       {/* Sessions list */}
       {sessions.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <CreditCard className="h-10 w-10 text-white/15" />
-          <p className="text-sm text-white/35">Você ainda não possui nenhuma sessão</p>
+          <CreditCard className="h-10 w-10 text-foreground/15" />
+          <p className="text-sm text-foreground/35">Você ainda não possui nenhuma sessão</p>
           <Button size="sm" onClick={() => navigate("/dashboard")}>
             Criar primeira sessão
           </Button>
@@ -240,12 +240,12 @@ const Subscriptions = () => {
         >
           {sessions.map((session) => (
             <motion.div key={session.id} variants={ITEM}>
-              <Card className={`glass-card border-t-2 border-x-white/5 border-b-white/5 ${cardBorder(session)}`}>
+              <Card className={`glass-card border-t-2 border-x-foreground/5 border-b-foreground/5 ${cardBorder(session)}`}>
                 <CardHeader className="pb-3 pt-5 px-5">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div>
-                      <p className="text-base font-semibold text-white/85">{session.name}</p>
-                      <p className="text-xs text-white/35 mt-0.5">
+                      <p className="text-base font-semibold text-foreground/85">{session.name}</p>
+                      <p className="text-xs text-foreground/35 mt-0.5">
                         Criada em {format(new Date(session.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                       </p>
                     </div>
@@ -253,7 +253,7 @@ const Subscriptions = () => {
                   </div>
                 </CardHeader>
 
-                <Separator className="border-white/5" />
+                <Separator className="border-foreground/5" />
 
                 <CardContent className="px-5 pb-5 pt-4 space-y-4">
                   {/* Cancelamento agendado */}
@@ -290,16 +290,16 @@ const Subscriptions = () => {
                     <div className="space-y-4">
                       {/* Amount + next payment */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
-                          <p className="text-[10px] text-white/35 uppercase tracking-wider mb-0.5">Valor mensal</p>
-                          <p className="text-base font-semibold text-white/80 tabular-nums">
+                        <div className="rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2">
+                          <p className="text-[10px] text-foreground/35 uppercase tracking-wider mb-0.5">Valor mensal</p>
+                          <p className="text-base font-semibold text-foreground/80 tabular-nums">
                             R$ {Number(session.subscription.amount).toFixed(2)}
                           </p>
                         </div>
                         {session.subscription.next_payment_date && (
-                          <div className="rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
-                            <p className="text-[10px] text-white/35 uppercase tracking-wider mb-0.5">Próxima cobrança</p>
-                            <p className="text-base font-semibold text-white/80 tabular-nums">
+                          <div className="rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2">
+                            <p className="text-[10px] text-foreground/35 uppercase tracking-wider mb-0.5">Próxima cobrança</p>
+                            <p className="text-base font-semibold text-foreground/80 tabular-nums">
                               {format(new Date(session.subscription.next_payment_date), "dd/MM/yyyy")}
                             </p>
                           </div>
@@ -350,7 +350,7 @@ const Subscriptions = () => {
                           size="sm"
                           onClick={() => openPortal(session.subscription?.stripe_customer_id)}
                           disabled={!session.subscription?.stripe_customer_id}
-                          className="border-white/10 text-white/50 hover:text-white hover:border-white/20 h-8"
+                          className="border-foreground/10 text-foreground/50 hover:text-foreground hover:border-foreground/20 h-8"
                         >
                           <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                           Gerenciar assinatura
@@ -399,7 +399,7 @@ const Subscriptions = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => openPortal(session.subscription?.stripe_customer_id)}
-                                className="border-white/10 text-white/50 hover:text-white h-8"
+                                className="border-foreground/10 text-foreground/50 hover:text-foreground h-8"
                               >
                                 <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                                 Gerenciar no portal
@@ -440,9 +440,9 @@ const Subscriptions = () => {
       )}
 
       {/* Como funciona */}
-      <Card className="glass-card border-white/5">
+      <Card className="glass-card border-foreground/5">
         <CardHeader className="pb-2 pt-4 px-5">
-          <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5">
             <Info className="h-3 w-3" />
             Como funciona
           </p>
@@ -475,8 +475,8 @@ const Subscriptions = () => {
                 {n}
               </div>
               <div>
-                <p className="text-xs font-medium text-white/70 mb-0.5">{title}</p>
-                <p className="text-xs text-white/35 leading-relaxed">{body}</p>
+                <p className="text-xs font-medium text-foreground/70 mb-0.5">{title}</p>
+                <p className="text-xs text-foreground/35 leading-relaxed">{body}</p>
               </div>
             </div>
           ))}

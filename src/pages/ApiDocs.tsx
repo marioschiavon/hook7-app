@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { EndpointCard } from "@/components/api-docs/EndpointCard";
 import { CodeBlock } from "@/components/api-docs/CodeBlock";
 import { SEO } from "@/components/SEO";
+import { Hook7Logo } from "@/components/Hook7Logo";
 import { Helmet } from "react-helmet-async";
 
 const ApiDocs = () => {
@@ -45,24 +46,21 @@ const ApiDocs = () => {
       </Helmet>
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-foreground/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg animate-pulse-glow" />
-              <img
-                src="/hook7-logo.svg"
-                alt="Hook7 - API WhatsApp"
-                width="40"
-                height="40"
-                className="h-10 w-10 relative drop-shadow-lg rounded-full"
+              <Hook7Logo
+                size={40}
+                className="h-10 w-10 relative drop-shadow-lg"
               />
             </div>
             <span className="text-xl font-bold hook7-gradient-text">Hook7</span>
           </Link>
           <Link
             to="/"
-            className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors"
+            className="flex items-center gap-2 text-sm text-foreground/40 hover:text-foreground/70 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar para a página inicial
@@ -80,31 +78,31 @@ const ApiDocs = () => {
           <div className="flex items-center gap-3">
             <BookOpen className="h-7 w-7 text-primary" aria-hidden="true" />
             <div>
-              <h1 className="text-2xl font-bold text-white/90">Documentação da API WhatsApp Hook7</h1>
-              <p className="text-sm text-white/40 mt-0.5">Integre o WhatsApp nas suas aplicações com nossa API REST</p>
+              <h1 className="text-2xl font-bold text-foreground/90">Documentação da API WhatsApp Hook7</h1>
+              <p className="text-sm text-foreground/40 mt-0.5">Integre o WhatsApp nas suas aplicações com nossa API REST</p>
             </div>
-            <Badge variant="outline" className="ml-auto border-white/15 text-white/50 text-xs">v2.0</Badge>
+            <Badge variant="outline" className="ml-auto border-foreground/15 text-foreground/50 text-xs">v2.0</Badge>
           </div>
 
           {/* Intro card */}
-          <Card className="glass-card border-white/5">
+          <Card className="glass-card border-foreground/5">
             <CardContent className="pt-5 pb-5 space-y-4">
-              <h2 className="text-base font-semibold text-white/85">O que é a API WhatsApp Hook7?</h2>
-              <p className="text-sm text-white/45 leading-relaxed">
+              <h2 className="text-base font-semibold text-foreground/85">O que é a API WhatsApp Hook7?</h2>
+              <p className="text-sm text-foreground/45 leading-relaxed">
                 A Hook7 é uma API WhatsApp brasileira que permite enviar mensagens de texto, imagens, áudio e documentos via WhatsApp por R$ 69,90/mês com mensagens ilimitadas. A API é RESTful e pode ser integrada com qualquer linguagem de programação (JavaScript, Python, PHP) ou plataforma de automação (Make, Zapier, n8n, TypeBot).
               </p>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Requisitos</h3>
-                  <ul className="text-xs text-white/35 space-y-1">
+                  <h3 className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Requisitos</h3>
+                  <ul className="text-xs text-foreground/35 space-y-1">
                     <li>• Conta ativa na Hook7</li>
                     <li>• Sessão WhatsApp configurada</li>
                     <li>• API Key (obtida no Dashboard)</li>
                   </ul>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Casos de uso</h3>
-                  <ul className="text-xs text-white/35 space-y-1">
+                  <h3 className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Casos de uso</h3>
+                  <ul className="text-xs text-foreground/35 space-y-1">
                     <li>• Notificações de pedidos e entregas</li>
                     <li>• Confirmação de agendamentos</li>
                     <li>• Campanhas de marketing</li>
@@ -135,7 +133,7 @@ const ApiDocs = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-muted/30 border border-white/5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-muted/30 border border-foreground/5">
             <TabsTrigger value="basic" className="flex items-center gap-1.5 data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
               <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">Texto e Mídia</span>
@@ -169,9 +167,9 @@ const ApiDocs = () => {
             >
               <div className="flex items-center gap-2 pt-4">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <h2 id="basic-messages-heading" className="text-base font-semibold text-white/80">Mensagens de Texto e Mídia</h2>
+                <h2 id="basic-messages-heading" className="text-base font-semibold text-foreground/80">Mensagens de Texto e Mídia</h2>
               </div>
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-foreground/40">
                 Endpoints para enviar mensagens de texto simples, imagens, áudios e documentos via WhatsApp.
               </p>
 
@@ -269,9 +267,9 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
             >
               <div className="flex items-center gap-2 pt-4">
                 <Vote className="h-5 w-5 text-primary" />
-                <h2 id="interactive-messages-heading" className="text-base font-semibold text-white/80">Mensagens Interativas</h2>
+                <h2 id="interactive-messages-heading" className="text-base font-semibold text-foreground/80">Mensagens Interativas</h2>
               </div>
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-foreground/40">
                 Endpoints para enviar enquetes, listas interativas e menus de opções. Ideais para pesquisas NPS, cardápios e catálogos de produtos.
               </p>
 
@@ -397,9 +395,9 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
             >
               <div className="flex items-center gap-2 pt-4">
                 <MapPin className="h-5 w-5 text-primary" />
-                <h2 id="utility-messages-heading" className="text-base font-semibold text-white/80">Localização e Contatos</h2>
+                <h2 id="utility-messages-heading" className="text-base font-semibold text-foreground/80">Localização e Contatos</h2>
               </div>
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-foreground/40">
                 Endpoints para enviar localização com mapa e compartilhar contatos (vCard). Perfeito para entregas, endereços de lojas e contatos de suporte.
               </p>
 
@@ -506,9 +504,9 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
             >
               <div className="flex items-center gap-2 pt-4">
                 <Code2 className="h-5 w-5 text-primary" />
-                <h2 id="code-examples-heading" className="text-base font-semibold text-white/80">Exemplos de Código</h2>
+                <h2 id="code-examples-heading" className="text-base font-semibold text-foreground/80">Exemplos de Código</h2>
               </div>
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-foreground/40">
                 Exemplos práticos de integração em JavaScript, Python e PHP para enviar mensagens, enquetes e mais.
               </p>
 
@@ -683,13 +681,13 @@ if ($httpCode == 200) {
 ?>`,
                 },
               ].map(({ icon: Icon, title, desc, lang, code }) => (
-                <Card key={title} className="glass-card border-white/5">
+                <Card key={title} className="glass-card border-foreground/5">
                   <CardHeader className="pb-2 pt-4 px-5">
-                    <CardTitle className="flex items-center gap-2 text-sm text-white/80">
+                    <CardTitle className="flex items-center gap-2 text-sm text-foreground/80">
                       <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
                       {title}
                     </CardTitle>
-                    <CardDescription className="text-xs text-white/35">{desc}</CardDescription>
+                    <CardDescription className="text-xs text-foreground/35">{desc}</CardDescription>
                   </CardHeader>
                   <CardContent className="px-5 pb-5">
                     <CodeBlock language={lang} code={code} />
@@ -707,34 +705,34 @@ if ($httpCode == 200) {
           transition={{ delay: 0.2 }}
           aria-labelledby="get-token-heading"
         >
-          <Card className="glass-card border-white/5">
+          <Card className="glass-card border-foreground/5">
             <CardHeader className="pb-2 pt-4 px-5">
-              <CardTitle id="get-token-heading" className="flex items-center gap-2 text-sm text-white/80">
+              <CardTitle id="get-token-heading" className="flex items-center gap-2 text-sm text-foreground/80">
                 <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
                 Como obter sua API Key da API WhatsApp
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-4">
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">Opção 1 — Via Dashboard (rápido)</p>
-                <ol className="space-y-1.5 list-decimal list-inside text-xs text-white/40 ml-1">
-                  <li>Acesse o <strong className="text-white/60">Dashboard</strong></li>
-                  <li>Clique em <strong className="text-white/60">"Ferramentas"</strong></li>
-                  <li>Clique em <strong className="text-white/60">"Ver Token da API"</strong></li>
+                <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Opção 1 — Via Dashboard (rápido)</p>
+                <ol className="space-y-1.5 list-decimal list-inside text-xs text-foreground/40 ml-1">
+                  <li>Acesse o <strong className="text-foreground/60">Dashboard</strong></li>
+                  <li>Clique em <strong className="text-foreground/60">"Ferramentas"</strong></li>
+                  <li>Clique em <strong className="text-foreground/60">"Ver Token da API"</strong></li>
                   <li>Selecione a instância desejada no dropdown</li>
                   <li>Copie a apikey</li>
                 </ol>
               </div>
 
-              <Separator className="border-white/5" />
+              <Separator className="border-foreground/5" />
 
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">Opção 2 — Via Detalhes da Sessão</p>
-                <ol className="space-y-1.5 list-decimal list-inside text-xs text-white/40 ml-1">
-                  <li>Vá para <strong className="text-white/60">Sessões → Minhas Sessões</strong></li>
+                <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Opção 2 — Via Detalhes da Sessão</p>
+                <ol className="space-y-1.5 list-decimal list-inside text-xs text-foreground/40 ml-1">
+                  <li>Vá para <strong className="text-foreground/60">Sessões → Minhas Sessões</strong></li>
                   <li>Selecione a instância desejada</li>
-                  <li>Clique em <strong className="text-white/60">"Ver Detalhes"</strong></li>
-                  <li>Na seção <strong className="text-white/60">"Credenciais da API"</strong>, copie a <strong className="text-white/60">API Key</strong></li>
+                  <li>Clique em <strong className="text-foreground/60">"Ver Detalhes"</strong></li>
+                  <li>Na seção <strong className="text-foreground/60">"Credenciais da API"</strong>, copie a <strong className="text-foreground/60">API Key</strong></li>
                 </ol>
               </div>
 
@@ -746,8 +744,8 @@ if ($httpCode == 200) {
                 </div>
               </div>
 
-              <div className="rounded-lg bg-muted/30 border border-white/5 px-4 py-3">
-                <p className="text-[11px] text-white/35 mb-1.5">
+              <div className="rounded-lg bg-muted/30 border border-foreground/5 px-4 py-3">
+                <p className="text-[11px] text-foreground/35 mb-1.5">
                   Dica: Use o header no formato:
                 </p>
                 <code className="block rounded bg-black/30 px-3 py-1.5 text-xs text-primary/70 font-mono">

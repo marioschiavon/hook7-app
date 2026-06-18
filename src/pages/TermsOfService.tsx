@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { Hook7Logo } from "@/components/Hook7Logo";
 
 export default function TermsOfService() {
   const navigate = useNavigate();
@@ -17,13 +18,9 @@ export default function TermsOfService() {
         <div className="container mx-auto px-4 md:px-8 py-8 md:py-16 max-w-4xl">
           {/* Header com Logo */}
           <header className="flex flex-col items-center mb-12">
-            <img 
-              src="/hook7-logo.svg" 
-              alt="Hook7 - API WhatsApp para automações empresariais"
-              loading="lazy"
-              width="64"
-              height="64"
-              className="h-16 w-16 mb-6 rounded-full shadow-lg"
+            <Hook7Logo
+              size={64}
+              className="h-16 w-16 mb-6 shadow-lg"
             />
             <h1 className="text-4xl md:text-5xl font-bold text-foreground text-center mb-2">
               Termos de Uso – Hook7

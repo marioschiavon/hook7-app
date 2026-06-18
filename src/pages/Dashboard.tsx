@@ -322,14 +322,14 @@ const Dashboard = () => {
       >
         {/* Conexões ativas */}
         <motion.div variants={ITEM}>
-          <Card className="glass-card border-t-2 border-t-green-500 border-x-white/5 border-b-white/5 h-full">
+          <Card className="glass-card border-t-2 border-t-green-500 border-x-foreground/5 border-b-foreground/5 h-full">
             <CardHeader className="pb-1 pt-4">
-              <CardDescription className="text-white/50 text-xs uppercase tracking-wider">
+              <CardDescription className="text-foreground/50 text-xs uppercase tracking-wider">
                 Conexões ativas
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-3xl font-semibold text-white/90 tracking-tight">
+              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">
                 {onlineSessions.length}
               </div>
               <div className="mt-2 flex items-center gap-1.5">
@@ -344,14 +344,14 @@ const Dashboard = () => {
 
         {/* Mensagens enviadas */}
         <motion.div variants={ITEM}>
-          <Card className="glass-card border-t-2 border-t-blue-500 border-x-white/5 border-b-white/5 h-full">
+          <Card className="glass-card border-t-2 border-t-blue-500 border-x-foreground/5 border-b-foreground/5 h-full">
             <CardHeader className="pb-1 pt-4">
-              <CardDescription className="text-white/50 text-xs uppercase tracking-wider">
+              <CardDescription className="text-foreground/50 text-xs uppercase tracking-wider">
                 Msgs enviadas
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <div className="text-3xl font-semibold text-white/90 tracking-tight">24.580</div>
+              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">24.580</div>
               <div className="mt-1 h-8 -mx-1">
                 <Sparkline data={sentSparkline} color="hsl(217 91% 60%)" strokeWidth={1.5} />
               </div>
@@ -361,14 +361,14 @@ const Dashboard = () => {
 
         {/* Mensagens recebidas */}
         <motion.div variants={ITEM}>
-          <Card className="glass-card border-t-2 border-t-cyan-500 border-x-white/5 border-b-white/5 h-full">
+          <Card className="glass-card border-t-2 border-t-cyan-500 border-x-foreground/5 border-b-foreground/5 h-full">
             <CardHeader className="pb-1 pt-4">
-              <CardDescription className="text-white/50 text-xs uppercase tracking-wider">
+              <CardDescription className="text-foreground/50 text-xs uppercase tracking-wider">
                 Msgs recebidas
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <div className="text-3xl font-semibold text-white/90 tracking-tight">18.964</div>
+              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">18.964</div>
               <div className="mt-1 h-8 -mx-1">
                 <Sparkline data={recvSparkline} color="hsl(192 91% 56%)" strokeWidth={1.5} />
               </div>
@@ -378,14 +378,14 @@ const Dashboard = () => {
 
         {/* Webhooks */}
         <motion.div variants={ITEM}>
-          <Card className="glass-card border-t-2 border-t-purple-500 border-x-white/5 border-b-white/5 h-full">
+          <Card className="glass-card border-t-2 border-t-purple-500 border-x-foreground/5 border-b-foreground/5 h-full">
             <CardHeader className="pb-1 pt-4">
-              <CardDescription className="text-white/50 text-xs uppercase tracking-wider">
+              <CardDescription className="text-foreground/50 text-xs uppercase tracking-wider">
                 Webhooks
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-3xl font-semibold text-white/90 tracking-tight">1.429</div>
+              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">1.429</div>
               <div className="mt-2 flex items-center gap-1.5">
                 <TrendingUp className="h-3 w-3 text-purple-400" />
                 <span className="text-xs text-purple-400/90">99.2% entregues</span>
@@ -402,13 +402,13 @@ const Dashboard = () => {
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
+          <span className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest">
             Suas sessões
           </span>
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 gap-1.5 text-xs text-white/50 hover:text-white"
+            className="h-7 gap-1.5 text-xs text-foreground/50 hover:text-foreground"
             onClick={() => navigate("/sessions")}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -429,7 +429,7 @@ const Dashboard = () => {
                 transition={{ delay: 0.1 * i }}
               >
                 <Card
-                  className={`glass-card border-t-2 border-x-white/5 border-b-white/5 ${stateColors[state]}`}
+                  className={`glass-card border-t-2 border-x-foreground/5 border-b-foreground/5 ${stateColors[state]}`}
                 >
                   <CardContent className="p-4">
                     {/* Head */}
@@ -457,7 +457,7 @@ const Dashboard = () => {
                           />
                         )}
                       </div>
-                      <span className="text-sm font-medium text-white/90 flex-1 truncate">
+                      <span className="text-sm font-medium text-foreground/90 flex-1 truncate">
                         {session.name}
                       </span>
                       <Badge
@@ -469,7 +469,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Meta */}
-                    <p className="text-[11px] text-white/40 mb-3">
+                    <p className="text-[11px] text-foreground/40 mb-3">
                       {state === "online" && "Conectado e ativo"}
                       {state === "qr" && "Aguardando leitura do QR Code"}
                       {state === "offline" && "Desconectado"}
@@ -481,7 +481,7 @@ const Dashboard = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 px-2.5 text-xs text-white/60 hover:text-white border border-white/10 hover:border-white/20"
+                          className="h-7 px-2.5 text-xs text-foreground/60 hover:text-foreground border border-foreground/10 hover:border-foreground/20"
                           onClick={() => navigate("/sessions")}
                         >
                           <Send className="h-3 w-3 mr-1" />
@@ -513,7 +513,7 @@ const Dashboard = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2.5 text-xs text-white/40 hover:text-white border border-white/10 hover:border-white/20 ml-auto"
+                        className="h-7 px-2.5 text-xs text-foreground/40 hover:text-foreground border border-foreground/10 hover:border-foreground/20 ml-auto"
                         onClick={() => navigate("/sessions")}
                       >
                         <ArrowRight className="h-3 w-3" />
@@ -528,10 +528,10 @@ const Dashboard = () => {
           {/* "Ver todas" card when more than 6 */}
           {sessions.length === 0 && (
             <Card
-              className="glass-card border-dashed border-white/10 cursor-pointer hover:border-white/20 transition-colors"
+              className="glass-card border-dashed border-foreground/10 cursor-pointer hover:border-foreground/20 transition-colors"
               onClick={() => navigate("/sessions")}
             >
-              <CardContent className="p-4 flex flex-col items-center justify-center h-full min-h-[120px] gap-2 text-white/30">
+              <CardContent className="p-4 flex flex-col items-center justify-center h-full min-h-[120px] gap-2 text-foreground/30">
                 <Plus className="h-6 w-6" />
                 <span className="text-xs">Criar primeira sessão</span>
               </CardContent>
@@ -544,7 +544,7 @@ const Dashboard = () => {
             <Button
               variant="link"
               size="sm"
-              className="text-xs text-white/40 hover:text-white/70 h-auto p-0"
+              className="text-xs text-foreground/40 hover:text-foreground/70 h-auto p-0"
               onClick={() => navigate("/sessions")}
             >
               Gerenciar todas as sessões
@@ -562,13 +562,13 @@ const Dashboard = () => {
         transition={{ duration: 0.4, delay: 0.35 }}
       >
         {/* Activity feed */}
-        <Card className="glass-card border-white/5 lg:col-span-2">
+        <Card className="glass-card border-foreground/5 lg:col-span-2">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
+            <CardDescription className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest">
               Atividade recente
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-5 pb-4 divide-y divide-white/5">
+          <CardContent className="px-5 pb-4 divide-y divide-foreground/5">
             {[
               {
                 dot: "bg-green-500",
@@ -600,10 +600,10 @@ const Dashboard = () => {
                   className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${item.dot}`}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white/80 truncate">{item.title}</p>
-                  <p className="text-xs text-white/40 truncate">{item.sub}</p>
+                  <p className="text-sm text-foreground/80 truncate">{item.title}</p>
+                  <p className="text-xs text-foreground/40 truncate">{item.sub}</p>
                 </div>
-                <span className="text-xs text-white/30 flex-shrink-0">{item.time}</span>
+                <span className="text-xs text-foreground/30 flex-shrink-0">{item.time}</span>
               </div>
             ))}
           </CardContent>
@@ -613,15 +613,15 @@ const Dashboard = () => {
         <div className="flex flex-col gap-4">
           {/* Org summary */}
           {orgData && (
-            <Card className="glass-card border-white/5">
+            <Card className="glass-card border-foreground/5">
               <CardHeader className="pb-2 pt-4 px-4">
-                <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
+                <CardDescription className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest">
                   Organização
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-4 pb-4 space-y-2">
-                <p className="text-sm font-medium text-white/80 truncate">{orgData.name}</p>
-                <div className="divide-y divide-white/5">
+                <p className="text-sm font-medium text-foreground/80 truncate">{orgData.name}</p>
+                <div className="divide-y divide-foreground/5">
                   {[
                     { label: "Plano", value: planLabel },
                     {
@@ -630,8 +630,8 @@ const Dashboard = () => {
                     },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between py-1.5 text-xs">
-                      <span className="text-white/40">{label}</span>
-                      <span className="text-white/70 font-medium">{value}</span>
+                      <span className="text-foreground/40">{label}</span>
+                      <span className="text-foreground/70 font-medium">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -640,35 +640,35 @@ const Dashboard = () => {
           )}
 
           {/* Quick actions */}
-          <Card className="glass-card border-white/5 flex-1">
+          <Card className="glass-card border-foreground/5 flex-1">
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
+              <CardDescription className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest">
                 Ações rápidas
               </CardDescription>
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-1.5">
               {/* API Key */}
-              <div className="flex items-center gap-2.5 p-2 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+              <div className="flex items-center gap-2.5 p-2 rounded-lg border border-foreground/5 hover:border-foreground/10 transition-colors">
                 <Key className="h-4 w-4 text-blue-400 flex-shrink-0" />
-                <span className="text-xs text-white/70 flex-1">Chave de API</span>
+                <span className="text-xs text-foreground/70 flex-1">Chave de API</span>
                 <ApiKeySheet sessions={sessions.filter((s) => !!s.api_token) as any} />
               </div>
 
               {/* Test message */}
-              <div className="flex items-center gap-2.5 p-2 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+              <div className="flex items-center gap-2.5 p-2 rounded-lg border border-foreground/5 hover:border-foreground/10 transition-colors">
                 <Send className="h-4 w-4 text-purple-400 flex-shrink-0" />
-                <span className="text-xs text-white/70 flex-1">Teste rápido</span>
+                <span className="text-xs text-foreground/70 flex-1">Teste rápido</span>
                 <SendTestMessageDialog sessions={sessions} onSend={handleSendTestMessage} />
               </div>
 
               {/* API Docs */}
               <button
-                className="w-full flex items-center gap-2.5 p-2 rounded-lg border border-white/5 hover:border-white/10 transition-colors text-left"
+                className="w-full flex items-center gap-2.5 p-2 rounded-lg border border-foreground/5 hover:border-foreground/10 transition-colors text-left"
                 onClick={() => navigate("/api-docs")}
               >
                 <BookOpen className="h-4 w-4 text-green-400 flex-shrink-0" />
-                <span className="text-xs text-white/70 flex-1">Docs da API</span>
-                <ArrowRight className="h-3.5 w-3.5 text-white/25" />
+                <span className="text-xs text-foreground/70 flex-1">Docs da API</span>
+                <ArrowRight className="h-3.5 w-3.5 text-foreground/25" />
               </button>
             </CardContent>
           </Card>

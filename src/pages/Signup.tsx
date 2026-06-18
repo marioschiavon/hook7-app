@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, User, Phone, ArrowLeft, Clock, MessageSquare, Headphones, XCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { Hook7Logo } from "@/components/Hook7Logo";
 import { useTranslation } from "react-i18next";
 
 const Signup = () => {
@@ -123,13 +124,9 @@ const Signup = () => {
           <div className="flex-1 max-w-md space-y-8 text-center lg:text-left">
             <div className="space-y-4">
               <div className="flex items-center gap-3 justify-center lg:justify-start">
-                <img 
-                  src="/hook7-logo.svg" 
-                  alt="Hook7 - API WhatsApp"
-                  loading="lazy"
-                  width="48"
-                  height="48"
-                  className="w-12 h-12 object-contain drop-shadow-2xl rounded-full"
+                <Hook7Logo
+                  size={48}
+                  className="w-12 h-12 drop-shadow-2xl"
                 />
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Hook7

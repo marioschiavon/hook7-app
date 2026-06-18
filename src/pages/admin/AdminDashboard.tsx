@@ -207,20 +207,20 @@ const AdminDashboard = () => {
           { label: "Receita mensal", value: `R$ ${metrics.monthlyRevenue.toFixed(2)}`, color: "border-t-cyan-500", dot: "bg-cyan-500", icon: DollarSign },
         ].map(({ label, value, color, dot, icon: Icon }) => (
           <motion.div key={label} variants={ITEM}>
-            <Card className={`glass-card border-t-2 border-x-white/5 border-b-white/5 ${color}`}>
+            <Card className={`glass-card border-t-2 border-x-foreground/5 border-b-foreground/5 ${color}`}>
               <CardHeader className="pb-1 pt-4">
-                <CardDescription className="text-white/50 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <CardDescription className="text-foreground/50 text-xs uppercase tracking-wider flex items-center gap-1.5">
                   <Icon className="h-3 w-3" />
                   {label}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pb-4">
-                <div className="text-3xl font-semibold text-white/90 tracking-tight tabular-nums">
+                <div className="text-3xl font-semibold text-foreground/90 tracking-tight tabular-nums">
                   {value}
                 </div>
                 <div className="mt-2 flex items-center gap-1.5">
                   <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-                  <span className="text-xs text-white/35">ao vivo</span>
+                  <span className="text-xs text-foreground/35">ao vivo</span>
                 </div>
               </CardContent>
             </Card>
@@ -235,9 +235,9 @@ const AdminDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
       >
-        <Card className="glass-card border-white/5">
+        <Card className="glass-card border-foreground/5">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+            <CardDescription className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5">
               <TrendingUp className="h-3 w-3" />
               Crescimento — últimos 6 meses
             </CardDescription>
@@ -256,9 +256,9 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-white/5">
+        <Card className="glass-card border-foreground/5">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
+            <CardDescription className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest">
               Assinaturas por status
             </CardDescription>
           </CardHeader>
@@ -284,7 +284,7 @@ const AdminDashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[220px] flex items-center justify-center text-white/25 text-sm">
+              <div className="h-[220px] flex items-center justify-center text-foreground/25 text-sm">
                 Sem dados de assinatura
               </div>
             )}
@@ -300,14 +300,14 @@ const AdminDashboard = () => {
         transition={{ duration: 0.4, delay: 0.35 }}
       >
         {/* Recent users */}
-        <Card className="glass-card border-white/5">
+        <Card className="glass-card border-foreground/5">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+            <CardDescription className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5">
               <Users className="h-3 w-3" />
               Últimos usuários
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-5 pb-4 divide-y divide-white/5">
+          <CardContent className="px-5 pb-4 divide-y divide-foreground/5">
             {recentUsers.map((u) => (
               <div key={u.id} className="flex items-center justify-between py-2.5 gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -315,11 +315,11 @@ const AdminDashboard = () => {
                     {(u.name || u.email || "?").substring(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-white/80 truncate">{u.name || u.email}</p>
-                    <p className="text-[10px] text-white/35 truncate">{u.email}</p>
+                    <p className="text-xs font-medium text-foreground/80 truncate">{u.name || u.email}</p>
+                    <p className="text-[10px] text-foreground/35 truncate">{u.email}</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-white/10 text-white/50 flex-shrink-0">
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-foreground/10 text-foreground/50 flex-shrink-0">
                   {u.role}
                 </Badge>
               </div>
@@ -328,22 +328,22 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Recent subscriptions */}
-        <Card className="glass-card border-white/5">
+        <Card className="glass-card border-foreground/5">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardDescription className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+            <CardDescription className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5">
               <DollarSign className="h-3 w-3" />
               Últimas assinaturas
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-5 pb-4 divide-y divide-white/5">
+          <CardContent className="px-5 pb-4 divide-y divide-foreground/5">
             {recentSubs.map((s) => (
               <div key={s.id} className="flex items-center justify-between py-2.5 gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-white/80 truncate">
+                  <p className="text-xs font-medium text-foreground/80 truncate">
                     {(s as any).organizations?.name || "—"}
                     {s.plan_name ? ` · ${s.plan_name}` : ""}
                   </p>
-                  <p className="text-[10px] text-white/35">
+                  <p className="text-[10px] text-foreground/35">
                     R$ {Number(s.amount).toFixed(2)} · {s.payment_provider}
                   </p>
                 </div>
@@ -354,7 +354,7 @@ const AdminDashboard = () => {
                       ? "border-green-500/30 text-green-400"
                       : s.status === "past_due"
                       ? "border-yellow-500/30 text-yellow-400"
-                      : "border-white/10 text-white/40"
+                      : "border-foreground/10 text-foreground/40"
                   }`}
                 >
                   {s.status}

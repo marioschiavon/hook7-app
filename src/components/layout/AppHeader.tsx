@@ -1,9 +1,10 @@
 import { useLocation } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { Bell, Sun, Moon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useOnlineSessions } from "@/hooks/useOnlineSessions";
+import { useTheme } from "next-themes";
 
 const routeMeta: Record<string, { title: string; description?: string }> = {
   "/dashboard":            { title: "Dashboard",       description: "Visão geral da sua conta" },
@@ -25,6 +26,7 @@ export function AppHeader() {
   const location = useLocation();
   const meta = routeMeta[location.pathname] ?? { title: "Hook7" };
   const { online, total } = useOnlineSessions();
+  const { theme, setTheme } = useTheme();
 
   const showStatus = total > 0;
 
@@ -61,6 +63,21 @@ export function AppHeader() {
             </span>
           </div>
         )}
+
+        {/* Theme toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          onClick={() => setTheme(theme !== "light" ? "light" : "dark")}
+          aria-label="Alternar tema"
+        >
+          {theme !== "light" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+        </Button>
 
         <Button
           variant="ghost"

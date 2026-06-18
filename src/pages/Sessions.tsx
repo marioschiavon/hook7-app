@@ -627,12 +627,12 @@ const Sessions = () => {
               placeholder="Buscar sessão..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-muted/30 border-white/10 focus:border-primary/40"
+              className="pl-9 bg-muted/30 border-foreground/10 focus:border-primary/40"
             />
           </div>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-44 bg-muted/30 border-white/10">
+            <SelectTrigger className="w-full sm:w-44 bg-muted/30 border-foreground/10">
               <SelectValue placeholder="Filtrar status" />
             </SelectTrigger>
             <SelectContent>
@@ -666,7 +666,7 @@ const Sessions = () => {
               label: "Total",
               value: sessions.length,
               sub: orgData?.session_limit ? `de ${orgData.session_limit}` : "",
-              dot: "bg-white/30",
+              dot: "bg-foreground/30",
             },
             {
               icon: Wifi,
@@ -692,12 +692,12 @@ const Sessions = () => {
           ].map(({ icon: Icon, label, value, sub, dot }) => (
             <div
               key={label}
-              className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2"
+              className="flex items-center gap-2 rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2"
             >
               <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${dot}`} />
-              <span className="text-xs text-white/50">{label}</span>
-              <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
-              {sub && <span className="text-xs text-white/30">{sub}</span>}
+              <span className="text-xs text-foreground/50">{label}</span>
+              <span className="text-sm font-semibold text-foreground/80 tabular-nums">{value}</span>
+              {sub && <span className="text-xs text-foreground/30">{sub}</span>}
             </div>
           ))}
         </motion.div>
@@ -715,10 +715,10 @@ const Sessions = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="p-4 rounded-2xl bg-white/5">
-              <MessageSquare className="h-8 w-8 text-white/20" />
+            <div className="p-4 rounded-2xl bg-foreground/5">
+              <MessageSquare className="h-8 w-8 text-foreground/20" />
             </div>
-            <p className="text-sm text-white/40">
+            <p className="text-sm text-foreground/40">
               {searchTerm || statusFilter !== "all"
                 ? "Nenhuma sessão encontrada com os filtros aplicados"
                 : "Nenhuma sessão criada ainda"}
@@ -727,7 +727,7 @@ const Sessions = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-1 border-white/10 text-white/60 hover:text-white"
+                className="mt-1 border-foreground/10 text-foreground/60 hover:text-foreground"
                 onClick={() => setShowCreateSessionModal(true)}
               >
                 <Plus className="h-4 w-4 mr-1.5" />

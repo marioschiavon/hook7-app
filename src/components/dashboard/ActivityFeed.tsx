@@ -52,9 +52,9 @@ export const ActivityFeed = ({ activities }: ActivityFeedProps) => {
   };
 
   return (
-    <Card className="glass-card hook7-card-hover border-white/5 h-full">
+    <Card className="glass-card hook7-card-hover border-foreground/5 h-full">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-medium text-white/90">Atividade recente</CardTitle>
+        <CardTitle className="text-lg font-medium text-foreground/90">Atividade recente</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {activities.map((activity, index) => (
@@ -72,13 +72,13 @@ export const ActivityFeed = ({ activities }: ActivityFeedProps) => {
             
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white/90 truncate">{activity.title}</p>
-              <p className="text-xs text-white/50 truncate">{activity.subtitle}</p>
+              <p className="text-sm font-medium text-foreground/90 truncate">{activity.title}</p>
+              <p className="text-xs text-foreground/50 truncate">{activity.subtitle}</p>
             </div>
             
             {/* Meta */}
             <div className="flex flex-col items-end flex-shrink-0">
-              <p className="text-xs text-white/50 mb-1">{activity.timeAgo}</p>
+              <p className="text-xs text-foreground/50 mb-1">{activity.timeAgo}</p>
               <div className="flex items-center gap-1.5">
                 <span className={`w-1.5 h-1.5 rounded-full bg-current ${getStatusColorClass(activity.statusColor)} shadow-[0_0_8px_currentColor]`} />
                 <span className={`text-xs ${getStatusColorClass(activity.statusColor)}`}>{activity.statusText}</span>

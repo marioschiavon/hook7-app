@@ -71,7 +71,7 @@ const AdminSubscriptions = () => {
     if (status === "active") return "border-green-500/30 text-green-400";
     if (status === "past_due") return "border-yellow-500/30 text-yellow-400";
     if (status === "cancelled") return "border-red-500/30 text-red-400";
-    return "border-white/10 text-white/40";
+    return "border-foreground/10 text-foreground/40";
   };
 
   const activeCount = subs.filter((s) => s.status === "active").length;
@@ -83,44 +83,44 @@ const AdminSubscriptions = () => {
       {/* summary strip */}
       <div className="flex flex-wrap gap-3">
         {[
-          { label: "Total", value: subs.length, dot: "bg-white/30" },
+          { label: "Total", value: subs.length, dot: "bg-foreground/30" },
           { label: "Ativas", value: activeCount, dot: "bg-green-500" },
           { label: "Atrasadas", value: pastDueCount, dot: "bg-yellow-500" },
           { label: "Receita mensal", value: `R$ ${revenue.toFixed(2)}`, dot: "bg-cyan-500" },
         ].map(({ label, value, dot }) => (
-          <div key={label} className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+          <div key={label} className="flex items-center gap-2 rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2">
             <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-            <span className="text-xs text-white/50">{label}</span>
-            <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+            <span className="text-xs text-foreground/50">{label}</span>
+            <span className="text-sm font-semibold text-foreground/80 tabular-nums">{value}</span>
           </div>
         ))}
       </div>
 
-      <Card className="glass-card border-white/5 overflow-hidden">
+      <Card className="glass-card border-foreground/5 overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-white/40 text-xs font-medium">Organização</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Sessão</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Plano</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Valor</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Status</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Provedor</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Próx. cobrança</TableHead>
+              <TableRow className="border-foreground/5 hover:bg-transparent">
+                <TableHead className="text-foreground/40 text-xs font-medium">Organização</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Sessão</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Plano</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Valor</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Status</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Provedor</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Próx. cobrança</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {subs.map((s) => (
-                <TableRow key={s.id} className="border-white/5 hover:bg-white/3">
-                  <TableCell className="text-sm font-medium text-white/80">{s.org_name || "—"}</TableCell>
-                  <TableCell className="text-sm text-white/50">{s.session_name || "—"}</TableCell>
+                <TableRow key={s.id} className="border-foreground/5 hover:bg-foreground/3">
+                  <TableCell className="text-sm font-medium text-foreground/80">{s.org_name || "—"}</TableCell>
+                  <TableCell className="text-sm text-foreground/50">{s.session_name || "—"}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-[10px] border-white/15 text-white/50 h-5 px-1.5">
+                    <Badge variant="outline" className="text-[10px] border-foreground/15 text-foreground/50 h-5 px-1.5">
                       {s.plan_name}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-white/70 tabular-nums">
+                  <TableCell className="text-sm text-foreground/70 tabular-nums">
                     R$ {Number(s.amount).toFixed(2)}
                   </TableCell>
                   <TableCell>
@@ -128,8 +128,8 @@ const AdminSubscriptions = () => {
                       {s.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-white/40 text-xs">{s.payment_provider || "—"}</TableCell>
-                  <TableCell className="text-white/40 text-xs">
+                  <TableCell className="text-foreground/40 text-xs">{s.payment_provider || "—"}</TableCell>
+                  <TableCell className="text-foreground/40 text-xs">
                     {s.next_payment_date
                       ? format(new Date(s.next_payment_date), "dd/MM/yyyy", { locale: ptBR })
                       : "—"}

@@ -100,37 +100,37 @@ const AdminOrganizations = () => {
       {/* summary strip */}
       <div className="flex flex-wrap gap-3">
         {[
-          { label: "Total", value: orgs.length, dot: "bg-white/30" },
+          { label: "Total", value: orgs.length, dot: "bg-foreground/30" },
           { label: "Com assinatura ativa", value: activeOrgs, dot: "bg-green-500" },
           { label: "Legacy", value: orgs.filter((o) => o.is_legacy).length, dot: "bg-yellow-500" },
         ].map(({ label, value, dot }) => (
-          <div key={label} className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+          <div key={label} className="flex items-center gap-2 rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2">
             <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-            <span className="text-xs text-white/50">{label}</span>
-            <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+            <span className="text-xs text-foreground/50">{label}</span>
+            <span className="text-sm font-semibold text-foreground/80 tabular-nums">{value}</span>
           </div>
         ))}
       </div>
 
-      <Card className="glass-card border-white/5 overflow-hidden">
+      <Card className="glass-card border-foreground/5 overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-white/40 text-xs font-medium">Nome</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Plano</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Status</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Legacy</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium">Criação</TableHead>
-                <TableHead className="text-white/40 text-xs font-medium text-right">Ações</TableHead>
+              <TableRow className="border-foreground/5 hover:bg-transparent">
+                <TableHead className="text-foreground/40 text-xs font-medium">Nome</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Plano</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Status</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Legacy</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium">Criação</TableHead>
+                <TableHead className="text-foreground/40 text-xs font-medium text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orgs.map((org) => (
-                <TableRow key={org.id} className="border-white/5 hover:bg-white/3">
-                  <TableCell className="font-medium text-white/80 text-sm">{org.name}</TableCell>
+                <TableRow key={org.id} className="border-foreground/5 hover:bg-foreground/3">
+                  <TableCell className="font-medium text-foreground/80 text-sm">{org.name}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-[10px] border-white/15 text-white/50 h-5 px-1.5">
+                    <Badge variant="outline" className="text-[10px] border-foreground/15 text-foreground/50 h-5 px-1.5">
                       {org.plan || "starter"}
                     </Badge>
                   </TableCell>
@@ -142,7 +142,7 @@ const AdminOrganizations = () => {
                           ? "border-green-500/30 text-green-400"
                           : org.realSubStatus === "past_due"
                           ? "border-yellow-500/30 text-yellow-400"
-                          : "border-white/10 text-white/35"
+                          : "border-foreground/10 text-foreground/35"
                       }`}
                     >
                       {org.realSubStatus || "Sem assinatura"}
@@ -154,17 +154,17 @@ const AdminOrganizations = () => {
                         Legacy
                       </Badge>
                     ) : (
-                      <span className="text-white/25 text-xs">—</span>
+                      <span className="text-foreground/25 text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-white/40 text-xs">
+                  <TableCell className="text-foreground/40 text-xs">
                     {org.created_at ? format(new Date(org.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2.5 text-xs text-white/50 hover:text-white border border-white/10 hover:border-white/20"
+                      className="h-7 px-2.5 text-xs text-foreground/50 hover:text-foreground border border-foreground/10 hover:border-foreground/20"
                       onClick={() => openDetails(org)}
                     >
                       <Eye className="h-3.5 w-3.5 mr-1" />
@@ -182,7 +182,7 @@ const AdminOrganizations = () => {
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white/90">{selectedOrg?.name}</DialogTitle>
+            <DialogTitle className="text-foreground/90">{selectedOrg?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 mt-2">
             {/* Meta */}
@@ -193,25 +193,25 @@ const AdminOrganizations = () => {
                 { label: "Limite sessões", value: String(selectedOrg?.session_limit || 1) },
                 { label: "Status", value: selectedOrg?.realSubStatus || "Sem assinatura" },
               ].map(({ label, value }) => (
-                <div key={label} className="rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
-                  <p className="text-[10px] text-white/35 uppercase tracking-wider mb-0.5">{label}</p>
-                  <p className="text-sm font-medium text-white/70">{value}</p>
+                <div key={label} className="rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2">
+                  <p className="text-[10px] text-foreground/35 uppercase tracking-wider mb-0.5">{label}</p>
+                  <p className="text-sm font-medium text-foreground/70">{value}</p>
                 </div>
               ))}
             </div>
 
             {/* Sessions */}
             <div>
-              <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <p className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                 <MessageSquare className="h-3 w-3" /> Sessões ({orgSessions.length})
               </p>
-              <div className="divide-y divide-white/5 rounded-lg border border-white/8 overflow-hidden">
+              <div className="divide-y divide-foreground/5 rounded-lg border border-foreground/8 overflow-hidden">
                 {orgSessions.length === 0 ? (
-                  <p className="text-xs text-white/30 p-3">Nenhuma sessão</p>
+                  <p className="text-xs text-foreground/30 p-3">Nenhuma sessão</p>
                 ) : orgSessions.map((s) => (
                   <div key={s.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                    <span className="text-white/70">{s.name || "Sem nome"}</span>
-                    <Badge variant="outline" className="text-[10px] border-white/10 text-white/40 h-5 px-1.5">
+                    <span className="text-foreground/70">{s.name || "Sem nome"}</span>
+                    <Badge variant="outline" className="text-[10px] border-foreground/10 text-foreground/40 h-5 px-1.5">
                       {s.status || "N/A"}
                     </Badge>
                   </div>
@@ -221,19 +221,19 @@ const AdminOrganizations = () => {
 
             {/* Users */}
             <div>
-              <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <p className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                 <Users className="h-3 w-3" /> Usuários ({orgUsers.length})
               </p>
-              <div className="divide-y divide-white/5 rounded-lg border border-white/8 overflow-hidden">
+              <div className="divide-y divide-foreground/5 rounded-lg border border-foreground/8 overflow-hidden">
                 {orgUsers.length === 0 ? (
-                  <p className="text-xs text-white/30 p-3">Nenhum usuário</p>
+                  <p className="text-xs text-foreground/30 p-3">Nenhum usuário</p>
                 ) : orgUsers.map((u) => (
                   <div key={u.id} className="flex items-center justify-between px-3 py-2 text-sm">
                     <div>
-                      <p className="text-white/70">{u.name || u.email}</p>
-                      <p className="text-[10px] text-white/35">{u.email}</p>
+                      <p className="text-foreground/70">{u.name || u.email}</p>
+                      <p className="text-[10px] text-foreground/35">{u.email}</p>
                     </div>
-                    <Badge variant="outline" className="text-[10px] border-white/10 text-white/40 h-5 px-1.5">
+                    <Badge variant="outline" className="text-[10px] border-foreground/10 text-foreground/40 h-5 px-1.5">
                       {u.role}
                     </Badge>
                   </div>
@@ -243,22 +243,22 @@ const AdminOrganizations = () => {
 
             {/* Subscriptions */}
             <div>
-              <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2">
+              <p className="text-[11px] font-semibold text-foreground/35 uppercase tracking-widest mb-2">
                 Assinaturas ({orgSubs.length})
               </p>
-              <div className="divide-y divide-white/5 rounded-lg border border-white/8 overflow-hidden">
+              <div className="divide-y divide-foreground/5 rounded-lg border border-foreground/8 overflow-hidden">
                 {orgSubs.length === 0 ? (
-                  <p className="text-xs text-white/30 p-3">Nenhuma assinatura</p>
+                  <p className="text-xs text-foreground/30 p-3">Nenhuma assinatura</p>
                 ) : orgSubs.map((s) => (
                   <div key={s.id} className="flex items-center justify-between px-3 py-2 text-sm">
                     <div>
-                      <p className="text-white/70">{s.plan_name} · R$ {Number(s.amount).toFixed(2)}</p>
-                      <p className="text-[10px] text-white/35">{s.payment_provider}</p>
+                      <p className="text-foreground/70">{s.plan_name} · R$ {Number(s.amount).toFixed(2)}</p>
+                      <p className="text-[10px] text-foreground/35">{s.payment_provider}</p>
                     </div>
                     <Badge
                       variant="outline"
                       className={`text-[10px] h-5 px-1.5 ${
-                        s.status === "active" ? "border-green-500/30 text-green-400" : "border-white/10 text-white/40"
+                        s.status === "active" ? "border-green-500/30 text-green-400" : "border-foreground/10 text-foreground/40"
                       }`}
                     >
                       {s.status}

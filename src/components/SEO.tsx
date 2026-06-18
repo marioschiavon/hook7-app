@@ -16,7 +16,7 @@ export const SEO = ({
   description, 
   canonical, 
   noindex = false,
-  ogImage = "https://hook7.com.br/hook7-logo-new.jpg",
+  ogImage = "https://kfsvpbujmetlendgwnrs.supabase.co/storage/v1/object/public/assets/favicon.svg",
   ogType = "website"
 }: SEOProps) => {
   const seoTitle = title.includes("Hook7") ? title : `${title} | Hook7`;

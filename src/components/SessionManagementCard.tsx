@@ -97,7 +97,7 @@ const SessionManagementCard = ({
   return (
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} className="h-full">
       <Card
-        className={`glass-card h-full flex flex-col border-t-2 border-x-white/5 border-b-white/5 overflow-hidden ${cfg.topBorder}`}
+        className={`glass-card h-full flex flex-col border-t-2 border-x-foreground/5 border-b-foreground/5 overflow-hidden ${cfg.topBorder}`}
       >
         <CardContent className="p-4 flex-1 flex flex-col gap-3">
           {/* Header */}
@@ -107,8 +107,8 @@ const SessionManagementCard = ({
             </div>
 
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-white/90 truncate">{session.name}</h3>
-              <p className="text-[10px] text-white/35 font-mono truncate mt-0.5">
+              <h3 className="text-sm font-semibold text-foreground/90 truncate">{session.name}</h3>
+              <p className="text-[10px] text-foreground/35 font-mono truncate mt-0.5">
                 {session.api_session || "não configurada"}
               </p>
             </div>
@@ -124,7 +124,7 @@ const SessionManagementCard = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-white/30 hover:text-white/70"
+                    className="h-6 w-6 text-foreground/30 hover:text-foreground/70"
                   >
                     <MoreVertical className="h-3.5 w-3.5" />
                   </Button>
@@ -143,7 +143,7 @@ const SessionManagementCard = ({
           </div>
 
           {/* Meta */}
-          <div className="flex-1 text-[11px] text-white/35 space-y-0.5">
+          <div className="flex-1 text-[11px] text-foreground/35 space-y-0.5">
             {isPendingPayment && (
               <p className="text-yellow-400/70">Aguardando pagamento</p>
             )}
@@ -159,7 +159,7 @@ const SessionManagementCard = ({
           </div>
 
           {/* Actions */}
-          <div className="pt-2 border-t border-white/5 flex gap-2">
+          <div className="pt-2 border-t border-foreground/5 flex gap-2">
             {state === "qr" && (
               <Button onClick={onViewQr} size="sm" className="flex-1 h-8 gap-1.5 text-xs hook7-btn-glow">
                 <QrCode className="h-3.5 w-3.5" />
@@ -172,7 +172,7 @@ const SessionManagementCard = ({
                 onClick={onViewQr}
                 size="sm"
                 variant="outline"
-                className="flex-1 h-8 gap-1.5 text-xs border-white/10 text-white/70 hover:text-white"
+                className="flex-1 h-8 gap-1.5 text-xs border-foreground/10 text-foreground/70 hover:text-foreground"
               >
                 <Wifi className="h-3.5 w-3.5" />
                 Ver detalhes

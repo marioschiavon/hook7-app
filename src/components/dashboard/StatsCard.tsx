@@ -75,7 +75,7 @@ export function StatsCard({
 
           {progress !== undefined && (
             <div className={cn("mt-3", progressColorClasses[color])}>
-              <Progress value={progress} className="h-1 bg-white/5" />
+              <Progress value={progress} className="h-1 bg-foreground/5" />
             </div>
           )}
         </CardContent>

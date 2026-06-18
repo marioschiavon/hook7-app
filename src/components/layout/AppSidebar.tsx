@@ -1,4 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import { Hook7Logo } from "@/components/Hook7Logo";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -183,12 +184,9 @@ export function AppSidebar() {
           to="/dashboard"
           className="flex items-center gap-3 px-2 py-3 hover:opacity-80 transition-opacity"
         >
-          <img
-            src="/hook7-logo.svg"
-            alt="Hook7"
-            width="32"
-            height="32"
-            className="h-8 w-8 rounded-full flex-shrink-0"
+          <Hook7Logo
+            size={32}
+            className="h-8 w-8 flex-shrink-0"
           />
           {!isCollapsed && (
             <span className="text-xl font-bold font-['Space_Grotesk'] hook7-gradient-text truncate">

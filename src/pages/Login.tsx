@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { Hook7Logo } from "@/components/Hook7Logo";
 import { useTranslation } from "react-i18next";
 
 const Login = () => {
@@ -78,12 +79,9 @@ const Login = () => {
             <div className="text-center space-y-4">
               <div className="mx-auto w-20 h-20 relative">
                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse-glow" />
-                <img 
-                  src="/hook7-logo.svg" 
-                  alt="Hook7"
-                  width="80"
-                  height="80"
-                  className="w-full h-full object-contain drop-shadow-2xl animate-scale-in rounded-full relative"
+                <Hook7Logo
+                  size={80}
+                  className="w-full h-full drop-shadow-2xl animate-scale-in relative"
                 />
               </div>
               <div>
