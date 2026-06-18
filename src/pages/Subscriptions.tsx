@@ -1,24 +1,24 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { 
-  CreditCard, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
+import {
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  Clock,
   ExternalLink,
   AlertTriangle,
   MessageSquare,
-  DollarSign
+  DollarSign,
+  Info,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { StatsCard } from "@/components/dashboard/StatsCard";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -39,26 +39,22 @@ interface SessionWithSubscription {
   };
 }
 
+const STAGGER = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
+const ITEM = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } };
+
 const Subscriptions = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionWithSubscription[]>([]);
   const [isLegacy, setIsLegacy] = useState(false);
-  const [organizationId, setOrganizationId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login");
-        return;
-      }
+      if (!user) { navigate("/login"); return; }
 
-      // Buscar organização do usuário
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("organization_id")
@@ -71,28 +67,21 @@ const Subscriptions = () => {
         return;
       }
 
-      setOrganizationId(userData.organization_id);
-
-      // Verificar se é cliente legacy
       const { data: orgData } = await supabase
         .from("organizations")
         .select("is_legacy")
         .eq("id", userData.organization_id)
         .single();
-
       setIsLegacy((orgData as any)?.is_legacy || false);
 
-      // Buscar todas as sessões
       const { data: sessionsData, error: sessionsError } = await supabase
         .from("sessions")
         .select("*")
         .eq("organization_id", userData.organization_id)
         .order("created_at", { ascending: false });
-
       if (sessionsError) throw sessionsError;
 
-      // Buscar assinaturas de cada sessão
-      const sessionsWithSubs: SessionWithSubscription[] = await Promise.all(
+      const withSubs: SessionWithSubscription[] = await Promise.all(
         (sessionsData || []).map(async (session) => {
           const { data: subData } = await supabase
             .from("subscriptions" as any)
@@ -107,544 +96,390 @@ const Subscriptions = () => {
             name: session.name || "",
             created_at: session.created_at,
             requires_subscription: (session as any).requires_subscription ?? true,
-            subscription: subData ? {
-              id: (subData as any).id,
-              status: (subData as any).status,
-              amount: (subData as any).amount,
-              next_payment_date: (subData as any).next_payment_date,
-              created_at: (subData as any).created_at,
-              stripe_customer_id: (subData as any).stripe_customer_id,
-              cancel_at_period_end: (subData as any).cancel_at_period_end,
-              current_period_end: (subData as any).current_period_end,
-            } : undefined,
+            subscription: subData
+              ? {
+                  id: (subData as any).id,
+                  status: (subData as any).status,
+                  amount: (subData as any).amount,
+                  next_payment_date: (subData as any).next_payment_date,
+                  created_at: (subData as any).created_at,
+                  stripe_customer_id: (subData as any).stripe_customer_id,
+                  cancel_at_period_end: (subData as any).cancel_at_period_end,
+                  current_period_end: (subData as any).current_period_end,
+                }
+              : undefined,
           };
         })
       );
-
-      setSessions(sessionsWithSubs);
-    } catch (error: any) {
-      console.error("Erro ao buscar dados:", error);
+      setSessions(withSubs);
+    } catch {
       toast.error("Erro ao carregar assinaturas");
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusBadge = (session: SessionWithSubscription) => {
-    if (!session.requires_subscription) {
-      return (
-        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-          <CheckCircle2 className="h-3 w-3 mr-1" />
-          Liberada
-        </Badge>
-      );
-    }
-
-    if (!session.subscription) {
-      return (
-        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-200">
-          <Clock className="h-3 w-3 mr-1" />
-          Aguardando Pagamento
-        </Badge>
-      );
-    }
-
-    // Badge especial para cancelamento agendado
-    if (session.subscription.status === "active" && session.subscription.cancel_at_period_end) {
-      return (
-        <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-200">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          Cancelamento Agendado
-        </Badge>
-      );
-    }
-
-    switch (session.subscription.status) {
-      case "active":
-        return (
-          <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            Ativa
-          </Badge>
-        );
-      case "past_due":
-        return (
-          <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Pagamento Pendente
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-200">
-            <Clock className="h-3 w-3 mr-1" />
-            Pendente
-          </Badge>
-        );
-      case "cancelled":
-      case "paused":
-        return (
-          <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200">
-            <XCircle className="h-3 w-3 mr-1" />
-            Cancelada
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline">
-            {session.subscription.status}
-          </Badge>
-        );
-    }
-  };
-
-  const handleManageSubscription = async (customerId?: string) => {
-    if (!customerId) {
-      toast.error('ID do cliente não encontrado');
-      return;
-    }
-
+  const openPortal = async (customerId?: string) => {
+    if (!customerId) { toast.error("ID do cliente não encontrado"); return; }
     try {
-      const { data, error } = await supabase.functions.invoke('create-stripe-portal', {
-        body: { customer_id: customerId }
+      const { data, error } = await supabase.functions.invoke("create-stripe-portal", {
+        body: { customer_id: customerId },
       });
-
       if (error) throw error;
-
-      if (data.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error: any) {
-      console.error('Erro ao abrir portal:', error);
-      toast.error('Erro ao abrir portal de gerenciamento');
+      if (data.url) window.open(data.url, "_blank");
+    } catch {
+      toast.error("Erro ao abrir portal de gerenciamento");
     }
   };
+
+  // Derive session card top border color based on subscription status
+  const cardBorder = (s: SessionWithSubscription) => {
+    if (!s.requires_subscription) return "border-t-green-500";
+    if (!s.subscription) return "border-t-yellow-500";
+    if (s.subscription.status === "active" && s.subscription.cancel_at_period_end) return "border-t-orange-500";
+    switch (s.subscription.status) {
+      case "active": return "border-t-green-500";
+      case "past_due": return "border-t-red-500";
+      case "pending": return "border-t-yellow-500";
+      case "cancelled":
+      case "paused": return "border-t-red-500";
+      default: return "border-t-white/20";
+    }
+  };
+
+  const statusBadge = (s: SessionWithSubscription) => {
+    if (!s.requires_subscription)
+      return <Badge variant="outline" className="border-green-500/30 text-green-400 text-[10px] h-5 px-1.5">Liberada</Badge>;
+    if (!s.subscription)
+      return <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-[10px] h-5 px-1.5">Aguardando pagamento</Badge>;
+    if (s.subscription.status === "active" && s.subscription.cancel_at_period_end)
+      return <Badge variant="outline" className="border-orange-500/30 text-orange-400 text-[10px] h-5 px-1.5">Cancelamento agendado</Badge>;
+    switch (s.subscription.status) {
+      case "active":    return <Badge variant="outline" className="border-green-500/30 text-green-400 text-[10px] h-5 px-1.5">Ativa</Badge>;
+      case "past_due":  return <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px] h-5 px-1.5">Pagamento pendente</Badge>;
+      case "pending":   return <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-[10px] h-5 px-1.5">Pendente</Badge>;
+      case "cancelled":
+      case "paused":    return <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px] h-5 px-1.5">Cancelada</Badge>;
+      default:          return <Badge variant="outline" className="border-white/10 text-white/40 text-[10px] h-5 px-1.5">{s.subscription.status}</Badge>;
+    }
+  };
+
+  const activeCount = sessions.filter(
+    (s) => (s.subscription?.status === "active" && !s.subscription?.cancel_at_period_end) || !s.requires_subscription
+  ).length;
+  const pendingCount = sessions.filter((s) => s.requires_subscription && !s.subscription).length;
+  const revenue = sessions.filter((s) => s.subscription?.status === "active").length * 69.90;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-          <p className="text-muted-foreground">Carregando assinaturas...</p>
+      <div className="container mx-auto p-4 md:p-8 space-y-4">
+        <div className="flex gap-3">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-9 w-32 rounded-lg" />)}
         </div>
+        {[1, 2].map((i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <CreditCard className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Minhas Assinaturas</h1>
-        </div>
-        <p className="text-muted-foreground">
-          Gerencie suas sessões e assinaturas do Hook7
-        </p>
-      </div>
-
-      {/* Cliente Legacy Alert */}
-      {isLegacy && (
-        <Alert className="mb-6 border-blue-200 bg-blue-50">
-          <AlertTriangle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <strong>Cliente Legacy:</strong> Você possui acesso especial sem cobrança por sessão.
-            Suas sessões foram criadas antes do novo modelo de assinatura.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Stats Cards */}
+    <div className="container mx-auto p-4 md:p-8 space-y-5">
+      {/* Summary strip */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-        variants={{
-          hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-          }
-        }}
+        className="flex flex-wrap gap-3"
+        variants={STAGGER}
         initial="hidden"
         animate="show"
       >
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title="Total de Sessões"
-            value={sessions.length}
-            icon={MessageSquare}
-            color="blue"
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title="Assinaturas Ativas"
-            value={sessions.filter(s => 
-              (s.subscription?.status === "active" && !s.subscription?.cancel_at_period_end) || 
-              !s.requires_subscription
-            ).length}
-            icon={CheckCircle2}
-            subtitle="Sem cancelamento agendado"
-            color="green"
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title="Pendentes"
-            value={sessions.filter(s => 
-              s.requires_subscription && !s.subscription
-            ).length}
-            icon={Clock}
-            subtitle="Aguardando pagamento"
-            color="orange"
-          />
-        </motion.div>
-
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 }
-          }}
-        >
-          <StatsCard
-            title="Custo Mensal"
-            value={isLegacy ? "Grátis" : `R$ ${(sessions.filter(s => s.subscription?.status === "active").length * 69.90).toFixed(2)}`}
-            icon={DollarSign}
-            subtitle={isLegacy ? "Cliente Legacy" : "Total das assinaturas"}
-            color="purple"
-          />
-        </motion.div>
+        {[
+          { label: "Total", value: sessions.length, dot: "bg-white/30" },
+          { label: "Ativas", value: activeCount, dot: "bg-green-500" },
+          { label: "Pendentes", value: pendingCount, dot: "bg-yellow-500" },
+          {
+            label: "Custo mensal",
+            value: isLegacy ? "Grátis" : `R$ ${revenue.toFixed(2)}`,
+            dot: "bg-cyan-500",
+          },
+        ].map(({ label, value, dot }) => (
+          <motion.div
+            key={label}
+            variants={ITEM}
+            className="flex items-center gap-2 rounded-lg border border-white/8 bg-muted/20 px-3 py-2"
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+            <span className="text-xs text-white/50">{label}</span>
+            <span className="text-sm font-semibold text-white/80 tabular-nums">{value}</span>
+          </motion.div>
+        ))}
       </motion.div>
 
-      {/* Sessions List */}
-      <motion.div 
-        className="space-y-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        {sessions.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">
-                Você ainda não possui nenhuma sessão
-              </p>
-              <Button onClick={() => navigate("/dashboard")}>
-                Criar Primeira Sessão
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          sessions.map((session, index) => (
-            <motion.div
-              key={session.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="hover:shadow-lg transition-shadow duration-200">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle className="text-xl">{session.name}</CardTitle>
-                        {getStatusBadge(session)}
-                      </div>
-                      <CardDescription>
+      {/* Legacy banner */}
+      {isLegacy && (
+        <div className="flex items-center gap-2.5 rounded-lg border border-blue-500/30 bg-blue-500/8 px-4 py-2.5 text-sm text-blue-400">
+          <Info className="h-4 w-4 flex-shrink-0" />
+          <span>
+            <strong>Cliente Legacy:</strong> Você possui acesso especial sem cobrança por sessão. Suas sessões foram criadas antes do novo modelo de assinatura.
+          </span>
+        </div>
+      )}
+
+      {/* Sessions list */}
+      {sessions.length === 0 ? (
+        <div className="flex flex-col items-center gap-4 py-16">
+          <CreditCard className="h-10 w-10 text-white/15" />
+          <p className="text-sm text-white/35">Você ainda não possui nenhuma sessão</p>
+          <Button size="sm" onClick={() => navigate("/dashboard")}>
+            Criar primeira sessão
+          </Button>
+        </div>
+      ) : (
+        <motion.div
+          className="space-y-4"
+          variants={STAGGER}
+          initial="hidden"
+          animate="show"
+        >
+          {sessions.map((session) => (
+            <motion.div key={session.id} variants={ITEM}>
+              <Card className={`glass-card border-t-2 border-x-white/5 border-b-white/5 ${cardBorder(session)}`}>
+                <CardHeader className="pb-3 pt-5 px-5">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="text-base font-semibold text-white/85">{session.name}</p>
+                      <p className="text-xs text-white/35 mt-0.5">
                         Criada em {format(new Date(session.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </CardDescription>
+                      </p>
                     </div>
+                    {statusBadge(session)}
                   </div>
                 </CardHeader>
 
-                <CardContent>
-                  <Separator className="mb-4" />
+                <Separator className="border-white/5" />
 
-                  {/* Aviso de Cancelamento Agendado */}
+                <CardContent className="px-5 pb-5 pt-4 space-y-4">
+                  {/* Cancelamento agendado */}
                   {session.subscription?.status === "active" && session.subscription?.cancel_at_period_end && (
-                    <Alert className="border-orange-200 bg-orange-50 mb-4">
-                      <AlertTriangle className="h-4 w-4 text-orange-600" />
-                      <AlertDescription className="text-orange-800">
-                        <div className="space-y-3">
-                          <div>
-                            <p className="font-semibold mb-2">⚠️ Cancelamento Agendado</p>
-                            <p className="mb-2">
-                              Você cancelou esta assinatura, mas ela continuará ativa até{" "}
-                              <strong>
-                                {session.subscription.current_period_end && 
-                                  format(new Date(session.subscription.current_period_end), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                              </strong>
-                            </p>
-                            <p className="text-sm mb-3">
-                              Após essa data, a sessão será desconectada automaticamente e você precisará reativar a assinatura para voltar a usar.
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleManageSubscription(
-                              session.subscription?.stripe_customer_id
-                            )}
-                            className="border-orange-300"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Reverter Cancelamento
-                          </Button>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Informações da Assinatura */}
-                  {session.subscription ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="rounded-lg border border-orange-500/25 bg-orange-500/8 px-4 py-3 text-sm text-orange-400 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm text-muted-foreground mb-1">Valor Mensal</p>
-                          <p className="text-lg font-semibold">
-                            R$ {session.subscription.amount.toFixed(2)}
+                          <p className="font-semibold mb-1">Cancelamento agendado</p>
+                          <p className="text-orange-300/80 text-xs">
+                            A assinatura continua ativa até{" "}
+                            <strong className="text-orange-300">
+                              {session.subscription.current_period_end &&
+                                format(new Date(session.subscription.current_period_end), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </strong>
+                            . Após essa data a sessão será desconectada automaticamente.
                           </p>
                         </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openPortal(session.subscription?.stripe_customer_id)}
+                        className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 h-8"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                        Reverter cancelamento
+                      </Button>
+                    </div>
+                  )}
 
+                  {/* Subscription info */}
+                  {session.subscription ? (
+                    <div className="space-y-4">
+                      {/* Amount + next payment */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+                          <p className="text-[10px] text-white/35 uppercase tracking-wider mb-0.5">Valor mensal</p>
+                          <p className="text-base font-semibold text-white/80 tabular-nums">
+                            R$ {Number(session.subscription.amount).toFixed(2)}
+                          </p>
+                        </div>
                         {session.subscription.next_payment_date && (
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-1">Próxima Cobrança</p>
-                            <p className="text-lg font-semibold">
+                          <div className="rounded-lg border border-white/8 bg-muted/20 px-3 py-2">
+                            <p className="text-[10px] text-white/35 uppercase tracking-wider mb-0.5">Próxima cobrança</p>
+                            <p className="text-base font-semibold text-white/80 tabular-nums">
                               {format(new Date(session.subscription.next_payment_date), "dd/MM/yyyy")}
                             </p>
                           </div>
                         )}
                       </div>
 
+                      {/* past_due */}
                       {session.subscription.status === "past_due" && (
-                        <div className="space-y-3">
-                          <Alert className="border-red-300 bg-red-50">
-                            <AlertTriangle className="h-4 w-4 text-red-600" />
-                            <AlertDescription className="text-red-800">
-                              <div className="space-y-3">
-                                <div>
-                                  <p className="font-semibold mb-2">⚠️ Pagamento Não Processado</p>
-                                  <p className="mb-2">
-                                    Seu último pagamento não foi processado. Atualize seu método de pagamento para evitar a desconexão da sessão.
-                                  </p>
-                                  <p className="text-sm mb-3">
-                                    Acesse o portal do Stripe para atualizar seu cartão de crédito. O pagamento será processado automaticamente após a atualização.
-                                  </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleManageSubscription(
-                                      session.subscription?.stripe_customer_id
-                                    )}
-                                    disabled={!session.subscription?.stripe_customer_id}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    <CreditCard className="h-4 w-4 mr-2" />
-                                    Atualizar Pagamento
-                                  </Button>
-                                  {session.subscription?.stripe_customer_id && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleManageSubscription(
-                                        session.subscription?.stripe_customer_id
-                                      )}
-                                      className="border-red-300"
-                                    >
-                                      <ExternalLink className="h-4 w-4 mr-2" />
-                                      Gerenciar no Portal
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            </AlertDescription>
-                          </Alert>
-                        </div>
-                      )}
-
-                      {session.subscription.status === "active" && (
-                        <div className="flex flex-col gap-3">
-                          <Button
-                            variant="outline"
-                            onClick={() => handleManageSubscription(
-                              session.subscription?.stripe_customer_id
+                        <div className="rounded-lg border border-red-500/25 bg-red-500/8 px-4 py-3 text-sm text-red-400 space-y-3">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-semibold mb-1">Pagamento não processado</p>
+                              <p className="text-red-300/80 text-xs">
+                                Atualize seu método de pagamento para evitar a desconexão da sessão.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => openPortal(session.subscription?.stripe_customer_id)}
+                              disabled={!session.subscription?.stripe_customer_id}
+                              className="bg-red-600 hover:bg-red-700 text-white h-8"
+                            >
+                              <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+                              Atualizar pagamento
+                            </Button>
+                            {session.subscription?.stripe_customer_id && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openPortal(session.subscription?.stripe_customer_id)}
+                                className="border-red-500/30 text-red-400 hover:bg-red-500/10 h-8"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                                Gerenciar no portal
+                              </Button>
                             )}
-                            disabled={!session.subscription?.stripe_customer_id}
-                            className="w-full"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Gerenciar Assinatura
-                          </Button>
-                          <div className="text-xs text-muted-foreground text-center">
-                            Use o portal para cancelar ou atualizar método de pagamento
                           </div>
                         </div>
                       )}
 
+                      {/* active (no cancel) */}
+                      {session.subscription.status === "active" && !session.subscription.cancel_at_period_end && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openPortal(session.subscription?.stripe_customer_id)}
+                          disabled={!session.subscription?.stripe_customer_id}
+                          className="border-white/10 text-white/50 hover:text-white hover:border-white/20 h-8"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                          Gerenciar assinatura
+                        </Button>
+                      )}
+
+                      {/* pending */}
                       {session.subscription.status === "pending" && (
-                        <div className="space-y-3">
-                          <Alert className="border-yellow-200 bg-yellow-50">
-                            <Clock className="h-4 w-4 text-yellow-600" />
-                            <AlertDescription className="text-yellow-800">
-                              Aguardando confirmação de pagamento. Isso pode levar alguns minutos.
-                            </AlertDescription>
-                          </Alert>
+                        <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/8 px-4 py-3 text-sm text-yellow-400 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <p className="text-xs text-yellow-300/80">Aguardando confirmação de pagamento. Isso pode levar alguns minutos.</p>
+                          </div>
                           {session.subscription?.stripe_customer_id && (
                             <Button
+                              size="sm"
                               variant="outline"
-                              onClick={() => handleManageSubscription(
-                                session.subscription?.stripe_customer_id
-                              )}
-                              className="w-full"
+                              onClick={() => openPortal(session.subscription?.stripe_customer_id)}
+                              className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 h-8"
                             >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Gerenciar no Portal
+                              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                              Gerenciar no portal
                             </Button>
                           )}
                         </div>
                       )}
 
+                      {/* cancelled / paused */}
                       {(session.subscription.status === "cancelled" || session.subscription.status === "paused") && (
-                        <div className="space-y-3">
-                          <Alert className="border-red-200 bg-red-50">
-                            <XCircle className="h-4 w-4 text-red-600" />
-                            <AlertDescription className="text-red-800">
-                              <p className="mb-3">Esta assinatura foi cancelada. A sessão não pode ser utilizada.</p>
-                              <div className="flex flex-wrap gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() => navigate(`/checkout?session_id=${session.id}&session_name=${encodeURIComponent(session.name)}`)}
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Reativar Assinatura
-                                </Button>
-                                {session.subscription?.stripe_customer_id && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleManageSubscription(
-                                      session.subscription?.stripe_customer_id
-                                    )}
-                                  >
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    Gerenciar no Portal
-                                  </Button>
-                                )}
-                              </div>
-                            </AlertDescription>
-                          </Alert>
+                        <div className="rounded-lg border border-red-500/25 bg-red-500/8 px-4 py-3 text-sm text-red-400 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <XCircle className="h-4 w-4" />
+                            <p className="text-xs text-red-300/80">Esta assinatura foi cancelada. A sessão não pode ser utilizada.</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => navigate(`/checkout?session_id=${session.id}&session_name=${encodeURIComponent(session.name)}`)}
+                              className="bg-green-600 hover:bg-green-700 text-white h-8"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                              Reativar assinatura
+                            </Button>
+                            {session.subscription?.stripe_customer_id && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openPortal(session.subscription?.stripe_customer_id)}
+                                className="border-white/10 text-white/50 hover:text-white h-8"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                                Gerenciar no portal
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
                   ) : session.requires_subscription ? (
-                    <Alert className="border-yellow-200 bg-yellow-50">
-                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                      <AlertDescription className="text-yellow-800">
-                        <div className="flex flex-col gap-3">
-                          <p>Esta sessão ainda não possui assinatura ativa.</p>
-                          <Button
-                            size="sm"
-                            onClick={() => navigate(`/checkout?session_id=${session.id}&session_name=${encodeURIComponent(session.name)}`)}
-                            className="bg-primary hover:bg-primary/90 w-fit"
-                          >
-                            <CreditCard className="h-4 w-4 mr-2" />
-                            Ativar Assinatura (R$ 69,90/mês)
-                          </Button>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
+                    /* No subscription yet */
+                    <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/8 px-4 py-3 text-sm text-yellow-400 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <p className="text-xs text-yellow-300/80">Esta sessão ainda não possui assinatura ativa.</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => navigate(`/checkout?session_id=${session.id}&session_name=${encodeURIComponent(session.name)}`)}
+                        className="h-8"
+                      >
+                        <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+                        Ativar assinatura (R$ 69,90/mês)
+                      </Button>
+                    </div>
                   ) : (
-                    <Alert className="border-green-200 bg-green-50">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <AlertDescription className="text-green-800">
-                        Esta sessão está liberada e não requer assinatura.
-                      </AlertDescription>
-                    </Alert>
+                    /* Free session */
+                    <div className="flex items-center gap-2 text-sm text-green-400">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span className="text-xs">Esta sessão está liberada e não requer assinatura.</span>
+                    </div>
                   )}
                 </CardContent>
               </Card>
             </motion.div>
-          ))
-        )}
-      </motion.div>
+          ))}
+        </motion.div>
+      )}
 
-      {/* Help Section */}
-      <Card className="mt-8 border-primary/20 bg-muted/30">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-primary" />
-            Como Funciona
-          </CardTitle>
+      {/* Como funciona */}
+      <Card className="glass-card border-white/5">
+        <CardHeader className="pb-2 pt-4 px-5">
+          <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex items-center gap-1.5">
+            <Info className="h-3 w-3" />
+            Como funciona
+          </p>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="flex gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
-              1
+        <CardContent className="px-5 pb-5 space-y-4">
+          {[
+            {
+              n: "1",
+              title: "Gerenciar assinatura",
+              body: "Clique em \"Gerenciar assinatura\" para acessar o portal do Stripe onde você pode cancelar, atualizar o método de pagamento ou ver o histórico de cobranças.",
+            },
+            {
+              n: "2",
+              title: "Assinaturas independentes",
+              body: "Cada sessão possui uma assinatura separada de R$ 69,90/mês. Cancelar uma não afeta as outras.",
+            },
+            {
+              n: "3",
+              title: "Cancelamento e período de uso",
+              body: "Ao cancelar, você pode usar a sessão até o fim do período já pago (30 dias). Após essa data, a sessão será desconectada automaticamente. Você pode reativar a qualquer momento.",
+            },
+            {
+              n: "✓",
+              title: "Reativação instantânea",
+              body: "Sessões canceladas podem ser reativadas imediatamente clicando em \"Reativar assinatura\".",
+            },
+          ].map(({ n, title, body }) => (
+            <div key={n} className="flex gap-3">
+              <div className="h-6 w-6 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-semibold text-primary flex-shrink-0 mt-0.5">
+                {n}
+              </div>
+              <div>
+                <p className="text-xs font-medium text-white/70 mb-0.5">{title}</p>
+                <p className="text-xs text-white/35 leading-relaxed">{body}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-foreground">Gerenciar Assinatura</p>
-              <p className="text-muted-foreground">
-                Clique no botão "Gerenciar Assinatura" para acessar o portal do Stripe onde você pode cancelar, atualizar método de pagamento ou ver histórico de cobranças.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
-              2
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Assinaturas Independentes</p>
-              <p className="text-muted-foreground">
-                Cada sessão possui uma assinatura separada de R$ 69,90/mês. Cancelar uma não afeta as outras.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
-              3
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Cancelamento e Período de Uso</p>
-              <p className="text-muted-foreground">
-                Ao cancelar, você pode usar a sessão até o fim do período já pago (30 dias). Após essa data, a sessão será desconectada automaticamente.
-                Após cancelar, a sessão permanece ativa até o fim do período pago. Depois disso, será desconectada automaticamente. Você pode reativar a qualquer momento.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center text-green-600 font-semibold text-xs">
-              ✓
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Reativação Instantânea</p>
-              <p className="text-muted-foreground">
-                Sessões canceladas podem ser reativadas imediatamente clicando em "Reativar Assinatura".
-              </p>
-            </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
     </div>
@@ -652,4 +487,3 @@ const Subscriptions = () => {
 };
 
 export default Subscriptions;
-
