@@ -78,7 +78,8 @@ export const connectInstance = async (
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          immediate: true
+          webhookUrl: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`,
+          subscribe: ['MESSAGE', 'SEND_MESSAGE', 'CONNECTION', 'QRCODE']
         })
       }
     );

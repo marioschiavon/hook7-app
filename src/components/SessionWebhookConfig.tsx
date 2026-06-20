@@ -80,7 +80,7 @@ export function SessionWebhookConfig({
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
-        `https://kfsvpbujmetlendgwnrs.supabase.co/functions/v1/update-session-webhook`,
+        `https://kfsvpbujmetlendgwnrs.supabase.co/functions/v1/hook7-update-webhook`,
         {
           method: 'POST',
           headers: {

@@ -64,7 +64,7 @@ const SessionDetailsModal = ({ session, open, onClose, onRefresh }: SessionDetai
 
   useEffect(() => {
     if (session) {
-      const defaultUrl = `https://api.hook7.com.br/webhook/${session.name || ''}`;
+      const defaultUrl = session.webhook_url || '';
       setWebhookUrl(session.webhook_url || defaultUrl);
       setSelectedEvents(session.webhook_events?.length ? session.webhook_events : ['MESSAGES_UPSERT']);
     }
@@ -100,7 +100,7 @@ const SessionDetailsModal = ({ session, open, onClose, onRefresh }: SessionDetai
         return;
       }
 
-      const response = await supabase.functions.invoke('update-session-webhook', {
+      const response = await supabase.functions.invoke('hook7-update-webhook', {
         body: {
           session_id: session.id,
           webhook_url: webhookUrl,

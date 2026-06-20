@@ -13,7 +13,7 @@ import { Helmet } from "react-helmet-async";
 
 const ApiDocs = () => {
   const commonErrors = [
-    { code: "401", message: "Unauthorized", solution: "Verifique se o apikey está correto no header" },
+    { code: "401", message: "Unauthorized", solution: "Verifique se o token da instância está correto no header apikey" },
     { code: "404", message: "Instance not found", solution: "Instância não existe ou foi deletada" },
     { code: "400", message: "Invalid phone number", solution: "Formato do número está incorreto (use DDI)" },
     { code: "503", message: "Instance not connected", solution: "Instância está offline, conecte novamente" },
@@ -37,7 +37,7 @@ const ApiDocs = () => {
             "publisher": { "@type": "Organization", "name": "Hook7", "url": "https://app.hook7.com.br" },
             "mainEntityOfPage": "https://app.hook7.com.br/api-docs",
             "datePublished": "2024-01-01",
-            "dateModified": "2026-01-23",
+            "dateModified": "2026-06-20",
             "inLanguage": "pt-BR",
             "keywords": ["API WhatsApp", "documentação API", "enviar mensagens WhatsApp", "integração WhatsApp", "Make", "Zapier", "n8n", "TypeBot"],
             "about": { "@type": "SoftwareApplication", "name": "Hook7 API", "applicationCategory": "BusinessApplication" },
@@ -81,7 +81,7 @@ const ApiDocs = () => {
               <h1 className="text-2xl font-bold text-foreground/90">Documentação da API WhatsApp Hook7</h1>
               <p className="text-sm text-foreground/40 mt-0.5">Integre o WhatsApp nas suas aplicações com nossa API REST</p>
             </div>
-            <Badge variant="outline" className="ml-auto border-foreground/15 text-foreground/50 text-xs">v2.0</Badge>
+            <Badge variant="outline" className="ml-auto border-foreground/15 text-foreground/50 text-xs">v3.0</Badge>
           </div>
 
           {/* Intro card */}
@@ -97,7 +97,7 @@ const ApiDocs = () => {
                   <ul className="text-xs text-foreground/35 space-y-1">
                     <li>• Conta ativa na Hook7</li>
                     <li>• Sessão WhatsApp configurada</li>
-                    <li>• API Key (obtida no Dashboard)</li>
+                    <li>• Token da instância (obtido nos Detalhes da Sessão)</li>
                   </ul>
                 </div>
                 <div className="space-y-2">
@@ -119,13 +119,13 @@ const ApiDocs = () => {
             <div className="space-y-1.5">
               <p className="font-semibold">Autenticação da API WhatsApp</p>
               <p className="text-xs text-primary/70">
-                Todas as requisições requerem autenticação via <strong>apikey</strong> no header. Obtenha sua apikey no Dashboard → Ferramentas → Ver API Key.
+                Todas as requisições requerem autenticação via <strong>apikey</strong> no header usando o <strong>token da instância</strong>. Obtenha o token em Sessões → Ver Detalhes da sessão.
               </p>
               <code className="block rounded bg-black/30 px-3 py-1.5 text-xs text-primary/80 font-mono mt-1">
-                apikey: sua-apikey-aqui
+                apikey: TOKEN_DA_INSTANCIA
               </code>
               <p className="text-[11px] text-primary/50">
-                ⚠️ <strong>IMPORTANTE:</strong> Nunca compartilhe sua apikey publicamente! Ela dá acesso total à sua instância WhatsApp.
+                ⚠️ <strong>IMPORTANTE:</strong> Nunca compartilhe seu token publicamente! Ele dá acesso total à sua instância WhatsApp.
               </p>
             </div>
           </div>
@@ -175,82 +175,81 @@ const ApiDocs = () => {
 
               <EndpointCard
                 method="POST"
-                endpoint="/message/sendText/{instance}"
+                endpoint="/send/text"
                 description="Enviar Mensagem de Texto via API WhatsApp"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
                   { name: "text", type: "string", required: true, description: "Texto da mensagem", example: "Olá, tudo bem?" },
                 ]}
-                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendText/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/send/text" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
     "text": "Olá! Esta é uma mensagem de teste."
   }'`}
                 responseExample={`{
-  "key": {
-    "remoteJid": "5511999999999@s.whatsapp.net",
-    "fromMe": true,
-    "id": "BAE5A1234567890"
-  },
-  "message": {
-    "conversation": "Olá! Esta é uma mensagem de teste."
-  },
-  "messageTimestamp": "1234567890"
+  "success": true,
+  "data": {
+    "id": "BAE5A1234567890",
+    "type": "text",
+    "status": "sent",
+    "number": "5511999999999"
+  }
 }`}
                 errorCodes={commonErrors}
               />
 
               <EndpointCard
                 method="POST"
-                endpoint="/message/sendMedia/{instance}"
+                endpoint="/send/media"
                 description="Enviar Mídia (Imagem/Áudio/Documento) via API WhatsApp"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
-                  { name: "media", type: "string", required: true, description: "URL pública da mídia", example: "https://exemplo.com/imagem.jpg" },
-                  { name: "mediatype", type: "string", required: true, description: "Tipo: image, audio, document", example: "image" },
-                  { name: "caption", type: "string", required: false, description: "Legenda (para imagem)" },
-                  { name: "fileName", type: "string", required: false, description: "Nome do arquivo (para documento)" },
+                  { name: "url", type: "string", required: true, description: "URL pública da mídia", example: "https://exemplo.com/imagem.jpg" },
+                  { name: "type", type: "string", required: true, description: "Tipo: image, audio, video, document", example: "image" },
+                  { name: "caption", type: "string", required: false, description: "Legenda (para imagem/vídeo)" },
+                  { name: "filename", type: "string", required: false, description: "Nome do arquivo (para documento)" },
                 ]}
                 requestExample={`# Exemplo 1: Enviar IMAGEM
-curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+curl -X POST "https://api.hook7.com.br/send/media" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
-    "media": "https://exemplo.com/foto.jpg",
-    "mediatype": "image",
+    "url": "https://exemplo.com/foto.jpg",
+    "type": "image",
     "caption": "Confira esta imagem!"
   }'
 
 # Exemplo 2: Enviar ÁUDIO
-curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+curl -X POST "https://api.hook7.com.br/send/media" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
-    "media": "https://exemplo.com/audio.mp3",
-    "mediatype": "audio"
+    "url": "https://exemplo.com/audio.mp3",
+    "type": "audio"
   }'
 
 # Exemplo 3: Enviar DOCUMENTO/ARQUIVO
-curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+curl -X POST "https://api.hook7.com.br/send/media" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
-    "media": "https://exemplo.com/relatorio.pdf",
-    "mediatype": "document",
-    "fileName": "relatorio.pdf"
+    "url": "https://exemplo.com/relatorio.pdf",
+    "type": "document",
+    "filename": "relatorio.pdf"
   }'`}
                 responseExample={`{
-  "key": {
-    "remoteJid": "5511999999999@s.whatsapp.net",
-    "fromMe": true,
-    "id": "BAE5A1234567891"
-  },
-  "messageTimestamp": "1234567890"
+  "success": true,
+  "data": {
+    "id": "BAE5A1234567891",
+    "type": "image",
+    "status": "sent",
+    "number": "5511999999999"
+  }
 }`}
               />
             </motion.section>
@@ -275,49 +274,38 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
 
               <EndpointCard
                 method="POST"
-                endpoint="/message/sendPoll/{instance}"
+                endpoint="/send/poll"
                 description="Enviar Enquete/Pesquisa NPS via WhatsApp"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
-                  { name: "name", type: "string", required: true, description: "Pergunta da enquete", example: "Como você avalia nosso atendimento?" },
-                  { name: "values", type: "array", required: true, description: "Opções de resposta (array de strings)", example: '["Ótimo", "Bom", "Regular", "Ruim"]' },
-                  { name: "selectableCount", type: "number", required: false, description: "Máximo de opções selecionáveis (default: 1)" },
+                  { name: "question", type: "string", required: true, description: "Pergunta da enquete", example: "Como você avalia nosso atendimento?" },
+                  { name: "options", type: "array", required: true, description: "Opções de resposta (array de strings)", example: '["Ótimo", "Bom", "Regular", "Ruim"]' },
+                  { name: "maxAnswer", type: "number", required: false, description: "Máximo de opções selecionáveis (default: 1)" },
                 ]}
-                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendPoll/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/send/poll" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
-    "name": "Como você avalia nosso atendimento?",
-    "values": ["⭐ Ótimo", "👍 Bom", "😐 Regular", "👎 Ruim"],
-    "selectableCount": 1
+    "question": "Como você avalia nosso atendimento?",
+    "options": ["⭐ Ótimo", "👍 Bom", "😐 Regular", "👎 Ruim"],
+    "maxAnswer": 1
   }'`}
                 responseExample={`{
-  "key": {
-    "remoteJid": "5511999999999@s.whatsapp.net",
-    "fromMe": true,
-    "id": "BAE5A1234567892"
-  },
-  "message": {
-    "pollCreationMessage": {
-      "name": "Como você avalia nosso atendimento?",
-      "options": [
-        { "optionName": "⭐ Ótimo" },
-        { "optionName": "👍 Bom" },
-        { "optionName": "😐 Regular" },
-        { "optionName": "👎 Ruim" }
-      ],
-      "selectableOptionsCount": 1
-    }
-  },
-  "messageTimestamp": "1234567890"
+  "success": true,
+  "data": {
+    "id": "BAE5A1234567892",
+    "type": "poll",
+    "status": "sent",
+    "number": "5511999999999"
+  }
 }`}
                 errorCodes={commonErrors}
               />
 
               <EndpointCard
                 method="POST"
-                endpoint="/message/sendList/{instance}"
+                endpoint="/send/list"
                 description="Enviar Lista/Menu Interativo (Catálogo de Produtos)"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
@@ -327,8 +315,8 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
                   { name: "footerText", type: "string", required: false, description: "Texto do rodapé" },
                   { name: "sections", type: "array", required: true, description: "Seções com itens (ver exemplo)" },
                 ]}
-                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendList/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/send/list" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
@@ -354,20 +342,13 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
     ]
   }'`}
                 responseExample={`{
-  "key": {
-    "remoteJid": "5511999999999@s.whatsapp.net",
-    "fromMe": true,
-    "id": "BAE5A1234567893"
-  },
-  "message": {
-    "listMessage": {
-      "title": "🍕 Nosso Cardápio",
-      "description": "Escolha uma categoria",
-      "buttonText": "Ver Cardápio",
-      "listType": "SINGLE_SELECT"
-    }
-  },
-  "messageTimestamp": "1234567890"
+  "success": true,
+  "data": {
+    "id": "BAE5A1234567893",
+    "type": "list",
+    "status": "sent",
+    "number": "5511999999999"
+  }
 }`}
                 errorCodes={commonErrors}
               />
@@ -377,7 +358,7 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
                 <div>
                   <p className="font-semibold mb-0.5">Dica: Use Listas como Catálogo de Produtos</p>
                   <p className="text-xs text-primary/60">
-                    O endpoint <code className="bg-black/30 px-1 rounded font-mono">sendList</code> é ideal para criar cardápios, catálogos e menus de atendimento interativos no WhatsApp Business, sem necessidade de Commerce Manager.
+                    O endpoint <code className="bg-black/30 px-1 rounded font-mono">/send/list</code> é ideal para criar cardápios, catálogos e menus de atendimento interativos no WhatsApp Business, sem necessidade de Commerce Manager.
                   </p>
                 </div>
               </div>
@@ -403,79 +384,67 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
 
               <EndpointCard
                 method="POST"
-                endpoint="/message/sendLocation/{instance}"
+                endpoint="/send/location"
                 description="Enviar Localização com Mapa via WhatsApp"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
-                  { name: "name", type: "string", required: true, description: "Nome do local", example: "Loja Hook7" },
-                  { name: "address", type: "string", required: true, description: "Endereço completo", example: "Av. Paulista, 1000 - São Paulo, SP" },
                   { name: "latitude", type: "number", required: true, description: "Latitude", example: "-23.5629" },
                   { name: "longitude", type: "number", required: true, description: "Longitude", example: "-46.6544" },
+                  { name: "name", type: "string", required: false, description: "Nome do local", example: "Loja Hook7" },
+                  { name: "address", type: "string", required: false, description: "Endereço completo", example: "Av. Paulista, 1000 - São Paulo, SP" },
                 ]}
-                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendLocation/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/send/location" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
-    "name": "Loja Hook7",
-    "address": "Av. Paulista, 1000 - Bela Vista, São Paulo - SP",
     "latitude": -23.5629,
-    "longitude": -46.6544
+    "longitude": -46.6544,
+    "name": "Loja Hook7",
+    "address": "Av. Paulista, 1000 - Bela Vista, São Paulo - SP"
   }'`}
                 responseExample={`{
-  "key": {
-    "remoteJid": "5511999999999@s.whatsapp.net",
-    "fromMe": true,
-    "id": "BAE5A1234567894"
-  },
-  "message": {
-    "locationMessage": {
-      "degreesLatitude": -23.5629,
-      "degreesLongitude": -46.6544,
-      "name": "Loja Hook7",
-      "address": "Av. Paulista, 1000 - Bela Vista, São Paulo - SP"
-    }
-  },
-  "messageTimestamp": "1234567890"
+  "success": true,
+  "data": {
+    "id": "BAE5A1234567894",
+    "type": "location",
+    "status": "sent",
+    "number": "5511999999999"
+  }
 }`}
                 errorCodes={commonErrors}
               />
 
               <EndpointCard
                 method="POST"
-                endpoint="/message/sendContact/{instance}"
+                endpoint="/send/contact"
                 description="Enviar Contato/vCard via WhatsApp"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
-                  { name: "contact", type: "array", required: true, description: "Array com dados do(s) contato(s)" },
+                  { name: "vcard", type: "object", required: true, description: "Dados do contato" },
+                  { name: "vcard.fullName", type: "string", required: true, description: "Nome completo do contato", example: "Suporte Hook7" },
+                  { name: "vcard.organization", type: "string", required: false, description: "Empresa/Organização", example: "Hook7" },
+                  { name: "vcard.phone", type: "string", required: true, description: "Telefone com DDI (sem + ou espaços)", example: "5511999990000" },
                 ]}
-                requestExample={`curl -X POST "https://api.hook7.com.br/message/sendContact/sua-instancia" \\
-  -H "apikey: sua-apikey-aqui" \\
+                requestExample={`curl -X POST "https://api.hook7.com.br/send/contact" \\
+  -H "apikey: TOKEN_DA_INSTANCIA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "number": "5511999999999",
-    "contact": [
-      {
-        "fullName": "Suporte Hook7",
-        "phoneNumber": "+55 11 99999-0000",
-        "organization": "Hook7",
-        "email": "suporte@hook7.com.br"
-      }
-    ]
+    "vcard": {
+      "fullName": "Suporte Hook7",
+      "organization": "Hook7",
+      "phone": "5511999990000"
+    }
   }'`}
                 responseExample={`{
-  "key": {
-    "remoteJid": "5511999999999@s.whatsapp.net",
-    "fromMe": true,
-    "id": "BAE5A1234567895"
-  },
-  "message": {
-    "contactMessage": {
-      "displayName": "Suporte Hook7",
-      "vcard": "BEGIN:VCARD\\nVERSION:3.0\\nFN:Suporte Hook7\\nORG:Hook7\\nTEL:+55 11 99999-0000\\nEMAIL:suporte@hook7.com.br\\nEND:VCARD"
-    }
-  },
-  "messageTimestamp": "1234567890"
+  "success": true,
+  "data": {
+    "id": "BAE5A1234567895",
+    "type": "contact",
+    "status": "sent",
+    "number": "5511999999999"
+  }
 }`}
                 errorCodes={commonErrors}
               />
@@ -514,28 +483,25 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/sua-instancia" \\
                 {
                   icon: Code2,
                   title: "JavaScript / Node.js — Enviar mensagem de texto",
-                  desc: "Exemplo usando Axios para enviar mensagens WhatsApp",
+                  desc: "Exemplo usando fetch para enviar mensagens WhatsApp",
                   lang: "javascript",
-                  code: `const axios = require('axios');
-
-const sendMessage = async () => {
+                  code: `const sendMessage = async () => {
   try {
-    const response = await axios.post(
-      'https://api.hook7.com.br/message/sendText/sua-instancia',
-      {
+    const response = await fetch('https://api.hook7.com.br/send/text', {
+      method: 'POST',
+      headers: {
+        'apikey': 'TOKEN_DA_INSTANCIA',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
         number: '5511999999999',
         text: 'Olá! Esta é uma mensagem de teste.'
-      },
-      {
-        headers: {
-          'apikey': 'sua-apikey-aqui',
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    console.log('✅ Mensagem enviada:', response.data);
+      })
+    });
+    const data = await response.json();
+    console.log('✅ Mensagem enviada:', data);
   } catch (error) {
-    console.error('❌ Erro:', error.response?.data);
+    console.error('❌ Erro:', error);
   }
 };
 
@@ -546,28 +512,25 @@ sendMessage();`,
                   title: "JavaScript — Enviar pesquisa NPS",
                   desc: "Exemplo de enquete para medir satisfação do cliente",
                   lang: "javascript",
-                  code: `const axios = require('axios');
-
-const sendNpsSurvey = async (customerPhone) => {
+                  code: `const sendNpsSurvey = async (customerPhone) => {
   try {
-    const response = await axios.post(
-      'https://api.hook7.com.br/message/sendPoll/sua-instancia',
-      {
-        number: customerPhone,
-        name: 'De 0 a 10, qual a chance de recomendar nosso serviço?',
-        values: ['😍 9-10 (Promotor)', '😊 7-8 (Neutro)', '😔 0-6 (Detrator)'],
-        selectableCount: 1
+    const response = await fetch('https://api.hook7.com.br/send/poll', {
+      method: 'POST',
+      headers: {
+        'apikey': 'TOKEN_DA_INSTANCIA',
+        'Content-Type': 'application/json'
       },
-      {
-        headers: {
-          'apikey': 'sua-apikey-aqui',
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    console.log('✅ Pesquisa NPS enviada:', response.data);
+      body: JSON.stringify({
+        number: customerPhone,
+        question: 'De 0 a 10, qual a chance de recomendar nosso serviço?',
+        options: ['😍 9-10 (Promotor)', '😊 7-8 (Neutro)', '😔 0-6 (Detrator)'],
+        maxAnswer: 1
+      })
+    });
+    const data = await response.json();
+    console.log('✅ Pesquisa NPS enviada:', data);
   } catch (error) {
-    console.error('❌ Erro:', error.response?.data);
+    console.error('❌ Erro:', error);
   }
 };
 
@@ -581,9 +544,9 @@ sendNpsSurvey('5511999999999');`,
                   code: `import requests
 
 def send_product_menu(phone):
-    url = 'https://api.hook7.com.br/message/sendList/sua-instancia'
+    url = 'https://api.hook7.com.br/send/list'
     headers = {
-        'apikey': 'sua-apikey-aqui',
+        'apikey': 'TOKEN_DA_INSTANCIA',
         'Content-Type': 'application/json'
     }
     data = {
@@ -626,17 +589,17 @@ send_product_menu('5511999999999')`,
                   code: `import requests
 
 def send_delivery_location(phone, order_id):
-    url = 'https://api.hook7.com.br/message/sendLocation/sua-instancia'
+    url = 'https://api.hook7.com.br/send/location'
     headers = {
-        'apikey': 'sua-apikey-aqui',
+        'apikey': 'TOKEN_DA_INSTANCIA',
         'Content-Type': 'application/json'
     }
     data = {
         'number': phone,
-        'name': f'Entrega Pedido #{order_id}',
-        'address': 'Rua das Flores, 123 - Centro, São Paulo - SP',
         'latitude': -23.5505,
-        'longitude': -46.6333
+        'longitude': -46.6333,
+        'name': f'Entrega Pedido #{order_id}',
+        'address': 'Rua das Flores, 123 - Centro, São Paulo - SP'
     }
 
     response = requests.post(url, json=data, headers=headers)
@@ -656,11 +619,11 @@ send_delivery_location('5511999999999', '12345')`,
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://api.hook7.com.br/message/sendText/sua-instancia',
+  CURLOPT_URL => 'https://api.hook7.com.br/send/text',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_POST => true,
   CURLOPT_HTTPHEADER => array(
-    'apikey: sua-apikey-aqui',
+    'apikey: TOKEN_DA_INSTANCIA',
     'Content-Type: application/json'
   ),
   CURLOPT_POSTFIELDS => json_encode(array(
@@ -698,7 +661,7 @@ if ($httpCode == 200) {
           </TabsContent>
         </Tabs>
 
-        {/* How to get API key */}
+        {/* How to get token */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -709,30 +672,30 @@ if ($httpCode == 200) {
             <CardHeader className="pb-2 pt-4 px-5">
               <CardTitle id="get-token-heading" className="flex items-center gap-2 text-sm text-foreground/80">
                 <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
-                Como obter sua API Key da API WhatsApp
+                Como obter o Token da Instância
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-4">
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Opção 1 — Via Dashboard (rápido)</p>
+                <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Opção 1 — Via Detalhes da Sessão (recomendado)</p>
                 <ol className="space-y-1.5 list-decimal list-inside text-xs text-foreground/40 ml-1">
-                  <li>Acesse o <strong className="text-foreground/60">Dashboard</strong></li>
-                  <li>Clique em <strong className="text-foreground/60">"Ferramentas"</strong></li>
-                  <li>Clique em <strong className="text-foreground/60">"Ver Token da API"</strong></li>
-                  <li>Selecione a instância desejada no dropdown</li>
-                  <li>Copie a apikey</li>
+                  <li>Vá para <strong className="text-foreground/60">Sessões → Minhas Sessões</strong></li>
+                  <li>Selecione a instância desejada</li>
+                  <li>Clique em <strong className="text-foreground/60">"Ver Detalhes"</strong></li>
+                  <li>Na seção <strong className="text-foreground/60">"Credenciais da API"</strong>, copie o <strong className="text-foreground/60">Token da Instância</strong></li>
                 </ol>
               </div>
 
               <Separator className="border-foreground/5" />
 
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Opção 2 — Via Detalhes da Sessão</p>
+                <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider">Opção 2 — Via Dashboard (Ferramentas)</p>
                 <ol className="space-y-1.5 list-decimal list-inside text-xs text-foreground/40 ml-1">
-                  <li>Vá para <strong className="text-foreground/60">Sessões → Minhas Sessões</strong></li>
-                  <li>Selecione a instância desejada</li>
-                  <li>Clique em <strong className="text-foreground/60">"Ver Detalhes"</strong></li>
-                  <li>Na seção <strong className="text-foreground/60">"Credenciais da API"</strong>, copie a <strong className="text-foreground/60">API Key</strong></li>
+                  <li>Acesse o <strong className="text-foreground/60">Dashboard</strong></li>
+                  <li>Clique em <strong className="text-foreground/60">"Ferramentas"</strong></li>
+                  <li>Clique em <strong className="text-foreground/60">"Ver Token da API"</strong></li>
+                  <li>Selecione a instância desejada no dropdown</li>
+                  <li>Copie o token</li>
                 </ol>
               </div>
 
@@ -740,16 +703,16 @@ if ($httpCode == 200) {
                 <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
                   <p className="font-semibold mb-0.5">Segurança</p>
-                  <p className="text-xs text-red-300/70">Nunca compartilhe sua apikey publicamente! Ela dá acesso total à sua instância WhatsApp.</p>
+                  <p className="text-xs text-red-300/70">Nunca compartilhe seu token publicamente! Ele dá acesso total à sua instância WhatsApp.</p>
                 </div>
               </div>
 
               <div className="rounded-lg bg-muted/30 border border-foreground/5 px-4 py-3">
                 <p className="text-[11px] text-foreground/35 mb-1.5">
-                  Dica: Use o header no formato:
+                  Use o token no header de todas as requisições:
                 </p>
                 <code className="block rounded bg-black/30 px-3 py-1.5 text-xs text-primary/70 font-mono">
-                  apikey: sua-apikey-aqui
+                  apikey: TOKEN_DA_INSTANCIA
                 </code>
               </div>
             </CardContent>

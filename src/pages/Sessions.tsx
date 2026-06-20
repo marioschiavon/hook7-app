@@ -205,7 +205,7 @@ const Sessions = () => {
     setReconfiguringSession(session.id);
     try {
       toast.info(t("sessions.reconfiguringSession"));
-      const { data, error } = await supabase.functions.invoke("generate-whatsapp-token", {
+      const { data, error } = await supabase.functions.invoke("hook7-generate-session", {
         body: { session_name: session.name },
       });
       if (error) throw error;
@@ -249,7 +249,7 @@ const Sessions = () => {
         setStartingSession(true);
         try {
           const { data: tokenData, error: tokenError } = await supabase.functions.invoke(
-            "generate-whatsapp-token",
+            "hook7-generate-session",
             { body: { session_name: session.name } }
           );
           if (tokenError || !tokenData.success)
@@ -344,7 +344,7 @@ const Sessions = () => {
       }
       setCreatingSession(true);
       try {
-        const { data, error } = await supabase.functions.invoke("generate-whatsapp-token", {
+        const { data, error } = await supabase.functions.invoke("hook7-generate-session", {
           body: { session_name: sessionName },
         });
         if (error) throw error;

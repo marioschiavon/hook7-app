@@ -75,7 +75,11 @@ serve(async (req) => {
     console.log(`Session found: ${session.name} (${session.id})`);
 
     // 4.2 Track message limits if event is MESSAGES_UPSERT
-    if (eventType === 'MESSAGES_UPSERT' && payload.data) {
+    // Support both Evolution API (MESSAGES_UPSERT) and Evolution Go (MESSAGE) event names
+    const isMessageEvent = eventType === 'MESSAGES_UPSERT' || eventType === 'MESSAGE' || eventType === 'SEND_MESSAGE';
+    const isConnectionEvent = eventType === 'CONNECTION_UPDATE' || eventType === 'CONNECTION';
+
+    if (isMessageEvent && payload.data) {
       // Data might be an array or single object depending on evolution version
       const messages = Array.isArray(payload.data) ? payload.data : [payload.data];
       
@@ -120,10 +124,10 @@ serve(async (req) => {
           if (currentSession.messages_sent_this_month >= currentSession.message_limit) {
             console.log(`Session ${session.name} reached message limit (${currentSession.messages_sent_this_month}/${currentSession.message_limit}). Blocking...`);
             
-            // Block the session by logging out from Evolution API
+            // Block the session by logging out from the WhatsApp API
             try {
-              const EVOLUTION_API_URL = Deno.env.get('EVOLUTION_API_URL') || 'https://api.hook7.com.br';
-              await fetch(`${EVOLUTION_API_URL}/instance/logout`, {
+              const API_URL = Deno.env.get('HOOK7_API_URL') || Deno.env.get('EVOLUTION_API_URL') || 'https://api.hook7.com.br';
+              await fetch(`${API_URL}/instance/logout`, {
                 method: 'DELETE',
                 headers: { 'apikey': apiKey }
               });
@@ -142,8 +146,8 @@ serve(async (req) => {
       }
     }
 
-    // 4.5 Sync connection status to database on CONNECTION_UPDATE events
-    if (eventType === 'CONNECTION_UPDATE' && payload.data) {
+    // 4.5 Sync connection status to database on CONNECTION_UPDATE / CONNECTION events
+    if (isConnectionEvent && payload.data) {
       const connectionState = payload.data?.state || payload.data?.instance?.state;
       
       if (connectionState === 'open') {
