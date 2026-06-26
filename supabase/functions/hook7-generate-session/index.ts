@@ -64,10 +64,11 @@ serve(async (req) => {
     let instanceApiKey: string | null = null;
     let instanceUuid: string | null = null;
 
+    const newToken = crypto.randomUUID();
     const createResponse = await fetch(`${hook7ApiUrl}/instance/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': hook7ApiKey },
-      body: JSON.stringify({ name: session_name })
+      body: JSON.stringify({ name: session_name, token: newToken })
     });
 
     let createDebug = '';
@@ -75,7 +76,7 @@ serve(async (req) => {
       const createData = await createResponse.json().catch(() => null);
       console.log('[hook7] Create response:', JSON.stringify(createData));
       // Evolution Go: { data: { id, name, token, ... }, message: "success" }
-      instanceApiKey = createData?.data?.token ?? null;
+      instanceApiKey = createData?.data?.token ?? newToken;
       instanceUuid   = createData?.data?.id ?? null;
       createDebug = `create: ${createResponse.status} token=${!!instanceApiKey}`;
     } else {
