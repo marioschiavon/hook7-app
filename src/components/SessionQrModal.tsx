@@ -293,18 +293,19 @@ const SessionQrModal = ({
                     {closingSession ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Fechando...
+                        Desconectando...
                       </>
                     ) : (
-                      'Fechar Sessão'
+                      'Desconectar'
                     )}
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setConfirmAction('delete')}
-                    disabled={loggingOut}
+                    disabled={loggingOut || isConnected}
+                    title={isConnected ? 'Desconecte a sessão antes de excluí-la' : undefined}
                     className="gap-2 w-1/2 text-destructive border-destructive hover:bg-destructive hover:text-white"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -318,6 +319,11 @@ const SessionQrModal = ({
                     )}
                   </Button>
                 </div>
+                {isConnected && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Desconecte a sessão antes de excluí-la.
+                  </p>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -329,12 +335,12 @@ const SessionQrModal = ({
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-destructive" />
-                {confirmAction === 'delete' ? 'Excluir Sessão?' : 'Fechar Sessão?'}
+                {confirmAction === 'delete' ? 'Excluir Sessão?' : 'Desconectar Sessão?'}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                {confirmAction === 'delete' 
+                {confirmAction === 'delete'
                   ? 'Esta ação é permanente e não pode ser desfeita. A sessão será completamente removida e você precisará criar uma nova sessão para reconectar.'
-                  : 'Isso irá desconectar seu WhatsApp desta sessão. Você precisará escanear o QR Code novamente para reconectar.'}
+                  : 'Isso irá desconectar seu WhatsApp desta sessão. Ao reconectar, normalmente não será necessário escanear o QR Code novamente.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

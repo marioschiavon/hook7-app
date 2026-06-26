@@ -410,7 +410,7 @@ const Sessions = () => {
     if (!session.api_session || !session.api_token) { toast.error(t("sessions.sessionNotFound")); return; }
     setClosingSession(true);
     try {
-      const success = await hook7Api.logoutInstance(session.api_token);
+      const success = await hook7Api.disconnectInstance(session.api_token);
       if (success) {
         setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: false, message: "offline" } }));
         toast.success(t("sessions.sessionDisconnected"));

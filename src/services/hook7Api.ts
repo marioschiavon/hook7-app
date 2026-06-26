@@ -126,7 +126,31 @@ export const fetchQRCode = async (
 };
 
 /**
- * Desconectar/logout de uma instância
+ * Desconectar a instância (mantém o vínculo do WhatsApp; reconectar não exige novo QR Code)
+ */
+export const disconnectInstance = async (
+  apiKey: string
+): Promise<boolean> => {
+  try {
+    const response = await fetch(
+      `${HOOK7_GO_URL}/instance/disconnect`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': apiKey
+        }
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.error('Erro ao desconectar instância:', error);
+    return false;
+  }
+};
+
+/**
+ * Logout completo da instância (desvincula o WhatsApp; reconectar exige novo QR Code)
  */
 export const logoutInstance = async (
   apiKey: string
