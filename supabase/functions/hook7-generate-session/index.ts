@@ -70,15 +70,18 @@ serve(async (req) => {
       body: JSON.stringify({ name: session_name })
     });
 
+    let createDebug = '';
     if (createResponse.ok) {
       const createData = await createResponse.json().catch(() => null);
       console.log('[hook7] Create response:', JSON.stringify(createData));
       // Evolution Go: { data: { id, name, token, ... }, message: "success" }
       instanceApiKey = createData?.data?.token ?? null;
       instanceUuid   = createData?.data?.id ?? null;
+      createDebug = `create: ${createResponse.status} token=${!!instanceApiKey}`;
     } else {
       const errorText = await createResponse.text();
       console.warn(`[hook7] Create returned ${createResponse.status}: ${errorText}`);
+      createDebug = `create: ${createResponse.status} ${errorText}`;
       if (createResponse.status !== 400 && createResponse.status !== 409) {
         throw new Error(`Hook7 API error: ${createResponse.status} - ${errorText}`);
       }
@@ -86,6 +89,7 @@ serve(async (req) => {
     }
 
     // ── 2. Fetch existing instance if token not yet obtained ─────────────────
+    let listDebug = '';
     if (!instanceApiKey) {
       console.log('[hook7] Fetching via /instance/all...');
       const allResponse = await fetch(`${hook7ApiUrl}/instance/all`, {
@@ -101,10 +105,16 @@ serve(async (req) => {
           instanceUuid   = existing.id ?? null;
           console.log('[hook7] Existing instance token found:', !!instanceApiKey);
         }
+        listDebug = `list: ${allResponse.status} count=${instances.length} found=${!!existing}`;
+      } else {
+        const listErrorText = await allResponse.text();
+        listDebug = `list: ${allResponse.status} ${listErrorText}`;
       }
     }
 
-    if (!instanceApiKey) throw new Error('Could not obtain instance API key from Hook7 API');
+    if (!instanceApiKey) {
+      throw new Error(`Could not obtain instance API key from Hook7 API (${createDebug}; ${listDebug})`);
+    }
 
     // ── 3. Configure webhook via /instance/connect ───────────────────────────
     if (instanceUuid) {
@@ -114,8 +124,7 @@ serve(async (req) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': hook7ApiKey,
-            'instanceId': instanceUuid
+            'apikey': hook7ApiKey
           },
           body: JSON.stringify({
             webhookUrl: supabaseWebhookUrl,
