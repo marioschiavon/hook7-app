@@ -46,9 +46,11 @@ export const checkConnection = async (
     }
 
     const data: any = await response.json();
-    const connected = data?.data?.Connected === true;
+    // "Connected" só indica que o processo da instância está ativo no Evolution Go;
+    // "LoggedIn" é que reflete se o WhatsApp está de fato autenticado/vinculado.
+    const loggedIn = data?.data?.LoggedIn === true;
 
-    if (connected) {
+    if (loggedIn) {
       return { status: true, message: 'CONNECTED' };
     } else {
       return { status: false, message: 'Disconnected' };
