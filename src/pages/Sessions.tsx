@@ -273,39 +273,20 @@ const Sessions = () => {
 
       try {
         toast.info(t("sessions.connectingApi"));
-        const qrData = await hook7Api.connectInstance(session.api_token);
+        await hook7Api.connectInstance(session.api_token);
 
-        if (qrData) {
-          if (qrData.pairingCode) {
-            await supabase.from("sessions").update({ pairing_code: qrData.pairingCode } as any).eq("id", session.id);
-          }
-          if (qrData.base64) {
-            setSessionsStatus((prev) => ({
-              ...prev,
-              [session.id]: { status: false, message: "qrcode", qrCode: qrData.base64, pairingCode: qrData.pairingCode },
-            }));
-            setQrCodeKey(Date.now().toString());
-            setGeneratingQrCode(false);
-            toast.success(t("sessions.qrGenerated"));
-            await supabase.from("sessions").update({ updated_at: new Date().toISOString() }).eq("id", session.id);
-          } else {
-            toast.info("Aguardando QR Code...");
-            await new Promise((r) => setTimeout(r, 3000));
-            const retryQr = await hook7Api.fetchQRCode(session.api_token);
-            if (retryQr?.base64) {
-              setSessionsStatus((prev) => ({
-                ...prev,
-                [session.id]: { status: false, message: "qrcode", qrCode: retryQr.base64, pairingCode: retryQr.pairingCode },
-              }));
-              setQrCodeKey(Date.now().toString());
-              setGeneratingQrCode(false);
-              toast.success(t("sessions.qrGenerated"));
-            } else {
-              throw new Error(t("sessions.qrNotAvailable"));
-            }
-          }
+        const qrData = await hook7Api.fetchQRCode(session.api_token);
+        if (qrData?.qrCode) {
+          setSessionsStatus((prev) => ({
+            ...prev,
+            [session.id]: { status: false, message: "qrcode", qrCode: qrData.qrCode },
+          }));
+          setQrCodeKey(Date.now().toString());
+          setGeneratingQrCode(false);
+          toast.success(t("sessions.qrGenerated"));
+          await supabase.from("sessions").update({ updated_at: new Date().toISOString() }).eq("id", session.id);
         } else {
-          throw new Error(t("sessions.hook7ConnectionError"));
+          throw new Error(t("sessions.qrNotAvailable"));
         }
       } catch (error: any) {
         toast.error(error.message || t("sessions.startSessionError"));
@@ -405,10 +386,10 @@ const Sessions = () => {
     try {
       toast.info(t("sessions.fetchingQr"));
       const qrData = await hook7Api.fetchQRCode(session.api_token);
-      if (qrData?.base64) {
+      if (qrData?.qrCode) {
         setSessionsStatus((prev) => ({
           ...prev,
-          [session.id]: { status: false, message: "qrcode", qrCode: qrData.base64, pairingCode: qrData.pairingCode },
+          [session.id]: { status: false, message: "qrcode", qrCode: qrData.qrCode },
         }));
         setQrCodeKey(Date.now().toString());
         setGeneratingQrCode(false);
@@ -508,10 +489,10 @@ const Sessions = () => {
         if (!selectedSession.api_session || !selectedSession.api_token) return;
         try {
           const qrData = await hook7Api.fetchQRCode(selectedSession.api_token);
-          if (qrData?.base64) {
+          if (qrData?.qrCode) {
             setSessionsStatus((prev) => ({
               ...prev,
-              [selectedSession.id]: { status: false, message: "qrcode", qrCode: qrData.base64, pairingCode: qrData.pairingCode },
+              [selectedSession.id]: { status: false, message: "qrcode", qrCode: qrData.qrCode },
             }));
             setGeneratingQrCode(false);
           }

@@ -13,9 +13,8 @@ export interface Hook7ConnectionState {
 }
 
 export interface Hook7QRCode {
-  base64?: string;
-  pairingCode?: string;
-  code?: string;
+  qrCode?: string;
+  rawCode?: string;
 }
 
 // Normalizar resposta de conexão para manter compatibilidade
@@ -47,12 +46,10 @@ export const checkConnection = async (
     }
 
     const data: any = await response.json();
-    const state = data?.instance?.state || data?.state;
-    
-    if (state === 'open') {
+    const connected = data?.data?.Connected === true;
+
+    if (connected) {
       return { status: true, message: 'CONNECTED' };
-    } else if (state === 'connecting') {
-      return { status: false, message: 'QRCODE' };
     } else {
       return { status: false, message: 'Disconnected' };
     }
@@ -88,8 +85,9 @@ export const connectInstance = async (
       throw new Error(`Erro ao conectar: ${response.status}`);
     }
 
-    const data: Hook7QRCode = await response.json();
-    return data;
+    // /instance/connect só registra o webhook; não retorna QR Code.
+    await response.json().catch(() => null);
+    return {};
   } catch (error) {
     console.error('Erro ao conectar instância:', error);
     throw error;
@@ -116,8 +114,11 @@ export const fetchQRCode = async (
       return null;
     }
 
-    const data: Hook7QRCode = await response.json();
-    return data;
+    const data: any = await response.json();
+    return {
+      qrCode: data?.data?.Qrcode ?? undefined,
+      rawCode: data?.data?.Code ?? undefined,
+    };
   } catch (error) {
     console.error('Erro ao buscar QR Code:', error);
     return null;
