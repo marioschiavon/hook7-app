@@ -7,13 +7,13 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 
-const svgPath = join(root, 'public', 'favicon.svg');
-const svgBuffer = readFileSync(svgPath);
+const sourcePath = join(root, 'public', 'logo-512.png');
+const sourceBuffer = readFileSync(sourcePath);
 
 const sizes = [16, 32, 48];
 const pngBuffers = await Promise.all(
   sizes.map((size) =>
-    sharp(svgBuffer)
+    sharp(sourceBuffer)
       .resize(size, size)
       .png()
       .toBuffer()
