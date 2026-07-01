@@ -750,7 +750,7 @@ serve(async (req) => {
         if (notificationPhone) {
           try {
             const hook7Token = Deno.env.get('HOOK7_WHATSAPP_TOKEN');
-            const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://api.hook7.com.br';
+            const hook7ApiUrl = Deno.env.get('HOOK7_API_URL') || 'https://api.hook7.com.br';
 
             const whatsappMessage = 
               `⚠️ *Problema com seu Pagamento - Hook7*\n\n` +
@@ -765,7 +765,7 @@ serve(async (req) => {
               `3. Clique em "Atualizar Pagamento"\n\n` +
               `⏰ Regularize para evitar a desconexão da sua sessão.`;
 
-            await fetch(`${evolutionApiUrl}/message/sendText/Hook7`, {
+            await fetch(`${hook7ApiUrl}/send/text`, {
               method: 'POST',
               headers: {
                 'apikey': hook7Token!,

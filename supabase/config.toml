@@ -1,9 +1,5 @@
 project_id = "kfsvpbujmetlendgwnrs"
 
-[functions.generate-whatsapp-token]
-verify_jwt = true
-
-
 [functions.send-announcement-email]
 verify_jwt = true
 
@@ -27,6 +23,3 @@ verify_jwt = false
 
 [functions.whatsapp-webhook]
 verify_jwt = false
-
-[functions.update-session-webhook]
-verify_jwt = true

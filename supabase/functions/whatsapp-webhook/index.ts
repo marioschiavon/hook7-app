@@ -126,7 +126,7 @@ serve(async (req) => {
             
             // Block the session by logging out from the WhatsApp API
             try {
-              const API_URL = Deno.env.get('HOOK7_API_URL') || Deno.env.get('EVOLUTION_API_URL') || 'https://api.hook7.com.br';
+              const API_URL = Deno.env.get('HOOK7_API_URL') || 'https://api.hook7.com.br';
               await fetch(`${API_URL}/instance/logout`, {
                 method: 'DELETE',
                 headers: { 'apikey': apiKey }
