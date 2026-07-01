@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +86,9 @@ const Sessions = () => {
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  // Sessions manually disconnected by the user — polling must not override this with "connected"
+  // until the user explicitly starts a new connection.
+  const manuallyDisconnected = useRef<Set<string>>(new Set());
 
   // ─── Data fetching ──────────────────────────────────────────────────────────
 
@@ -188,6 +191,12 @@ const Sessions = () => {
         const result = await hook7Api.checkConnection(apiToken);
         setSessionsStatus((currentStatus) => {
           const current = currentStatus[sessionId];
+          // If the user manually disconnected this session, don't let the API poll
+          // flip it back to "connected" — Evolution Go may auto-reconnect the process
+          // while the user intends it to stay offline.
+          if (result.status === true && manuallyDisconnected.current.has(sessionId)) {
+            return currentStatus;
+          }
           if (result.status === true) return { ...currentStatus, [sessionId]: result };
           if (!current?.qrCode) return { ...currentStatus, [sessionId]: result };
           return currentStatus;
@@ -270,6 +279,7 @@ const Sessions = () => {
       setGeneratingQrCode(true);
       setSelectedSession(session);
       setShowSessionModal(true);
+      manuallyDisconnected.current.delete(session.id);
 
       try {
         toast.info(t("sessions.connectingApi"));
@@ -410,8 +420,9 @@ const Sessions = () => {
     if (!session.api_session || !session.api_token) { toast.error(t("sessions.sessionNotFound")); return; }
     setClosingSession(true);
     try {
-      const success = await hook7Api.disconnectInstance(session.api_token);
+      const success = await hook7Api.logoutInstance(session.api_token);
       if (success) {
+        manuallyDisconnected.current.add(session.id);
         setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: false, message: "offline" } }));
         toast.success(t("sessions.sessionDisconnected"));
         await fetchSessions();
