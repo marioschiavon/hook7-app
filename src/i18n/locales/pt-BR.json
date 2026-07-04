@@ -505,8 +505,8 @@
       "description": "Nome da sessão WhatsApp"
     },
     "step3": {
-      "title": "Pagamento",
-      "description": "Finalizar assinatura"
+      "title": "Teste grátis",
+      "description": "10 mensagens ou 48h, sem cartão"
     },
     "organizationStep": {
       "title": "Como se chama sua empresa?",
@@ -556,11 +556,11 @@
       "invalidSessionName": "Use apenas letras, números, - e _",
       "sessionNameLength": "O nome deve ter entre 3 e 50 caracteres",
       "incompleteData": "Dados incompletos",
-      "checkoutError": "Erro ao processar pagamento"
+      "checkoutError": "Erro ao iniciar teste grátis"
     },
     "success": {
       "orgCreated": "Organização criada!",
-      "redirectingPayment": "Redirecionando para pagamento..."
+      "trialStarted": "Teste grátis iniciado!"
     }
   }
 }

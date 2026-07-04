@@ -21,12 +21,22 @@ import {
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  isTrialActive,
+  isTrialExpired,
+  trialHoursRemaining,
+  trialMessagesRemaining,
+} from "@/lib/trial";
 
 interface SessionWithSubscription {
   id: string;
   name: string;
   created_at: string;
   requires_subscription: boolean;
+  trial_started_at?: string | null;
+  trial_blocked_at?: string | null;
+  message_limit?: number | null;
+  messages_sent_this_month?: number | null;
   subscription?: {
     id: string;
     status: string;
@@ -96,6 +106,10 @@ const Subscriptions = () => {
             name: session.name || "",
             created_at: session.created_at,
             requires_subscription: (session as any).requires_subscription ?? true,
+            trial_started_at: (session as any).trial_started_at,
+            trial_blocked_at: (session as any).trial_blocked_at,
+            message_limit: (session as any).message_limit,
+            messages_sent_this_month: (session as any).messages_sent_this_month,
             subscription: subData
               ? {
                   id: (subData as any).id,
@@ -135,6 +149,8 @@ const Subscriptions = () => {
   // Derive session card top border color based on subscription status
   const cardBorder = (s: SessionWithSubscription) => {
     if (!s.requires_subscription) return "border-t-green-500";
+    if (isTrialActive(s)) return "border-t-cyan-500";
+    if (isTrialExpired(s)) return "border-t-yellow-500";
     if (!s.subscription) return "border-t-yellow-500";
     if (s.subscription.status === "active" && s.subscription.cancel_at_period_end) return "border-t-orange-500";
     switch (s.subscription.status) {
@@ -150,6 +166,14 @@ const Subscriptions = () => {
   const statusBadge = (s: SessionWithSubscription) => {
     if (!s.requires_subscription)
       return <Badge variant="outline" className="border-green-500/30 text-green-400 text-[10px] h-5 px-1.5">Liberada</Badge>;
+    if (isTrialActive(s))
+      return (
+        <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-[10px] h-5 px-1.5">
+          Em teste · {trialMessagesRemaining(s)} msg / {trialHoursRemaining(s)}h
+        </Badge>
+      );
+    if (isTrialExpired(s))
+      return <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-[10px] h-5 px-1.5">Teste expirado</Badge>;
     if (!s.subscription)
       return <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-[10px] h-5 px-1.5">Aguardando pagamento</Badge>;
     if (s.subscription.status === "active" && s.subscription.cancel_at_period_end)
@@ -167,7 +191,8 @@ const Subscriptions = () => {
   const activeCount = sessions.filter(
     (s) => (s.subscription?.status === "active" && !s.subscription?.cancel_at_period_end) || !s.requires_subscription
   ).length;
-  const pendingCount = sessions.filter((s) => s.requires_subscription && !s.subscription).length;
+  const trialCount = sessions.filter((s) => isTrialActive(s)).length;
+  const pendingCount = sessions.filter((s) => s.requires_subscription && !s.subscription && !isTrialActive(s)).length;
   const revenue = sessions.filter((s) => s.subscription?.status === "active").length * 69.90;
 
   if (loading) {
@@ -193,6 +218,7 @@ const Subscriptions = () => {
         {[
           { label: "Total", value: sessions.length, dot: "bg-foreground/30" },
           { label: "Ativas", value: activeCount, dot: "bg-green-500" },
+          { label: "Em teste", value: trialCount, dot: "bg-cyan-500" },
           { label: "Pendentes", value: pendingCount, dot: "bg-yellow-500" },
           {
             label: "Custo mensal",

@@ -93,7 +93,7 @@ export function OnboardingWizard({ initialStep = 0, existingOrgId = null }: Onbo
     setCurrentStep(2);
   };
 
-  const handlePayment = async () => {
+  const handleStartTrial = async () => {
     if (!orgId || !sessionName) {
       toast.error(t('onboarding.errors.incompleteData'));
       return;
@@ -102,14 +102,16 @@ export function OnboardingWizard({ initialStep = 0, existingOrgId = null }: Onbo
     setIsLoading(true);
 
     try {
-      // Criar sessão pendente
-      const { data: newSession, error: sessionError } = await supabase
+      // Criar sessão em modo trial: liberada de imediato, sem passar pelo Stripe
+      const { error: sessionError } = await supabase
         .from("sessions")
         .insert({
           name: sessionName.trim(),
           organization_id: orgId,
           requires_subscription: true,
-          status: "pending_payment",
+          status: "trial",
+          message_limit: 10,
+          trial_started_at: new Date().toISOString(),
           notification_phone: notificationPhone || null
         })
         .select()
@@ -117,22 +119,10 @@ export function OnboardingWizard({ initialStep = 0, existingOrgId = null }: Onbo
 
       if (sessionError) throw sessionError;
 
-      toast.info(t('onboarding.success.redirectingPayment'));
-
-      // Criar checkout Stripe
-      const { data, error } = await supabase.functions.invoke("create-stripe-checkout", {
-        body: { session_id: newSession.id }
-      });
-
-      if (error) throw error;
-
-      if (data.success && data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error(data.error || "Erro ao criar sessão de pagamento");
-      }
+      toast.success(t('onboarding.success.trialStarted'));
+      navigate("/dashboard");
     } catch (error: any) {
-      console.error("Erro no checkout:", error);
+      console.error("Erro ao iniciar teste grátis:", error);
       toast.error(error.message || t('onboarding.errors.checkoutError'));
       setIsLoading(false);
     }
@@ -247,7 +237,7 @@ export function OnboardingWizard({ initialStep = 0, existingOrgId = null }: Onbo
               <PaymentStep
                 orgName={orgName || "Sua organização"}
                 sessionName={sessionName}
-                onConfirm={handlePayment}
+                onConfirm={handleStartTrial}
                 onBack={handleBack}
                 isLoading={isLoading}
               />

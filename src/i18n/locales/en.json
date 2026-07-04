@@ -505,8 +505,8 @@
       "description": "WhatsApp session name"
     },
     "step3": {
-      "title": "Payment",
-      "description": "Complete subscription"
+      "title": "Free trial",
+      "description": "10 messages or 48h, no card"
     },
     "organizationStep": {
       "title": "What's your company name?",
@@ -556,11 +556,11 @@
       "invalidSessionName": "Use only letters, numbers, - and _",
       "sessionNameLength": "Name must be between 3 and 50 characters",
       "incompleteData": "Incomplete data",
-      "checkoutError": "Error processing payment"
+      "checkoutError": "Error starting free trial"
     },
     "success": {
       "orgCreated": "Organization created!",
-      "redirectingPayment": "Redirecting to payment..."
+      "trialStarted": "Free trial started!"
     }
   }
 }

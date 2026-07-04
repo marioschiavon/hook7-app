@@ -142,10 +142,11 @@ serve(async (req) => {
           });
         }
 
-        // Atualizar session para ativa
+        // Atualizar session para ativa e liberar o limite de mensagens do trial
         await supabaseAdmin.from('sessions').update({
           status: 'connected',
           requires_subscription: false,
+          message_limit: -1,
         }).eq('id', finalSessionId);
 
         console.log('✅ Assinatura ativada para sessão:', finalSessionId);

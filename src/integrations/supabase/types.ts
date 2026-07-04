@@ -444,6 +444,10 @@ export type Database = {
           webhook_enabled: boolean | null
           webhook_events: string[] | null
           webhook_url: string | null
+          message_limit: number | null
+          messages_sent_this_month: number | null
+          trial_started_at: string | null
+          trial_blocked_at: string | null
         }
         Insert: {
           api_message_limit?: number | null
@@ -463,6 +467,10 @@ export type Database = {
           webhook_enabled?: boolean | null
           webhook_events?: string[] | null
           webhook_url?: string | null
+          message_limit?: number | null
+          messages_sent_this_month?: number | null
+          trial_started_at?: string | null
+          trial_blocked_at?: string | null
         }
         Update: {
           api_message_limit?: number | null
@@ -482,6 +490,10 @@ export type Database = {
           webhook_enabled?: boolean | null
           webhook_events?: string[] | null
           webhook_url?: string | null
+          message_limit?: number | null
+          messages_sent_this_month?: number | null
+          trial_started_at?: string | null
+          trial_blocked_at?: string | null
         }
         Relationships: [
           {

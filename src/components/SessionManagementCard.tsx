@@ -10,7 +10,13 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
-import { QrCode, Play, Trash2, MoreVertical, Wifi, WifiOff, MessageSquare, PlugZap } from "lucide-react";
+import { QrCode, Play, Trash2, MoreVertical, Wifi, WifiOff, MessageSquare, PlugZap, Clock } from "lucide-react";
+import {
+  isTrialActive,
+  isTrialExpired,
+  trialHoursRemaining,
+  trialMessagesRemaining,
+} from "@/lib/trial";
 
 interface SessionData {
   id: string;
@@ -24,6 +30,10 @@ interface SessionData {
   created_at?: string;
   updated_at?: string;
   requires_subscription?: boolean;
+  trial_started_at?: string | null;
+  trial_blocked_at?: string | null;
+  message_limit?: number | null;
+  messages_sent_this_month?: number | null;
 }
 
 interface SessionStatus {
@@ -92,7 +102,9 @@ const SessionManagementCard = ({
   const Icon = cfg.icon;
 
   const isPendingPayment = session.status === "pending_payment";
-  const needsSubscription = session.requires_subscription && !hasActiveSubscription;
+  const trialActive = isTrialActive(session);
+  const trialExpired = isTrialExpired(session);
+  const needsSubscription = session.requires_subscription && !hasActiveSubscription && !trialActive;
 
   return (
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} className="h-full">
@@ -147,6 +159,15 @@ const SessionManagementCard = ({
             {isPendingPayment && (
               <p className="text-yellow-400/70">Aguardando pagamento</p>
             )}
+            {trialActive && (
+              <p className="text-cyan-400/70 flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Teste: {trialMessagesRemaining(session)} msg e {trialHoursRemaining(session)}h restantes
+              </p>
+            )}
+            {trialExpired && (
+              <p className="text-yellow-400/70">Teste grátis encerrado</p>
+            )}
             {session.updated_at && (
               <p>
                 Atualizado{" "}
@@ -192,7 +213,7 @@ const SessionManagementCard = ({
                 size="sm"
                 className="flex-1 h-8 gap-1.5 text-xs"
               >
-                Assinar para ativar
+                {trialExpired ? "Assinar para continuar" : "Assinar para ativar"}
               </Button>
             )}
 

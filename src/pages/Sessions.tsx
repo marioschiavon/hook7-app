@@ -30,6 +30,7 @@ import { Plus, Search, Wifi, QrCode, WifiOff, MessageSquare } from "lucide-react
 import { motion } from "framer-motion";
 import * as hook7Api from "@/services/hook7Api";
 import { isValidHook7Token } from "@/services/hook7Api";
+import { isTrialActive } from "@/lib/trial";
 
 interface SessionData {
   id: string;
@@ -47,6 +48,10 @@ interface SessionData {
   webhook_url?: string | null;
   webhook_enabled?: boolean;
   webhook_events?: string[];
+  trial_started_at?: string | null;
+  trial_blocked_at?: string | null;
+  message_limit?: number | null;
+  messages_sent_this_month?: number | null;
 }
 
 interface SessionStatus {
@@ -152,6 +157,10 @@ const Sessions = () => {
           webhook_url: s.webhook_url,
           webhook_enabled: s.webhook_enabled,
           webhook_events: s.webhook_events,
+          trial_started_at: s.trial_started_at,
+          trial_blocked_at: s.trial_blocked_at,
+          message_limit: s.message_limit,
+          messages_sent_this_month: s.messages_sent_this_month,
         }));
 
         setSessions(typed);
@@ -239,7 +248,7 @@ const Sessions = () => {
         return;
       }
 
-      if (session.requires_subscription) {
+      if (session.requires_subscription && !isTrialActive(session)) {
         const { data: subscription } = await supabase
           .from("subscriptions" as any)
           .select("status")

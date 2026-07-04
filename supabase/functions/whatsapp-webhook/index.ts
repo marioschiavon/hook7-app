@@ -116,14 +116,14 @@ serve(async (req) => {
         // Check the current count to see if we need to block the session
         const { data: currentSession } = await supabaseAdmin
           .from('sessions')
-          .select('message_limit, messages_sent_this_month')
+          .select('trial_started_at, requires_subscription, message_limit, messages_sent_this_month')
           .eq('id', session.id)
           .single();
 
         if (currentSession && currentSession.message_limit !== -1) {
           if (currentSession.messages_sent_this_month >= currentSession.message_limit) {
             console.log(`Session ${session.name} reached message limit (${currentSession.messages_sent_this_month}/${currentSession.message_limit}). Blocking...`);
-            
+
             // Block the session by logging out from the WhatsApp API
             try {
               const API_URL = Deno.env.get('HOOK7_API_URL') || 'https://api.hook7.com.br';
@@ -131,12 +131,15 @@ serve(async (req) => {
                 method: 'DELETE',
                 headers: { 'apikey': apiKey }
               });
-              
+
+              // Mark trial sessions as blocked so the expiration cron doesn't retry them,
+              // and the frontend can compute trial state without relying on connection status.
+              const isTrialSession = !!currentSession.trial_started_at && currentSession.requires_subscription;
               await supabaseAdmin
                 .from('sessions')
-                .update({ status: 'blocked_limit' })
+                .update(isTrialSession ? { status: 'blocked_limit', trial_blocked_at: new Date().toISOString() } : { status: 'blocked_limit' })
                 .eq('id', session.id);
-                
+
               console.log('Session logged out successfully due to limit.');
             } catch (err) {
               console.error('Error logging out instance for limit breach:', err);
