@@ -294,7 +294,16 @@ const Sessions = () => {
         toast.info(t("sessions.connectingApi"));
         await hook7Api.connectInstance(session.api_token);
 
-        const qrData = await hook7Api.fetchQRCode(session.api_token);
+        // O backend leva alguns segundos para gerar o QR Code após conectar a instância,
+        // então tentamos algumas vezes com espera antes de considerar indisponível.
+        let qrData = await hook7Api.fetchQRCode(session.api_token);
+        let attempts = 0;
+        while (!qrData?.qrCode && attempts < 5) {
+          await new Promise((r) => setTimeout(r, 1500));
+          qrData = await hook7Api.fetchQRCode(session.api_token);
+          attempts++;
+        }
+
         if (qrData?.qrCode) {
           setSessionsStatus((prev) => ({
             ...prev,
