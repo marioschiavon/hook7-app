@@ -119,8 +119,8 @@ export const fetchQRCode = async (
 
     const data: any = await response.json();
     return {
-      qrCode: data?.data?.Qrcode ?? undefined,
-      rawCode: data?.data?.Code ?? undefined,
+      qrCode: data?.data?.qrcode ?? undefined,
+      rawCode: data?.data?.code ?? undefined,
     };
   } catch (error) {
     console.error('Erro ao buscar QR Code:', error);
