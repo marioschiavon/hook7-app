@@ -30,6 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as hook7Api from "@/services/hook7Api";
 import { useRegionalPricing, formatPrice } from "@/hooks/useRegionalPricing";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 interface UserData {
   id: string;
@@ -93,9 +94,6 @@ const stateBadge: Record<SessionState, { label: string; className: string }> = {
   },
 };
 
-const sentSparkline = [5, 10, 8, 15, 12, 20, 18, 25, 22, 30, 28, 35];
-const recvSparkline = [3, 8, 5, 12, 10, 15, 12, 20, 18, 22, 20, 25];
-
 const STAGGER = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -116,6 +114,7 @@ const Dashboard = () => {
   const [sessionsStatus, setSessionsStatus] = useState<Record<string, SessionStatus>>({});
   const [showConnectionHelp, setShowConnectionHelp] = useState(false);
   const [newSessionName, setNewSessionName] = useState<string | undefined>();
+  const dashboardStats = useDashboardStats(orgData?.id);
 
   const fetchSessionStatus = async (
     sessionId: string,
@@ -351,9 +350,11 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">24.580</div>
+              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">
+                {dashboardStats.messages.sentTotal.toLocaleString("pt-BR")}
+              </div>
               <div className="mt-1 h-8 -mx-1">
-                <Sparkline data={sentSparkline} color="hsl(217 91% 60%)" strokeWidth={1.5} />
+                <Sparkline data={dashboardStats.messages.sentSparkline} color="hsl(217 91% 60%)" strokeWidth={1.5} />
               </div>
             </CardContent>
           </Card>
@@ -368,9 +369,11 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">18.964</div>
+              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">
+                {dashboardStats.messages.receivedTotal.toLocaleString("pt-BR")}
+              </div>
               <div className="mt-1 h-8 -mx-1">
-                <Sparkline data={recvSparkline} color="hsl(192 91% 56%)" strokeWidth={1.5} />
+                <Sparkline data={dashboardStats.messages.receivedSparkline} color="hsl(192 91% 56%)" strokeWidth={1.5} />
               </div>
             </CardContent>
           </Card>
@@ -385,10 +388,16 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">1.429</div>
+              <div className="text-3xl font-semibold text-foreground/90 tracking-tight">
+                {dashboardStats.webhooks.total.toLocaleString("pt-BR")}
+              </div>
               <div className="mt-2 flex items-center gap-1.5">
                 <TrendingUp className="h-3 w-3 text-purple-400" />
-                <span className="text-xs text-purple-400/90">99.2% entregues</span>
+                <span className="text-xs text-purple-400/90">
+                  {dashboardStats.webhooks.total > 0
+                    ? `${dashboardStats.webhooks.deliveredPercent.toFixed(1)}% entregues`
+                    : "Sem dados ainda"}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -569,43 +578,24 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-5 pb-4 divide-y divide-foreground/5">
-            {[
-              {
-                dot: "bg-green-500",
-                title: "Mensagem enviada",
-                sub: "Para: +55 11 9****-1234 · Entregue",
-                time: "agora",
-              },
-              {
-                dot: "bg-purple-500",
-                title: "Webhook recebido",
-                sub: "event: messages.upsert · 200 OK",
-                time: "4s",
-              },
-              {
-                dot: "bg-blue-400",
-                title: "Mensagem recebida",
-                sub: "De: +55 11 9****-5566",
-                time: "12s",
-              },
-              {
-                dot: "bg-green-500",
-                title: "Sessão reconectada",
-                sub: "Uptime retomado automaticamente",
-                time: "1m",
-              },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 py-2.5">
-                <span
-                  className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${item.dot}`}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground/80 truncate">{item.title}</p>
-                  <p className="text-xs text-foreground/40 truncate">{item.sub}</p>
+            {dashboardStats.recentActivity.length === 0 ? (
+              <p className="py-6 text-center text-xs text-foreground/30">
+                Nenhuma atividade recente ainda
+              </p>
+            ) : (
+              dashboardStats.recentActivity.map((item) => (
+                <div key={item.id} className="flex items-center gap-3 py-2.5">
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${item.dot}`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground/80 truncate">{item.title}</p>
+                    <p className="text-xs text-foreground/40 truncate">{item.sub}</p>
+                  </div>
+                  <span className="text-xs text-foreground/30 flex-shrink-0">{item.time}</span>
                 </div>
-                <span className="text-xs text-foreground/30 flex-shrink-0">{item.time}</span>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 

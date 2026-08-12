@@ -82,24 +82,45 @@ serve(async (req) => {
     if (isMessageEvent && payload.data) {
       // Data might be an array or single object depending on evolution version
       const messages = Array.isArray(payload.data) ? payload.data : [payload.data];
-      
+
       const outgoingMessages = [];
-      
+      const incomingMessages = [];
+
       for (const msg of messages) {
-        // Increment count only for outgoing messages (fromMe = true)
+        let type = 'text';
+        if (msg.message?.imageMessage) type = 'image';
+        else if (msg.message?.audioMessage) type = 'audio';
+        else if (msg.message?.documentMessage) type = 'document';
+        else if (msg.message?.videoMessage) type = 'video';
+
         if (msg?.key?.fromMe === true) {
-          let type = 'text';
-          if (msg.message?.imageMessage) type = 'image';
-          else if (msg.message?.audioMessage) type = 'audio';
-          else if (msg.message?.documentMessage) type = 'document';
-          else if (msg.message?.videoMessage) type = 'video';
-          
+          // Increment count only for outgoing messages (fromMe = true)
           outgoingMessages.push({
             session_id: session.id,
             phone_number: msg.key.remoteJid || 'unknown',
             type: type,
             status: 'sent',
+            direction: 'out',
           });
+        } else if (msg?.key?.fromMe === false) {
+          // status is intentionally never 'sent' here, so the billing trigger doesn't fire
+          incomingMessages.push({
+            session_id: session.id,
+            phone_number: msg.key.remoteJid || 'unknown',
+            type: type,
+            status: 'received',
+            direction: 'in',
+          });
+        }
+      }
+
+      if (incomingMessages.length > 0) {
+        const { error: insertIncomingError } = await supabaseAdmin
+          .from('message_logs')
+          .insert(incomingMessages);
+
+        if (insertIncomingError) {
+          console.error('Error inserting incoming message logs:', insertIncomingError);
         }
       }
 
@@ -108,7 +129,7 @@ serve(async (req) => {
         const { error: insertError } = await supabaseAdmin
           .from('message_logs')
           .insert(outgoingMessages);
-          
+
         if (insertError) {
           console.error('Error inserting message logs:', insertError);
         }
@@ -254,17 +275,15 @@ serve(async (req) => {
       console.error(`Webhook forward error: ${errorMessage}`);
     }
 
-    // 8. Log only failed webhook deliveries (success logs are redundant with Evolution API)
-    if (status === 'failed' || status === 'error') {
-      await supabaseAdmin.from('webhook_logs').insert({
-        session_id: session.id,
-        event_type: eventType,
-        payload: forwardPayload,
-        status,
-        response_code: responseCode,
-        error_message: errorMessage
-      });
-    }
+    // 8. Log every forwarded webhook delivery (used for the dashboard's delivery-rate stat)
+    await supabaseAdmin.from('webhook_logs').insert({
+      session_id: session.id,
+      event_type: eventType,
+      payload: forwardPayload,
+      status,
+      response_code: responseCode,
+      error_message: errorMessage
+    });
 
     const processingTime = Date.now() - startTime;
     console.log(`Webhook processed in ${processingTime}ms, status: ${status}`);
