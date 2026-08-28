@@ -354,7 +354,7 @@ const SessionDetailsModal = ({ session, open, onClose, onRefresh }: SessionDetai
                   id="webhook-url"
                   value={webhookUrl}
                   onChange={(e) => setWebhookUrl(e.target.value)}
-                  placeholder="https://api.hook7.com.br/webhook/..."
+                  placeholder="https://seu-servidor.com/webhook"
                 />
                 <p className="text-xs text-muted-foreground">
                   {t('webhooks.webhookUrlHint')}

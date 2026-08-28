@@ -31,7 +31,21 @@ serve(async (req) => {
       throw new Error('Webhook URL must use HTTPS');
     }
 
-    const validEvents = ['MESSAGE', 'SEND_MESSAGE', 'CONNECTION', 'QRCODE', 'READ_RECEIPT', 'PRESENCE'];
+    // Nomes de evento do Evolution API
+    const validEvents = [
+      'MESSAGES_UPSERT',
+      'MESSAGES_UPDATE',
+      'MESSAGES_DELETE',
+      'SEND_MESSAGE',
+      'CONNECTION_UPDATE',
+      'QRCODE_UPDATED',
+      'PRESENCE_UPDATE',
+      'CONTACTS_UPDATE',
+      'CHATS_UPDATE',
+      'GROUPS_UPSERT',
+      'GROUPS_UPDATE',
+      'GROUP_PARTICIPANTS_UPDATE'
+    ];
     if (webhook_events) {
       for (const event of webhook_events) {
         if (!validEvents.includes(event)) {
@@ -79,9 +93,48 @@ serve(async (req) => {
 
     if (updateError) throw new Error('Failed to update session');
 
-    // Note: In Evolution Go, the webhook (our Supabase URL) is configured at connect time
-    // via POST /instance/connect. The customer's forwarding URL is stored in DB only and
-    // is used by the whatsapp-webhook function to forward events. No Evolution Go API call needed here.
+    // A URL do cliente fica só no banco (o whatsapp-webhook é quem encaminha os
+    // eventos para ela). O que precisa ir para o Evolution API é a lista de
+    // eventos que ele deve nos entregar em /functions/v1/whatsapp-webhook.
+    const hook7ApiUrl = Deno.env.get('HOOK7_API_URL');
+    const hook7ApiKey = Deno.env.get('HOOK7_API_KEY');
+
+    if (hook7ApiUrl && hook7ApiKey && session.name) {
+      try {
+        const webhookConfig = {
+          enabled: webhook_enabled ?? true,
+          url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-webhook`,
+          byEvents: false,
+          base64: true,
+          // O token da instância identifica a sessão no whatsapp-webhook
+          headers: { 'apikey': session.api_token },
+          events: webhook_events || ['MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'CONNECTION_UPDATE']
+        };
+
+        const postWebhook = (body: unknown) =>
+          fetch(`${hook7ApiUrl}/webhook/set/${encodeURIComponent(session.name)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': hook7ApiKey },
+            body: JSON.stringify(body)
+          });
+
+        // Corpo aninhado em `webhook` (Evolution 2.x) com fallback plano
+        let evolutionResponse = await postWebhook({ webhook: webhookConfig });
+        if (!evolutionResponse.ok) {
+          console.warn(`[hook7-webhook] Evolution (nested) ${evolutionResponse.status} — retrying flat`);
+          evolutionResponse = await postWebhook(webhookConfig);
+        }
+
+        if (!evolutionResponse.ok) {
+          console.warn(`[hook7-webhook] Evolution API webhook update failed: ${evolutionResponse.status}`);
+        } else {
+          console.log('[hook7-webhook] Evolution API webhook updated');
+        }
+      } catch (evolutionError) {
+        // Não falha a requisição: o update no banco já foi feito
+        console.warn('[hook7-webhook] Failed to update Evolution API webhook:', evolutionError);
+      }
+    }
 
     console.log(`[hook7-webhook] Updated session ${session_id}`);
 

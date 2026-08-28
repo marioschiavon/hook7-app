@@ -118,11 +118,11 @@ const Dashboard = () => {
 
   const fetchSessionStatus = async (
     sessionId: string,
-    _apiSession: string,
+    apiSession: string,
     apiToken: string
   ) => {
     try {
-      const result = await hook7Api.checkConnection(apiToken);
+      const result = await hook7Api.checkConnection(apiSession, apiToken);
       setSessionsStatus((prev) => ({ ...prev, [sessionId]: result }));
     } catch {
       setSessionsStatus((prev) => ({
@@ -230,7 +230,7 @@ const Dashboard = () => {
       toast.error(t("sessions.sessionNotFound"));
       return;
     }
-    const result = await hook7Api.sendText(session.api_token, phoneNumber, message);
+    const result = await hook7Api.sendText(session.api_session, session.api_token, phoneNumber, message);
     if (!result.success) throw new Error(result.error || "Erro ao enviar mensagem");
     toast.success(t("common.success"));
   };

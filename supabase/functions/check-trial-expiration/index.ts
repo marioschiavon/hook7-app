@@ -38,7 +38,7 @@ serve(async (req) => {
     // que já passaram das 48h.
     const { data: expiredSessions, error: fetchError } = await supabaseAdmin
       .from('sessions')
-      .select('id, name, api_token')
+      .select('id, name, api_session, api_token')
       .not('trial_started_at', 'is', null)
       .eq('requires_subscription', true)
       .is('trial_blocked_at', null)
@@ -54,8 +54,8 @@ serve(async (req) => {
 
     for (const s of expiredSessions ?? []) {
       try {
-        if (s.api_token) {
-          await fetch(`${API_URL}/instance/logout`, {
+        if (s.api_token && (s.api_session || s.name)) {
+          await fetch(`${API_URL}/instance/logout/${encodeURIComponent(s.api_session || s.name)}`, {
             method: 'DELETE',
             headers: { 'apikey': s.api_token }
           });

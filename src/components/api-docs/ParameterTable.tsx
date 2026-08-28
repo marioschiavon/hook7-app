@@ -51,7 +51,7 @@ export function ParameterTable({ parameters }: ParameterTableProps) {
                   {param.required ? "Sim" : "Não"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
+              <TableCell className="text-sm text-foreground/80">
                 {param.description}
                 {param.example && (
                   <code className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">

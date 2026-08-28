@@ -23,18 +23,7 @@ serve(async (req) => {
   const startTime = Date.now();
   
   try {
-    // 1. Extract apikey from header (sent by Evolution API)
-    const apiKey = req.headers.get('apikey');
-    
-    if (!apiKey) {
-      console.error('Missing apikey header');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Missing apikey' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // 2. Parse webhook payload
+    // 1. Parse webhook payload
     const payload = await req.json();
     console.log('Webhook payload recebido:', JSON.stringify(payload, null, 2));
 
@@ -43,18 +32,49 @@ serve(async (req) => {
 
     console.log(`Received webhook event: ${eventType} for instance: ${instanceName}`);
 
+    // 2. Resolve the instance token: configuramos o webhook no Evolution API com
+    // o header `apikey`, mas o Evolution também envia o token no corpo do evento.
+    const apiKey = req.headers.get('apikey') || payload.apikey;
+
+    if (!apiKey && !instanceName) {
+      console.error('Missing apikey and instance');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Missing apikey' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // 3. Create Supabase client with service role
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 4. Find session by api_token (the apikey sent in header)
-    const { data: session, error: sessionError } = await supabaseAdmin
-      .from('sessions')
-      .select('id, name, organization_id, webhook_url, webhook_enabled, webhook_events')
-      .eq('api_token', apiKey)
-      .maybeSingle();
+    // 4. Find session by api_token; se o token não bater, cai para o nome da instância
+    const sessionColumns = 'id, name, api_session, organization_id, api_token, webhook_url, webhook_enabled, webhook_events';
+
+    let session: any = null;
+    let sessionError: any = null;
+
+    if (apiKey) {
+      const byToken = await supabaseAdmin
+        .from('sessions')
+        .select(sessionColumns)
+        .eq('api_token', apiKey)
+        .maybeSingle();
+      session = byToken.data;
+      sessionError = byToken.error;
+    }
+
+    if (!sessionError && !session && instanceName) {
+      const byInstance = await supabaseAdmin
+        .from('sessions')
+        .select(sessionColumns)
+        .eq('api_session', instanceName)
+        .maybeSingle();
+      session = byInstance.data;
+      sessionError = byInstance.error;
+    }
 
     if (sessionError) {
       console.error('Error querying session:', sessionError);
@@ -65,7 +85,7 @@ serve(async (req) => {
     }
 
     if (!session) {
-      console.error('No session found for apikey');
+      console.error('No session found for apikey/instance');
       return new Response(
         JSON.stringify({ error: 'Unauthorized - Invalid apikey' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -74,10 +94,9 @@ serve(async (req) => {
 
     console.log(`Session found: ${session.name} (${session.id})`);
 
-    // 4.2 Track message limits if event is MESSAGES_UPSERT
-    // Support both Evolution API (MESSAGES_UPSERT) and Evolution Go (MESSAGE) event names
-    const isMessageEvent = eventType === 'MESSAGES_UPSERT' || eventType === 'MESSAGE' || eventType === 'SEND_MESSAGE';
-    const isConnectionEvent = eventType === 'CONNECTION_UPDATE' || eventType === 'CONNECTION';
+    // 4.2 Track message limits if event is MESSAGES_UPSERT (Evolution API)
+    const isMessageEvent = eventType === 'MESSAGES_UPSERT' || eventType === 'SEND_MESSAGE';
+    const isConnectionEvent = eventType === 'CONNECTION_UPDATE';
 
     if (isMessageEvent && payload.data) {
       // Data might be an array or single object depending on evolution version
@@ -148,9 +167,9 @@ serve(async (req) => {
             // Block the session by logging out from the WhatsApp API
             try {
               const API_URL = Deno.env.get('HOOK7_API_URL') || 'https://api.hook7.com.br';
-              await fetch(`${API_URL}/instance/logout`, {
+              await fetch(`${API_URL}/instance/logout/${encodeURIComponent(session.api_session || session.name)}`, {
                 method: 'DELETE',
-                headers: { 'apikey': apiKey }
+                headers: { 'apikey': session.api_token }
               });
 
               // Mark trial sessions as blocked so the expiration cron doesn't retry them,
@@ -170,7 +189,7 @@ serve(async (req) => {
       }
     }
 
-    // 4.5 Sync connection status to database on CONNECTION_UPDATE / CONNECTION events
+    // 4.5 Sync connection status to database on CONNECTION_UPDATE events
     if (isConnectionEvent && payload.data) {
       const connectionState = payload.data?.state || payload.data?.instance?.state;
       
@@ -247,7 +266,7 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': apiKey, // Forward the same apikey for client validation
+          'apikey': session.api_token, // Forward the instance token for client validation
           'X-Webhook-Event': eventType,
           'X-Session-Id': session.id,
           'X-Instance-Name': session.name

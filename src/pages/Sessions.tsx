@@ -184,7 +184,7 @@ const Sessions = () => {
 
   const fetchSessionStatus = async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
-      const result = await hook7Api.checkConnection(apiToken);
+      const result = await hook7Api.checkConnection(apiSession, apiToken);
       setSessionsStatus((prev) => ({ ...prev, [sessionId]: result }));
     } catch {
       setSessionsStatus((prev) => ({
@@ -197,11 +197,11 @@ const Sessions = () => {
   const checkConnectionStatus = useCallback(
     async (sessionId: string, apiSession: string, apiToken: string) => {
       try {
-        const result = await hook7Api.checkConnection(apiToken);
+        const result = await hook7Api.checkConnection(apiSession, apiToken);
         setSessionsStatus((currentStatus) => {
           const current = currentStatus[sessionId];
           // If the user manually disconnected this session, don't let the API poll
-          // flip it back to "connected" — Evolution Go may auto-reconnect the process
+          // flip it back to "connected" — the Evolution API may auto-reconnect the instance
           // while the user intends it to stay offline.
           if (result.status === true && manuallyDisconnected.current.has(sessionId)) {
             return currentStatus;
@@ -292,15 +292,14 @@ const Sessions = () => {
 
       try {
         toast.info(t("sessions.connectingApi"));
-        await hook7Api.connectInstance(session.api_token);
-
-        // O backend leva alguns segundos para gerar o QR Code após conectar a instância,
-        // então tentamos algumas vezes com espera antes de considerar indisponível.
-        let qrData = await hook7Api.fetchQRCode(session.api_token);
+        // No Evolution API o próprio /instance/connect já devolve o QR Code.
+        // Ainda assim ele pode vir vazio nos primeiros instantes, então tentamos
+        // algumas vezes com espera antes de considerar indisponível.
+        let qrData = await hook7Api.connectInstance(session.api_session, session.api_token);
         let attempts = 0;
         while (!qrData?.qrCode && attempts < 5) {
           await new Promise((r) => setTimeout(r, 1500));
-          qrData = await hook7Api.fetchQRCode(session.api_token);
+          qrData = await hook7Api.fetchQRCode(session.api_session, session.api_token);
           attempts++;
         }
 
@@ -330,7 +329,7 @@ const Sessions = () => {
   const handleQrExpiration = async (session: SessionData) => {
     if (!session.api_session || !session.api_token) return;
     try {
-      const result = await hook7Api.checkConnection(session.api_token);
+      const result = await hook7Api.checkConnection(session.api_session, session.api_token);
       if (result.status === false) {
         setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: false, message: "Disconnected" } }));
         setShowSessionModal(false);
@@ -413,7 +412,7 @@ const Sessions = () => {
     setGeneratingQrCode(true);
     try {
       toast.info(t("sessions.fetchingQr"));
-      const qrData = await hook7Api.fetchQRCode(session.api_token);
+      const qrData = await hook7Api.fetchQRCode(session.api_session, session.api_token);
       if (qrData?.qrCode) {
         setSessionsStatus((prev) => ({
           ...prev,
@@ -438,7 +437,7 @@ const Sessions = () => {
     if (!session.api_session || !session.api_token) { toast.error(t("sessions.sessionNotFound")); return; }
     setClosingSession(true);
     try {
-      const success = await hook7Api.logoutInstance(session.api_token);
+      const success = await hook7Api.logoutInstance(session.api_session, session.api_token);
       if (success) {
         manuallyDisconnected.current.add(session.id);
         setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: false, message: "offline" } }));
@@ -481,7 +480,7 @@ const Sessions = () => {
     setLoggingOut(true);
     try {
       if (session.api_session && session.api_token) {
-        try { await hook7Api.logoutInstance(session.api_token); } catch { /* continue */ }
+        try { await hook7Api.logoutInstance(session.api_session, session.api_token); } catch { /* continue */ }
         try { await hook7Api.deleteInstance(session.api_session, session.api_token); } catch { /* continue */ }
       }
       const { error } = await supabase.from("sessions").delete().eq("id", session.id);
@@ -517,7 +516,7 @@ const Sessions = () => {
       const id = setInterval(async () => {
         if (!selectedSession.api_session || !selectedSession.api_token) return;
         try {
-          const qrData = await hook7Api.fetchQRCode(selectedSession.api_token);
+          const qrData = await hook7Api.fetchQRCode(selectedSession.api_session, selectedSession.api_token);
           if (qrData?.qrCode) {
             setSessionsStatus((prev) => ({
               ...prev,

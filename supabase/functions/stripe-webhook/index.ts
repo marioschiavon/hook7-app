@@ -752,6 +752,12 @@ serve(async (req) => {
           try {
             const hook7Token = Deno.env.get('HOOK7_WHATSAPP_TOKEN');
             const hook7ApiUrl = Deno.env.get('HOOK7_API_URL') || 'https://api.hook7.com.br';
+            // No Evolution API o nome da instância vai na URL
+            const hook7Instance = Deno.env.get('HOOK7_WHATSAPP_INSTANCE');
+
+            if (!hook7Instance || !hook7Token) {
+              throw new Error('HOOK7_WHATSAPP_INSTANCE/HOOK7_WHATSAPP_TOKEN não configurados');
+            }
 
             const whatsappMessage = 
               `⚠️ *Problema com seu Pagamento - Hook7*\n\n` +
@@ -766,10 +772,10 @@ serve(async (req) => {
               `3. Clique em "Atualizar Pagamento"\n\n` +
               `⏰ Regularize para evitar a desconexão da sua sessão.`;
 
-            await fetch(`${hook7ApiUrl}/send/text`, {
+            await fetch(`${hook7ApiUrl}/message/sendText/${encodeURIComponent(hook7Instance)}`, {
               method: 'POST',
               headers: {
-                'apikey': hook7Token!,
+                'apikey': hook7Token,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({

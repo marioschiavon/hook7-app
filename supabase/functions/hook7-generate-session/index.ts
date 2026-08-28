@@ -47,7 +47,7 @@ serve(async (req) => {
       .from('organizations').select('id, name').eq('id', userData.organization_id).single();
     if (orgError || !orgData) throw new Error('Organization not found');
 
-    // Evolution Go credentials
+    // Evolution API credentials
     const hook7ApiUrl = Deno.env.get('HOOK7_API_URL');
     const hook7ApiKey = Deno.env.get('HOOK7_API_KEY');
     if (!hook7ApiUrl || !hook7ApiKey) throw new Error('Hook7 API not configured');
@@ -58,26 +58,30 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // ── 1. Create instance (Evolution Go) ───────────────────────────────────
+    // ── 1. Create instance (Evolution API) ──────────────────────────────────
     console.log(`[hook7] Creating instance: ${session_name}`);
 
     let instanceApiKey: string | null = null;
-    let instanceUuid: string | null = null;
 
     const newToken = crypto.randomUUID();
     const createResponse = await fetch(`${hook7ApiUrl}/instance/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': hook7ApiKey },
-      body: JSON.stringify({ name: session_name, token: newToken })
+      body: JSON.stringify({
+        instanceName: session_name,
+        token: newToken,
+        qrcode: false,
+        integration: 'WHATSAPP-BAILEYS'
+      })
     });
 
     let createDebug = '';
     if (createResponse.ok) {
       const createData = await createResponse.json().catch(() => null);
       console.log('[hook7] Create response:', JSON.stringify(createData));
-      // Evolution Go: { data: { id, name, token, ... }, message: "success" }
-      instanceApiKey = createData?.data?.token ?? newToken;
-      instanceUuid   = createData?.data?.id ?? null;
+      // Evolution API: { instance: { instanceName, instanceId, ... }, hash: "<apikey>" }
+      // Em algumas versões o hash vem como objeto ({ apikey }).
+      instanceApiKey = createData?.hash?.apikey ?? createData?.hash ?? newToken;
       createDebug = `create: ${createResponse.status} token=${!!instanceApiKey}`;
     } else {
       const errorText = await createResponse.text();
@@ -86,24 +90,27 @@ serve(async (req) => {
       if (createResponse.status !== 400 && createResponse.status !== 409) {
         throw new Error(`Hook7 API error: ${createResponse.status} - ${errorText}`);
       }
-      // Instance may already exist — fall through to /instance/all
+      // Instance may already exist — fall through to /instance/fetchInstances
     }
 
     // ── 2. Fetch existing instance if token not yet obtained ─────────────────
     let listDebug = '';
     if (!instanceApiKey) {
-      console.log('[hook7] Fetching via /instance/all...');
-      const allResponse = await fetch(`${hook7ApiUrl}/instance/all`, {
+      console.log('[hook7] Fetching via /instance/fetchInstances...');
+      const allResponse = await fetch(`${hook7ApiUrl}/instance/fetchInstances`, {
         headers: { 'apikey': hook7ApiKey }
       });
 
       if (allResponse.ok) {
         const allData = await allResponse.json();
-        const instances: any[] = Array.isArray(allData) ? allData : (allData?.data ?? []);
-        const existing = instances.find((i: any) => i.name === session_name);
+        const rawInstances: any[] = Array.isArray(allData) ? allData : (allData?.data ?? []);
+        // Dependendo da versão a instância vem achatada ou aninhada em `instance`
+        const instances = rawInstances.map((i: any) => i?.instance ?? i);
+        const existing = instances.find(
+          (i: any) => i.name === session_name || i.instanceName === session_name
+        );
         if (existing) {
-          instanceApiKey = existing.token ?? existing.apikey ?? null;
-          instanceUuid   = existing.id ?? null;
+          instanceApiKey = existing.token ?? existing.apikey ?? existing.hash?.apikey ?? existing.hash ?? null;
           console.log('[hook7] Existing instance token found:', !!instanceApiKey);
         }
         listDebug = `list: ${allResponse.status} count=${instances.length} found=${!!existing}`;
@@ -117,31 +124,44 @@ serve(async (req) => {
       throw new Error(`Could not obtain instance API key from Hook7 API (${createDebug}; ${listDebug})`);
     }
 
-    // ── 3. Configure webhook via /instance/connect ───────────────────────────
-    if (instanceUuid) {
-      try {
-        const supabaseWebhookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-webhook`;
-        const connectResponse = await fetch(`${hook7ApiUrl}/instance/connect`, {
+    // ── 3. Configure webhook via /webhook/set/{instance} ─────────────────────
+    // O header `apikey` é o token da instância: é assim que a função
+    // whatsapp-webhook identifica de qual sessão o evento veio.
+    try {
+      const supabaseWebhookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-webhook`;
+      const webhookConfig = {
+        enabled: true,
+        url: supabaseWebhookUrl,
+        byEvents: false,
+        base64: true,
+        headers: { 'apikey': instanceApiKey },
+        events: ['MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'SEND_MESSAGE', 'CONNECTION_UPDATE', 'QRCODE_UPDATED']
+      };
+
+      const postWebhook = (body: unknown) =>
+        fetch(`${hook7ApiUrl}/webhook/set/${encodeURIComponent(session_name)}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': hook7ApiKey
-          },
-          body: JSON.stringify({
-            webhookUrl: supabaseWebhookUrl,
-            subscribe: ['MESSAGE', 'SEND_MESSAGE', 'CONNECTION', 'QRCODE']
-          })
+          headers: { 'Content-Type': 'application/json', 'apikey': hook7ApiKey },
+          body: JSON.stringify(body)
         });
 
-        if (connectResponse.ok) {
-          console.log('[hook7] Webhook configured via /instance/connect');
-        } else {
-          const connectErr = await connectResponse.text();
-          console.warn(`[hook7] Webhook config: ${connectResponse.status} - ${connectErr}`);
-        }
-      } catch (connectError) {
-        console.warn('[hook7] Non-critical: Failed to configure webhook:', connectError);
+      // Evolution API 2.x espera o objeto aninhado em `webhook` (EventDto);
+      // a doc da Evolution Foundation descreve o corpo plano — fallback.
+      let webhookResponse = await postWebhook({ webhook: webhookConfig });
+      if (!webhookResponse.ok) {
+        const nestedErr = await webhookResponse.text();
+        console.warn(`[hook7] Webhook (nested) ${webhookResponse.status}: ${nestedErr} — retrying flat`);
+        webhookResponse = await postWebhook(webhookConfig);
       }
+
+      if (webhookResponse.ok) {
+        console.log('[hook7] Webhook configured via /webhook/set');
+      } else {
+        const webhookErr = await webhookResponse.text();
+        console.warn(`[hook7] Webhook config: ${webhookResponse.status} - ${webhookErr}`);
+      }
+    } catch (webhookError) {
+      console.warn('[hook7] Non-critical: Failed to configure webhook:', webhookError);
     }
 
     // ── 4. Persist session to database ───────────────────────────────────────

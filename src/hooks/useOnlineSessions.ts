@@ -29,14 +29,16 @@ export function useOnlineSessions(): OnlineSessionsState {
 
       const { data: sessions } = await supabase
         .from("sessions")
-        .select("id, api_token")
+        .select("id, api_session, api_token")
         .eq("organization_id", userRecord.organization_id);
 
       if (!sessions || sessions.length === 0) return;
 
       const results = await Promise.allSettled(
         sessions.map((s: any) =>
-          s.api_token ? hook7Api.checkConnection(s.api_token) : Promise.resolve({ status: false })
+          s.api_session && s.api_token
+            ? hook7Api.checkConnection(s.api_session, s.api_token)
+            : Promise.resolve({ status: false })
         )
       );
 

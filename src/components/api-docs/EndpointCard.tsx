@@ -17,10 +17,10 @@ interface EndpointCardProps {
 }
 
 const methodColors = {
-  GET: "bg-green-500/10 text-green-600 border-green-500/20",
-  POST: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  PUT: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-  DELETE: "bg-red-500/10 text-red-600 border-red-500/20",
+  GET: "bg-green-500/15 text-green-300 border-green-500/30",
+  POST: "bg-blue-500/15 text-blue-300 border-blue-500/30",
+  PUT: "bg-orange-500/15 text-orange-300 border-orange-500/30",
+  DELETE: "bg-red-500/15 text-red-300 border-red-500/30",
 };
 
 export function EndpointCard({
@@ -44,7 +44,7 @@ export function EndpointCard({
           <Badge className={cn("font-mono font-bold", methodColors[method])}>
             {method}
           </Badge>
-          <code className="text-sm font-mono text-muted-foreground bg-muted px-2 py-1 rounded">
+          <code className="text-sm font-mono text-foreground bg-muted px-2 py-1 rounded">
             {endpoint}
           </code>
         </div>

@@ -107,7 +107,7 @@ const SessionMonitoring = () => {
           if (!s.api_session || !s.api_token)
             return { id: s.id, status: "no-session" as const, statusMessage: "Sem sessão ativa" };
           try {
-            const res = await hook7Api.checkConnection(s.api_token);
+            const res = await hook7Api.checkConnection(s.api_session, s.api_token);
             if (res.message === "QRCODE") return { id: s.id, status: "qrcode" as const, statusMessage: "Aguardando QR Code" };
             return { id: s.id, status: res.status ? ("online" as const) : ("offline" as const), statusMessage: res.message || "Desconhecido" };
           } catch {

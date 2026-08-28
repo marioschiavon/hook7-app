@@ -26,8 +26,9 @@ export const GroupExtractor = ({ sessionName, apiToken }: GroupExtractorProps) =
     try {
       if (refreshing) return;
       setRefreshing(true);
-      const data = await hook7Api.fetchAllGroups(apiToken);
-      setGroups(data || []);
+      const result = await hook7Api.fetchAllGroups(sessionName, apiToken);
+      if (!result.success) throw new Error(result.error);
+      setGroups(result.data || []);
     } catch (error) {
       console.error("Error fetching groups:", error);
       toast.error(t("groups.fetchError", "Erro ao buscar grupos"));

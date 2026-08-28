@@ -1,9 +1,12 @@
 /**
  * Hook7 WhatsApp API Service
- * Serviço centralizado para todas as chamadas à Hook7 API
+ * Serviço centralizado para todas as chamadas à Hook7 API (motor Evolution API)
+ *
+ * No Evolution API todas as rotas carregam o nome da instância no path e são
+ * autenticadas pelo header `apikey` com o token da instância.
  */
 
-const HOOK7_GO_URL = import.meta.env.VITE_API_URL || 'https://api.hook7.com.br';
+const EVOLUTION_API_URL = import.meta.env.VITE_API_URL || 'https://api.hook7.com.br';
 
 export interface Hook7ConnectionState {
   instance: {
@@ -15,6 +18,7 @@ export interface Hook7ConnectionState {
 export interface Hook7QRCode {
   qrCode?: string;
   rawCode?: string;
+  pairingCode?: string;
 }
 
 // Normalizar resposta de conexão para manter compatibilidade
@@ -26,14 +30,24 @@ export interface NormalizedConnectionStatus {
 }
 
 /**
+ * O Evolution API devolve o QR Code em base64. Dependendo da versão o valor já
+ * vem com o prefixo `data:image/png;base64,` — normalizamos para uso em <img src>.
+ */
+const normalizeQrCode = (base64?: string | null): string | undefined => {
+  if (!base64) return undefined;
+  return base64.startsWith('data:') ? base64 : `data:image/png;base64,${base64}`;
+};
+
+/**
  * Verificar estado da conexão de uma instância
  */
 export const checkConnection = async (
+  instanceName: string,
   apiKey: string
 ): Promise<NormalizedConnectionStatus> => {
   try {
     const response = await fetch(
-      `${HOOK7_GO_URL}/instance/status`,
+      `${EVOLUTION_API_URL}/instance/connectionState/${encodeURIComponent(instanceName)}`,
       {
         headers: {
           'apikey': apiKey
@@ -45,17 +59,18 @@ export const checkConnection = async (
       return { status: false, message: 'Offline' };
     }
 
-    const data: any = await response.json();
-    // "Connected" só indica que o processo da instância está ativo no Evolution Go;
-    // "LoggedIn" é que reflete se o WhatsApp está de fato autenticado/vinculado.
-    const connected = data?.data?.Connected === true;
-    const loggedIn = data?.data?.LoggedIn === true;
+    const data: Hook7ConnectionState = await response.json();
+    // Evolution API: `open` = WhatsApp autenticado, `connecting` = aguardando
+    // leitura do QR Code, `close` = desconectado.
+    const state = data?.instance?.state;
 
-    if (connected && loggedIn) {
+    if (state === 'open') {
       return { status: true, message: 'CONNECTED' };
-    } else {
-      return { status: false, message: 'Disconnected' };
     }
+    if (state === 'connecting') {
+      return { status: false, message: 'QRCODE' };
+    }
+    return { status: false, message: 'Disconnected' };
   } catch (error) {
     console.error('Erro ao verificar conexão:', error);
     return { status: false, message: 'Offline' };
@@ -66,21 +81,16 @@ export const checkConnection = async (
  * Conectar instância e obter QR Code
  */
 export const connectInstance = async (
+  instanceName: string,
   apiKey: string
 ): Promise<Hook7QRCode | null> => {
   try {
     const response = await fetch(
-      `${HOOK7_GO_URL}/instance/connect`,
+      `${EVOLUTION_API_URL}/instance/connect/${encodeURIComponent(instanceName)}`,
       {
-        method: 'POST',
         headers: {
-          'apikey': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          webhookUrl: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`,
-          subscribe: ['MESSAGE', 'SEND_MESSAGE', 'CONNECTION', 'QRCODE']
-        })
+          'apikey': apiKey
+        }
       }
     );
 
@@ -88,9 +98,12 @@ export const connectInstance = async (
       throw new Error(`Erro ao conectar: ${response.status}`);
     }
 
-    // /instance/connect só registra o webhook; não retorna QR Code.
-    await response.json().catch(() => null);
-    return {};
+    const data: any = await response.json();
+    return {
+      qrCode: normalizeQrCode(data?.base64),
+      rawCode: data?.code ?? undefined,
+      pairingCode: data?.pairingCode ?? undefined,
+    };
   } catch (error) {
     console.error('Erro ao conectar instância:', error);
     throw error;
@@ -99,29 +112,16 @@ export const connectInstance = async (
 
 /**
  * Buscar QR Code atual
+ *
+ * No Evolution API não existe endpoint separado de QR Code: o próprio
+ * /instance/connect devolve o código atualizado a cada chamada.
  */
 export const fetchQRCode = async (
+  instanceName: string,
   apiKey: string
 ): Promise<Hook7QRCode | null> => {
   try {
-    const response = await fetch(
-      `${HOOK7_GO_URL}/instance/qr`,
-      {
-        headers: {
-          'apikey': apiKey
-        }
-      }
-    );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data: any = await response.json();
-    return {
-      qrCode: data?.data?.qrcode ?? undefined,
-      rawCode: data?.data?.code ?? undefined,
-    };
+    return await connectInstance(instanceName, apiKey);
   } catch (error) {
     console.error('Erro ao buscar QR Code:', error);
     return null;
@@ -129,38 +129,15 @@ export const fetchQRCode = async (
 };
 
 /**
- * Desconectar a instância (mantém o vínculo do WhatsApp; reconectar não exige novo QR Code)
- */
-export const disconnectInstance = async (
-  apiKey: string
-): Promise<boolean> => {
-  try {
-    const response = await fetch(
-      `${HOOK7_GO_URL}/instance/disconnect`,
-      {
-        method: 'POST',
-        headers: {
-          'apikey': apiKey
-        }
-      }
-    );
-
-    return response.ok;
-  } catch (error) {
-    console.error('Erro ao desconectar instância:', error);
-    return false;
-  }
-};
-
-/**
  * Logout completo da instância (desvincula o WhatsApp; reconectar exige novo QR Code)
  */
 export const logoutInstance = async (
+  instanceName: string,
   apiKey: string
 ): Promise<boolean> => {
   try {
     const response = await fetch(
-      `${HOOK7_GO_URL}/instance/logout`,
+      `${EVOLUTION_API_URL}/instance/logout/${encodeURIComponent(instanceName)}`,
       {
         method: 'DELETE',
         headers: {
@@ -180,12 +157,12 @@ export const logoutInstance = async (
  * Deletar uma instância completamente
  */
 export const deleteInstance = async (
-  instanceId: string, 
+  instanceName: string,
   apiKey: string
 ): Promise<boolean> => {
   try {
     const response = await fetch(
-      `${HOOK7_GO_URL}/instance/delete/${instanceId}`,
+      `${EVOLUTION_API_URL}/instance/delete/${encodeURIComponent(instanceName)}`,
       {
         method: 'DELETE',
         headers: {
@@ -219,7 +196,7 @@ export const fetchInstances = async (
 ): Promise<Hook7InstanceInfo[]> => {
   try {
     const response = await fetch(
-      `${HOOK7_GO_URL}/instance/all`,
+      `${EVOLUTION_API_URL}/instance/fetchInstances`,
       {
         headers: {
           'apikey': globalApiKey
@@ -233,16 +210,20 @@ export const fetchInstances = async (
     }
 
     const data = await response.json();
-    
-    // A Hook7 API retorna um array de instâncias
+
+    // O Evolution API retorna um array de instâncias que, dependendo da versão,
+    // vem achatado ou aninhado em `instance`.
     if (Array.isArray(data)) {
-      return data.map((instance: any) => ({
-        name: instance.name || instance.instanceName,
-        token: instance.token || instance.apikey,
-        status: instance.status
-      }));
+      return data.map((entry: any) => {
+        const instance = entry?.instance ?? entry;
+        return {
+          name: instance.name || instance.instanceName,
+          token: instance.token || instance.apikey || instance.hash?.apikey || instance.hash,
+          status: instance.status || instance.connectionStatus
+        };
+      });
     }
-    
+
     return [];
   } catch (error) {
     console.error('Erro ao buscar instâncias:', error);
@@ -265,13 +246,14 @@ export const isValidHook7Token = (token: string | null | undefined): boolean => 
  * Enviar mensagem de texto
  */
 export const sendText = async (
+  instanceName: string,
   apiKey: string,
   phoneNumber: string,
   text: string
 ): Promise<{ success: boolean; data?: any; error?: string }> => {
   try {
     const response = await fetch(
-      `${HOOK7_GO_URL}/send/text`,
+      `${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(instanceName)}`,
       {
         method: 'POST',
         headers: {
@@ -288,9 +270,9 @@ export const sendText = async (
     const data = await response.json();
 
     if (!response.ok) {
-      return { 
-        success: false, 
-        error: data.message || data.error || 'Erro ao enviar mensagem' 
+      return {
+        success: false,
+        error: data.message || data.error?.message || data.error || 'Erro ao enviar mensagem'
       };
     }
 
@@ -319,11 +301,12 @@ export interface GroupInfo {
  * Buscar todos os grupos que a instância tem acesso
  */
 export const fetchAllGroups = async (
+  instanceName: string,
   apiKey: string
 ): Promise<{ success: boolean; data?: GroupInfo[]; error?: string }> => {
   try {
     const response = await fetch(
-      `${HOOK7_GO_URL}/group/list`,
+      `${EVOLUTION_API_URL}/group/fetchAllGroups/${encodeURIComponent(instanceName)}?getParticipants=false`,
       {
         method: 'GET',
         headers: {
@@ -335,15 +318,15 @@ export const fetchAllGroups = async (
     const data = await response.json();
 
     if (!response.ok) {
-      return { 
-        success: false, 
-        error: data.message || data.error || 'Erro ao buscar grupos' 
+      return {
+        success: false,
+        error: data.message || data.error?.message || data.error || 'Erro ao buscar grupos'
       };
     }
 
-    // Hook7 API geralmente retorna um array ou objeto com .data
+    // O Evolution API retorna um array de grupos (ou objeto com .data em algumas versões)
     const groups = Array.isArray(data) ? data : data.data || [];
-    
+
     return { success: true, data: groups };
   } catch (error: any) {
     console.error('Erro ao buscar grupos via Hook7 API:', error);
@@ -352,8 +335,8 @@ export const fetchAllGroups = async (
 };
 
 /**
- * Criar uma nova instância na Hook7 API
- * Requer o Token Global ou token genérico compatível
+ * Criar uma nova instância no Evolution API
+ * Requer o Token Global (AUTHENTICATION_API_KEY)
  */
 export const createInstance = async (
   instanceName: string,
@@ -361,10 +344,8 @@ export const createInstance = async (
   globalApiKey: string = ''
 ): Promise<{ success: boolean; data?: any; error?: string }> => {
   try {
-    // Nota: O endpoint de criação na Hook7 API pode usar o globalToken,
-    // ou se aceitar o header 'apikey: instanceToken', mandamos o próprio token da instância gerado.
     const response = await fetch(
-      `${HOOK7_GO_URL}/instance/create`,
+      `${EVOLUTION_API_URL}/instance/create`,
       {
         method: 'POST',
         headers: {
@@ -372,9 +353,10 @@ export const createInstance = async (
           'apikey': globalApiKey || instanceToken
         },
         body: JSON.stringify({
-          instanceId: instanceName,
-          name: instanceName,
-          token: instanceToken
+          instanceName: instanceName,
+          token: instanceToken,
+          qrcode: false,
+          integration: 'WHATSAPP-BAILEYS'
         })
       }
     );
@@ -382,9 +364,9 @@ export const createInstance = async (
     const data = await response.json();
 
     if (!response.ok) {
-      return { 
-        success: false, 
-        error: data.message || data.error || 'Erro ao criar instância' 
+      return {
+        success: false,
+        error: data.message || data.error?.message || data.error || 'Erro ao criar instância'
       };
     }
 
