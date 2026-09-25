@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Env
+# .env.production continua versionado: só tem valores públicos e o deploy (Nixpacks) depende dele
+.env
+.env.*.local
+
+# Supabase CLI
+supabase/.temp/
