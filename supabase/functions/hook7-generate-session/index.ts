@@ -87,7 +87,8 @@ serve(async (req) => {
       const errorText = await createResponse.text();
       console.warn(`[hook7] Create returned ${createResponse.status}: ${errorText}`);
       createDebug = `create: ${createResponse.status} ${errorText}`;
-      if (createResponse.status !== 400 && createResponse.status !== 409) {
+      // 400/403/409: nome já em uso (o status varia entre versões da Evolution API)
+      if (![400, 403, 409].includes(createResponse.status)) {
         throw new Error(`Hook7 API error: ${createResponse.status} - ${errorText}`);
       }
       // Instance may already exist — fall through to /instance/fetchInstances

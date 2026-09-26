@@ -44,6 +44,8 @@ const App = () => (
           <Route path="/api-docs" element={<ApiDocs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          {/* Landing page (hook7.com.br) CTAs point here */}
+          <Route path="/get-started" element={<Navigate to="/signup" replace />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/update-password" element={<UpdatePassword />} />
