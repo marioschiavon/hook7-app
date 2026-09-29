@@ -74,4 +74,5 @@ scripts/            generate-favicon.mjs
 - [STRIPE_SETUP_INSTRUCTIONS.md](STRIPE_SETUP_INSTRUCTIONS.md): configuração do Stripe
 - [ANNOUNCEMENTS_SETUP_README.md](ANNOUNCEMENTS_SETUP_README.md): sistema de anúncios e e-mails
 - [SECURITY_FIXES_README.md](SECURITY_FIXES_README.md): correções de segurança aplicadas
+- [DISPARO_SEGURO.md](DISPARO_SEGURO.md): planejamento dos disparos automáticos (Plano Pro)
 - SQL: `hook7_v2_migration.sql`, `MESSAGE_TRACKING_MIGRATION.sql`, `MONTHLY_RESET.sql`
