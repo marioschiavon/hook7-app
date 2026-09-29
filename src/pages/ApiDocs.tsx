@@ -21,20 +21,16 @@ const ApiDocs = () => {
   ];
 
   const webhookEvents = [
-    { id: "MESSAGES_UPSERT", desc: "Mensagem recebida" },
-    { id: "SEND_MESSAGE", desc: "Mensagem enviada pela sua instância" },
+    { id: "MESSAGES_UPSERT", desc: "Mensagem recebida ou enviada pela instância (obrigatório)" },
     { id: "MESSAGES_UPDATE", desc: "Status de entrega/leitura da mensagem" },
     { id: "CONNECTION_UPDATE", desc: "Mudança no estado da conexão (open, connecting, close)" },
-    { id: "QRCODE_UPDATED", desc: "Novo QR Code gerado" },
-    { id: "GROUPS_UPSERT", desc: "Grupo criado" },
-    { id: "GROUP_PARTICIPANTS_UPDATE", desc: "Entrada/saída de participantes em grupo" },
   ];
 
   return (
     <>
       <SEO
         title="Documentação da API WhatsApp | Hook7"
-        description="Documentação completa da API WhatsApp Hook7, baseada no Evolution API. Envie textos, mídias, enquetes e listas, configure webhooks e integre com Make, Zapier, n8n e TypeBot. Exemplos em JavaScript, Python e PHP."
+        description="Documentação da API WhatsApp Hook7 (não oficial, conexão via QR Code sobre o Evolution API). Envie textos, mídias, enquetes e localização, receba eventos por webhook e integre com Make, Zapier, n8n e TypeBot. Exemplos em JavaScript, Python e PHP."
         canonical="https://app.hook7.com.br/api-docs"
       />
       <Helmet>
@@ -43,12 +39,12 @@ const ApiDocs = () => {
             "@context": "https://schema.org",
             "@type": "TechArticle",
             "headline": "Documentação da API WhatsApp Hook7",
-            "description": "Documentação técnica completa para integrar a API WhatsApp Hook7 (Evolution API) em suas aplicações. Inclui autenticação, endpoints de envio de mensagens e mídias, gestão de instância, webhooks e exemplos de código em JavaScript, Python e PHP.",
+            "description": "Documentação técnica para integrar a API WhatsApp Hook7 (não oficial, sobre o Evolution API) em suas aplicações. Inclui autenticação, endpoints de envio de mensagens e mídias, gestão de instância, recebimento de eventos por webhook e exemplos de código em JavaScript, Python e PHP.",
             "author": { "@type": "Organization", "name": "Hook7" },
             "publisher": { "@type": "Organization", "name": "Hook7", "url": "https://app.hook7.com.br" },
             "mainEntityOfPage": "https://app.hook7.com.br/api-docs",
             "datePublished": "2024-01-01",
-            "dateModified": "2026-08-28",
+            "dateModified": "2026-09-28",
             "inLanguage": "pt-BR",
             "keywords": ["API WhatsApp", "Evolution API", "documentação API", "enviar mensagens WhatsApp", "integração WhatsApp", "Make", "Zapier", "n8n", "TypeBot"],
             "about": { "@type": "SoftwareApplication", "name": "Hook7 API", "applicationCategory": "BusinessApplication" },
@@ -102,6 +98,9 @@ const ApiDocs = () => {
               <p className="text-sm text-foreground/75 leading-relaxed">
                 A Hook7 é uma API WhatsApp brasileira que permite enviar mensagens de texto, imagens, áudio e documentos via WhatsApp por R$ 69,90/mês com mensagens ilimitadas. A API é RESTful, roda sobre o <strong className="text-foreground">Evolution API</strong> e pode ser integrada com qualquer linguagem de programação (JavaScript, Python, PHP) ou plataforma de automação (Make, Zapier, n8n, TypeBot).
               </p>
+              <p className="text-sm text-foreground/75 leading-relaxed">
+                <strong className="text-foreground">Não é a API oficial da Meta.</strong> Você conecta o seu próprio número lendo um QR Code, como no WhatsApp Web. Por isso não há templates aprovados, janela de 24h nem custo por conversa — mas também não há selo verde, e o WhatsApp pode restringir ou banir números que enviem SPAM. Veja os <Link to="/terms" className="text-primary hover:underline">Termos de Uso</Link>.
+              </p>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Requisitos</h3>
@@ -117,7 +116,7 @@ const ApiDocs = () => {
                   <ul className="text-xs text-foreground/75 space-y-1">
                     <li>• Notificações de pedidos e entregas</li>
                     <li>• Confirmação de agendamentos</li>
-                    <li>• Campanhas de marketing</li>
+                    <li>• Campanhas para clientes que autorizaram (opt-in)</li>
                     <li>• Atendimento automatizado</li>
                   </ul>
                 </div>
@@ -329,8 +328,18 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/NOME_DA_INSTANCIA" \\
                 <h2 id="interactive-messages-heading" className="text-base font-semibold text-foreground">Mensagens Interativas</h2>
               </div>
               <p className="text-xs text-foreground/75">
-                Endpoints para enviar enquetes, listas interativas e menus de opções. Ideais para pesquisas NPS, cardápios e catálogos de produtos.
+                Endpoints para enviar enquetes e listas interativas. Ideais para pesquisas NPS e menus de atendimento.
               </p>
+
+              <div className="flex items-start gap-3 rounded-lg border border-yellow-400/40 bg-yellow-500/10 px-4 py-3 text-sm text-foreground">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div>
+                  <p className="font-semibold mb-0.5">Listas são experimentais</p>
+                  <p className="text-xs text-foreground/75">
+                    O WhatsApp restringe mensagens interativas (listas e botões) fora da API oficial: a lista pode não aparecer em alguns aparelhos ou no WhatsApp Web. Para respostas de múltipla escolha confiáveis, prefira <strong>enquetes</strong> (<code className="bg-black/50 px-1 rounded font-mono text-foreground">sendPoll</code>).
+                  </p>
+                </div>
+              </div>
 
               <EndpointCard
                 method="POST"
@@ -372,7 +381,7 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/NOME_DA_INSTANCIA" \\
               <EndpointCard
                 method="POST"
                 endpoint="/message/sendList/{instancia}"
-                description="Enviar Lista/Menu Interativo (Catálogo de Produtos)"
+                description="Enviar Lista/Menu Interativo (experimental)"
                 parameters={[
                   { name: "number", type: "string", required: true, description: "Número com DDI", example: "5511999999999" },
                   { name: "title", type: "string", required: true, description: "Título da lista", example: "Nosso Cardápio" },
@@ -428,9 +437,9 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/NOME_DA_INSTANCIA" \\
               <div className="flex items-start gap-3 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm text-foreground">
                 <Vote className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold mb-0.5">Dica: Use Listas como Catálogo de Produtos</p>
+                  <p className="font-semibold mb-0.5">Dica: sempre tenha um plano B em texto</p>
                   <p className="text-xs text-foreground/75">
-                    O endpoint <code className="bg-black/50 px-1 rounded font-mono text-foreground">/message/sendList/{"{instancia}"}</code> é ideal para criar cardápios, catálogos e menus de atendimento interativos no WhatsApp Business, sem necessidade de Commerce Manager.
+                    Ao usar <code className="bg-black/50 px-1 rounded font-mono text-foreground">/message/sendList/{"{instancia}"}</code> como cardápio ou menu, aceite também respostas digitadas (ex.: "1", "2", "3") no seu fluxo, para clientes cujo aparelho não exibir a lista.
                   </p>
                 </div>
               </div>
@@ -566,7 +575,7 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/NOME_DA_INSTANCIA" \\
                 <h2 id="instance-heading" className="text-base font-semibold text-foreground">Instância, Conexão e Webhooks</h2>
               </div>
               <p className="text-xs text-foreground/75">
-                Endpoints para consultar o estado da conexão, gerar QR Code, desconectar o WhatsApp e configurar o recebimento de eventos.
+                Endpoints para consultar o estado da conexão, gerar QR Code, desconectar o WhatsApp e listar grupos. O recebimento de eventos é configurado pelo painel.
               </p>
 
               <EndpointCard
@@ -635,45 +644,50 @@ curl -X POST "https://api.hook7.com.br/message/sendMedia/NOME_DA_INSTANCIA" \\
                 errorCodes={commonErrors}
               />
 
-              <EndpointCard
-                method="POST"
-                endpoint="/webhook/set/{instancia}"
-                description="Configurar o Webhook de Eventos"
-                parameters={[
-                  { name: "enabled", type: "boolean", required: true, description: "Ativa ou desativa o envio de eventos", example: "true" },
-                  { name: "url", type: "string", required: true, description: "URL HTTPS que receberá os eventos", example: "https://seu-servidor.com/webhook" },
-                  { name: "events", type: "array", required: true, description: "Eventos assinados (ver tabela abaixo)" },
-                  { name: "headers", type: "object", required: false, description: "Headers extras enviados junto de cada evento" },
-                  { name: "base64", type: "boolean", required: false, description: "Enviar mídias recebidas em base64" },
-                ]}
-                requestExample={`curl -X POST "https://api.hook7.com.br/webhook/set/NOME_DA_INSTANCIA" \\
-  -H "apikey: TOKEN_DA_INSTANCIA" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "enabled": true,
-    "url": "https://seu-servidor.com/webhook",
-    "base64": true,
-    "headers": { "apikey": "SEU_TOKEN_DE_VALIDACAO" },
-    "events": ["MESSAGES_UPSERT", "CONNECTION_UPDATE"]
-  }'`}
-                responseExample={`{
-  "success": true,
-  "message": "Webhook configured successfully"
-}`}
-                errorCodes={commonErrors}
-              />
-
               <Card className="glass-card border-foreground/5">
                 <CardHeader className="pb-2 pt-4 px-5">
                   <CardTitle className="flex items-center gap-2 text-sm text-foreground">
                     <Zap className="h-4 w-4 text-primary" aria-hidden="true" />
-                    Eventos disponíveis no Webhook
+                    Receber eventos por Webhook
                   </CardTitle>
                   <CardDescription className="text-xs text-foreground/75">
-                    Cada evento chega como <code className="font-mono">{"{ event, instance, data }"}</code> no corpo da requisição.
+                    Configure em <strong>Sessões → Ver Detalhes → Webhook</strong> (ou na página Webhooks): informe uma URL <strong>HTTPS</strong> e escolha os eventos.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-5 pb-5">
+                <CardContent className="px-5 pb-5 space-y-4">
+                  <div className="flex items-start gap-3 rounded-lg border border-yellow-400/40 bg-yellow-500/10 px-4 py-3 text-xs text-foreground/80">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5 text-foreground" aria-hidden="true" />
+                    <p>
+                      Não chame <code className="bg-black/50 px-1 rounded font-mono text-foreground">/webhook/set</code> diretamente com o token da instância: isso substitui o webhook interno da Hook7 e interrompe o monitoramento da conexão e a contagem de mensagens da sessão.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Requisição que o seu servidor recebe</p>
+                    <CodeBlock language="bash" code={`POST https://seu-servidor.com/webhook
+Content-Type:     application/json
+apikey:           TOKEN_DA_INSTANCIA   (use para validar a origem)
+X-Webhook-Event:  MESSAGES_UPSERT
+X-Session-Id:     ID_DA_SESSAO
+X-Instance-Name:  NOME_DA_INSTANCIA
+
+{
+  "event": "MESSAGES_UPSERT",
+  "instance": "NOME_DA_INSTANCIA",
+  "session_id": "ID_DA_SESSAO",
+  "timestamp": "2026-09-28T12:00:00.000Z",
+  "data": {
+    "key": { "remoteJid": "5511999999999@s.whatsapp.net", "fromMe": false, "id": "3EB0..." },
+    "pushName": "Cliente",
+    "message": { "conversation": "Olá!" },
+    "messageTimestamp": 1790000000
+  }
+}`} />
+                    <p className="text-[11px] text-foreground/75">
+                      Responda com HTTP 2xx em até <strong>10 segundos</strong>. Eventos que falharem não são reenviados — acompanhe as entregas no painel e processe tarefas demoradas de forma assíncrona.
+                    </p>
+                  </div>
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
