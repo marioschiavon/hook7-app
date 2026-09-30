@@ -80,13 +80,17 @@ const Signup = () => {
   const benefits = [
     {
       icon: Clock,
-      title: isPortuguese ? "Configuração em 5 minutos" : "Setup in 5 minutes",
-      description: isPortuguese ? "Crie sua conta e comece a enviar mensagens rapidamente" : "Create your account and start sending messages quickly",
+      title: isPortuguese ? "Teste grátis: 3 dias ou 200 mensagens" : "Free trial: 3 days or 200 messages",
+      description: isPortuguese
+        ? "Sem cartão de crédito. Depois, R$ 59,90/mês por número, com mensagens ilimitadas."
+        : "No credit card. Then R$ 59.90/month per number, with unlimited messages.",
     },
     {
       icon: MessageSquare,
-      title: isPortuguese ? "Mensagens ilimitadas" : "Unlimited messages",
-      description: isPortuguese ? "Sem cobrança por mensagem, envie quantas precisar" : "No per-message charges, send as many as you need",
+      title: isPortuguese ? "Conectado em minutos" : "Connected in minutes",
+      description: isPortuguese
+        ? "Depois do cadastro, você dá um nome à sessão e lê o QR Code com o WhatsApp do celular."
+        : "After signing up, you name your session and scan the QR code with WhatsApp on your phone.",
     },
     {
       icon: Headphones,

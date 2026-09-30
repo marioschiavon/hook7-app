@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { isAnnualPlan, monthlyEquivalent } from "@/lib/pricing";
 import { ptBR } from "date-fns/locale";
 import {
   isTrialActive,
@@ -41,6 +42,7 @@ interface SessionWithSubscription {
     id: string;
     status: string;
     amount: number;
+    plan_name?: string | null;
     next_payment_date: string | null;
     created_at: string;
     stripe_customer_id?: string;
@@ -115,6 +117,7 @@ const Subscriptions = () => {
                   id: (subData as any).id,
                   status: (subData as any).status,
                   amount: (subData as any).amount,
+                  plan_name: (subData as any).plan_name,
                   next_payment_date: (subData as any).next_payment_date,
                   created_at: (subData as any).created_at,
                   stripe_customer_id: (subData as any).stripe_customer_id,
@@ -193,7 +196,9 @@ const Subscriptions = () => {
   ).length;
   const trialCount = sessions.filter((s) => isTrialActive(s)).length;
   const pendingCount = sessions.filter((s) => s.requires_subscription && !s.subscription && !isTrialActive(s)).length;
-  const revenue = sessions.filter((s) => s.subscription?.status === "active").length * 69.90;
+  const revenue = sessions
+    .filter((s) => s.subscription?.status === "active")
+    .reduce((sum, s) => sum + monthlyEquivalent(Number(s.subscription!.amount || 0), s.subscription!.plan_name), 0);
 
   if (loading) {
     return (
@@ -317,7 +322,7 @@ const Subscriptions = () => {
                       {/* Amount + next payment */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-lg border border-foreground/8 bg-muted/20 px-3 py-2">
-                          <p className="text-[10px] text-foreground/35 uppercase tracking-wider mb-0.5">Valor mensal</p>
+                          <p className="text-[10px] text-foreground/35 uppercase tracking-wider mb-0.5">{isAnnualPlan(session.subscription.plan_name) ? "Valor anual" : "Valor mensal"}</p>
                           <p className="text-base font-semibold text-foreground/80 tabular-nums">
                             R$ {Number(session.subscription.amount).toFixed(2)}
                           </p>
@@ -448,7 +453,7 @@ const Subscriptions = () => {
                         className="h-8"
                       >
                         <CreditCard className="h-3.5 w-3.5 mr-1.5" />
-                        Ativar assinatura (R$ 69,90/mês)
+                        Ativar assinatura
                       </Button>
                     </div>
                   ) : (
@@ -483,7 +488,7 @@ const Subscriptions = () => {
             {
               n: "2",
               title: "Assinaturas independentes",
-              body: "Cada sessão possui uma assinatura separada de R$ 69,90/mês. Cancelar uma não afeta as outras.",
+              body: "Cada número (sessão) tem sua própria assinatura: R$ 59,90/mês no primeiro e R$ 39,90/mês em cada número adicional, ou no plano anual com 2 meses grátis. Cancelar uma não afeta as outras.",
             },
             {
               n: "3",

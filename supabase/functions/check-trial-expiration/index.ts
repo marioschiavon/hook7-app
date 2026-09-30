@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const TRIAL_HOURS = 48;
+const TRIAL_HOURS = 72; // 3 dias — igual a src/lib/trial.ts
 
 // Deve ser chamada periodicamente (ex.: a cada 15-30min) por um cron externo ou pg_cron,
 // do mesmo jeito que reset-monthly-counts.
@@ -35,7 +35,7 @@ serve(async (req) => {
     const cutoff = new Date(Date.now() - TRIAL_HOURS * 60 * 60 * 1000).toISOString();
 
     // Sessões em trial (trial_started_at setado, ainda não assinaram, ainda não bloqueadas)
-    // que já passaram das 48h.
+    // que já passaram dos 3 dias.
     const { data: expiredSessions, error: fetchError } = await supabaseAdmin
       .from('sessions')
       .select('id, name, api_session, api_token')
@@ -67,7 +67,7 @@ serve(async (req) => {
           .eq('id', s.id);
 
         blocked.push(s.name);
-        console.log(`Trial expirado por tempo (48h): ${s.name}`);
+        console.log(`Trial expirado por tempo (3 dias): ${s.name}`);
       } catch (err) {
         console.error(`Erro ao expirar trial da sessão ${s.name}:`, err);
       }

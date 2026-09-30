@@ -1,4 +1,5 @@
-export const TRIAL_HOURS = 48;
+export const TRIAL_HOURS = 72;
+export const TRIAL_MESSAGE_LIMIT = 200;
 
 export interface TrialSessionFields {
   requires_subscription?: boolean | null;
@@ -13,7 +14,7 @@ export function isTrialSession(session: TrialSessionFields): boolean {
   return !!session.trial_started_at && !!session.requires_subscription;
 }
 
-/** Teste grátis esgotado por mensagens, por tempo (48h) ou já marcado como bloqueado. */
+/** Teste grátis esgotado por mensagens, por tempo (3 dias) ou já marcado como bloqueado. */
 export function isTrialExpired(session: TrialSessionFields): boolean {
   if (!isTrialSession(session)) return false;
   if (session.trial_blocked_at) return true;

@@ -7,6 +7,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Preços do plano API (precisa ficar igual a src/lib/pricing.ts).
+// Os IDs vêm dos secrets do Supabase, um preço recorrente do Stripe para cada combinação.
+const PLAN_PRICES = {
+  api_monthly: { secret: 'STRIPE_PRICE_API_MONTHLY', amount: 59.9 },
+  api_annual: { secret: 'STRIPE_PRICE_API_ANNUAL', amount: 599.0 },
+  extra_monthly: { secret: 'STRIPE_PRICE_EXTRA_MONTHLY', amount: 39.9 },
+  extra_annual: { secret: 'STRIPE_PRICE_EXTRA_ANNUAL', amount: 399.0 },
+} as const;
+type PlanKey = keyof typeof PLAN_PRICES;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -35,10 +45,11 @@ serve(async (req) => {
     console.log('✅ Usuário autenticado:', user.id);
 
     // 2. Buscar dados da sessão
-    const { session_id } = await req.json();
+    const { session_id, billing_cycle } = await req.json();
     if (!session_id) {
       throw new Error('session_id não fornecido');
     }
+    const cycle = billing_cycle === 'annual' ? 'annual' : 'monthly';
 
     const { data: sessionData, error: sessionError } = await supabaseClient
       .from('sessions')
@@ -70,6 +81,26 @@ serve(async (req) => {
     }
 
     console.log('✅ Usuário autorizado. Email:', userData.email);
+
+    // Se a organização já tem outra sessão liberada, esta é um número adicional
+    const { count: paidSessions, error: paidError } = await supabaseClient
+      .from('sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', sessionData.organization_id)
+      .eq('requires_subscription', false)
+      .neq('id', session_id);
+
+    if (paidError) {
+      throw new Error('Erro ao verificar sessões da organização');
+    }
+
+    const planKey = `${(paidSessions ?? 0) > 0 ? 'extra' : 'api'}_${cycle}` as PlanKey;
+    const priceId = Deno.env.get(PLAN_PRICES[planKey].secret);
+    if (!priceId) {
+      throw new Error(`Preço do Stripe não configurado (${PLAN_PRICES[planKey].secret})`);
+    }
+
+    console.log('✅ Plano:', planKey, '| Price:', priceId);
 
     // 4. Inicializar Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
@@ -104,7 +135,7 @@ serve(async (req) => {
       mode: 'subscription',
       line_items: [
         {
-          price: 'price_1SVWEfQs5BDRSUmXT5cPQTuh',
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -115,15 +146,17 @@ serve(async (req) => {
           session_id: session_id,
           session_name: sessionData.name,
           organization_id: sessionData.organization_id,
+          plan_key: planKey,
         }
       },
       metadata: {
         session_id: session_id,
         session_name: sessionData.name,
         organization_id: sessionData.organization_id,
+        plan_key: planKey,
       },
-      success_url: `${req.headers.get('origin') || 'https://hook7.com.br'}/dashboard?payment=success`,
-      cancel_url: `${req.headers.get('origin') || 'https://hook7.com.br'}/checkout?session_name=${sessionData.name}&payment=cancelled`,
+      success_url: `${req.headers.get('origin') || 'https://hook7.com.br'}/dashboard?payment=success&session=${encodeURIComponent(sessionData.name)}&value=${PLAN_PRICES[planKey].amount}`,
+      cancel_url: `${req.headers.get('origin') || 'https://hook7.com.br'}/checkout?session_id=${session_id}&session_name=${encodeURIComponent(sessionData.name)}&payment=cancelled`,
       locale: 'pt-BR',
       billing_address_collection: 'auto',
     });

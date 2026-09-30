@@ -10,6 +10,9 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY')!);
 
+// plan_name vem de create-stripe-checkout (api_monthly, api_annual, extra_monthly, extra_annual)
+const periodLabel = (planName?: string | null) => planName?.endsWith('_annual') ? '/ano' : '/mês';
+
 serve(async (req) => {
   const signature = req.headers.get('stripe-signature');
   
@@ -112,6 +115,8 @@ serve(async (req) => {
           console.log('⚠️ Subscription já existe, atualizando...');
           await supabaseAdmin.from('subscriptions').update({
             status: 'active',
+            amount: (stripeSubscription.items.data[0].price.unit_amount || 0) / 100,
+            plan_name: session.metadata?.plan_key || 'api_monthly',
             stripe_subscription_id: stripeSubscription.id,
             stripe_customer_id: session.customer as string,
             start_date: stripeSubscription.current_period_start 
@@ -129,6 +134,7 @@ serve(async (req) => {
             organization_id: organizationId,
             status: 'active',
             amount: (stripeSubscription.items.data[0].price.unit_amount || 0) / 100,
+            plan_name: session.metadata?.plan_key || 'api_monthly',
             stripe_subscription_id: stripeSubscription.id,
             stripe_customer_id: session.customer as string,
             payment_provider: 'stripe',
@@ -156,6 +162,7 @@ serve(async (req) => {
           try {
             const sessionName = session.metadata?.session_name || 'Sua sessão';
             const amount = (stripeSubscription.items.data[0].price.unit_amount || 0) / 100;
+            const period = periodLabel(session.metadata?.plan_key);
             
             await resend.emails.send({
               from: 'Hook7 <suporte@hook7.com.br>',
@@ -207,7 +214,7 @@ serve(async (req) => {
                         
                         <div class="detail-row">
                           <span class="detail-label">Valor:</span>
-                          <span class="detail-value">R$ ${amount.toFixed(2)}/mês</span>
+                          <span class="detail-value">R$ ${amount.toFixed(2)}${period}</span>
                         </div>
                         
                         <div class="detail-row" style="border: none;">
@@ -280,7 +287,7 @@ serve(async (req) => {
         if (subscription.cancel_at_period_end && subscription.status === 'active') {
           const { data: subData } = await supabaseAdmin
             .from('subscriptions')
-            .select('session_id, payer_email, amount')
+            .select('session_id, payer_email, amount, plan_name')
             .eq('stripe_subscription_id', subscription.id)
             .single();
 
@@ -293,7 +300,8 @@ serve(async (req) => {
                 .maybeSingle();
 
               const sessionName = (sessionData as any)?.name || 'Sua sessão';
-              const amount = (subData as any).amount || 69.90;
+              const amount = (subData as any).amount || 0;
+              const period = periodLabel((subData as any).plan_name);
               const periodEndDate = new Date(subscription.current_period_end * 1000);
               
               await resend.emails.send({
@@ -343,7 +351,7 @@ serve(async (req) => {
                           
                           <div class="detail-row">
                             <span class="detail-label">Valor Pago:</span>
-                            <span class="detail-value">R$ ${amount.toFixed(2)}/mês</span>
+                            <span class="detail-value">R$ ${amount.toFixed(2)}${period}</span>
                           </div>
                           
                           <div class="detail-row" style="border: none;">
@@ -416,7 +424,7 @@ serve(async (req) => {
         // Buscar dados da subscription antes de atualizar
         const { data: subData } = await supabaseAdmin
           .from('subscriptions')
-          .select('session_id, payer_email, amount')
+          .select('session_id, payer_email, amount, plan_name')
           .eq('stripe_subscription_id', subscription.id)
           .single();
 
@@ -494,6 +502,7 @@ serve(async (req) => {
             try {
               const sessionName = (sessionData as any)?.name || 'Sua sessão';
               const amount = (subData as any).amount || 0;
+              const period = periodLabel((subData as any).plan_name);
               
               await resend.emails.send({
                 from: 'Hook7 <suporte@hook7.com.br>',
@@ -546,7 +555,7 @@ serve(async (req) => {
                           
                           <div class="detail-row">
                             <span class="detail-label">Valor:</span>
-                            <span class="detail-value">R$ ${amount.toFixed(2)}/mês</span>
+                            <span class="detail-value">R$ ${amount.toFixed(2)}${period}</span>
                           </div>
                           
                           <div class="detail-row" style="border: none;">
@@ -617,7 +626,7 @@ serve(async (req) => {
         // Buscar dados da subscription para enviar email
         const { data: failedSubData } = await supabaseAdmin
           .from('subscriptions')
-          .select('session_id, payer_email, amount')
+          .select('session_id, payer_email, amount, plan_name')
           .eq('stripe_subscription_id', invoice.subscription as string)
           .single();
 
@@ -634,6 +643,7 @@ serve(async (req) => {
 
         const failedSessionName = failedSessionData?.name || 'Sua sessão';
         const failedAmount = (failedSubData as any)?.amount || 0;
+        const failedPeriod = periodLabel((failedSubData as any)?.plan_name);
         const failureReason = (invoice as any).last_finalization_error?.message || 
                               'Cartão recusado ou saldo insuficiente';
 
@@ -686,7 +696,7 @@ serve(async (req) => {
                         
                         <div class="detail-row">
                           <span class="detail-label">Valor:</span>
-                          <span class="detail-value">R$ ${failedAmount.toFixed(2)}/mês</span>
+                          <span class="detail-value">R$ ${failedAmount.toFixed(2)}${failedPeriod}</span>
                         </div>
                         
                         <div class="detail-row">
@@ -764,7 +774,7 @@ serve(async (req) => {
               `Não conseguimos processar o pagamento da sua assinatura.\n\n` +
               `📋 *Detalhes:*\n` +
               `• Sessão: ${failedSessionName}\n` +
-              `• Valor: R$ ${failedAmount.toFixed(2)}/mês\n` +
+              `• Valor: R$ ${failedAmount.toFixed(2)}${failedPeriod}\n` +
               `• Motivo: ${failureReason}\n\n` +
               `🔔 *O que fazer:*\n` +
               `1. Acesse o painel em hook7.com.br\n` +

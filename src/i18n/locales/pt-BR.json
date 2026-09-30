@@ -261,6 +261,11 @@
     "subtitle": "Plano de Sessão API WhatsApp",
     "subtitleWithSession": "Finalize o pagamento para criar a sessão \"{{sessionName}}\"",
     "perMonth": "por mês",
+    "monthly": "Mensal",
+    "annual": "Anual · 2 meses grátis",
+    "perYear": "por ano (≈ {{monthly}}/mês) · no mensal seriam {{full}}",
+    "extraNumber": "Número adicional",
+    "securePaymentAnnual": "Pagamento 100% seguro processado pelo Stripe. Cobrança única anual, renovada automaticamente. Cancele quando quiser.",
     "features": [
       "1 sessão de API WhatsApp",
       "Configuração em minutos",
@@ -506,7 +511,7 @@
     },
     "step3": {
       "title": "Teste grátis",
-      "description": "10 mensagens ou 48h, sem cartão"
+      "description": "3 dias ou 200 mensagens, sem cartão"
     },
     "organizationStep": {
       "title": "Como se chama sua empresa?",

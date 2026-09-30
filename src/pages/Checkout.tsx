@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Loader2, CreditCard, Shield, Check, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useRegionalPricing, formatPrice } from "@/hooks/useRegionalPricing";
+import { type BillingCycle, PLAN_PRICES, planKeyFor, formatBRL } from "@/lib/pricing";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,8 @@ export default function Checkout() {
   const sessionName = searchParams.get('session_name');
   const sessionIdFromUrl = searchParams.get('session_id');
   const { t } = useTranslation();
-  const pricing = useRegionalPricing();
+  const [cycle, setCycle] = useState<BillingCycle>(searchParams.get("billing") === "annual" ? "annual" : "monthly");
+  const [isExtraNumber, setIsExtraNumber] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -42,6 +43,17 @@ export default function Checkout() {
 
     if (userRecord?.organization_id) {
       setOrgId(userRecord.organization_id);
+
+      // Mesma regra de create-stripe-checkout: se já existe outra sessão liberada, é número adicional
+      let paidQuery = supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", userRecord.organization_id)
+        .eq("requires_subscription", false);
+      if (sessionIdFromUrl) paidQuery = paidQuery.neq("id", sessionIdFromUrl);
+      else if (sessionName) paidQuery = paidQuery.neq("name", sessionName);
+      const { count } = await paidQuery;
+      setIsExtraNumber((count ?? 0) > 0);
     }
   };
 
@@ -50,7 +62,7 @@ export default function Checkout() {
     console.log('Criando checkout Stripe para sessão:', sessionId);
 
     const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
-      body: { session_id: sessionId }
+      body: { session_id: sessionId, billing_cycle: cycle }
     });
 
     if (error) {
@@ -151,7 +163,9 @@ export default function Checkout() {
     }
   };
 
-  const priceDisplay = formatPrice(pricing);
+  const annual = cycle === "annual";
+  const price = PLAN_PRICES[planKeyFor(isExtraNumber, cycle)];
+  const monthlyPrice = PLAN_PRICES[planKeyFor(isExtraNumber, "monthly")];
   const features = t('checkout.features', { returnObjects: true }) as string[];
 
   return (
@@ -183,11 +197,36 @@ export default function Checkout() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <div className="text-center py-6 border-y">
-            <div className="text-5xl font-bold text-primary mb-2">
-              {priceDisplay}
+          <div className="flex justify-center">
+            <div className="inline-flex rounded-lg border p-1 gap-1">
+              {(["monthly", "annual"] as const).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCycle(c)}
+                  disabled={loading}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    cycle === c ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {c === "monthly" ? t('checkout.monthly') : t('checkout.annual')}
+                </button>
+              ))}
             </div>
-            <div className="text-muted-foreground">{t('checkout.perMonth')}</div>
+          </div>
+
+          <div className="text-center py-6 border-y">
+            {isExtraNumber && (
+              <div className="text-sm font-medium text-muted-foreground mb-2">{t('checkout.extraNumber')}</div>
+            )}
+            <div className="text-5xl font-bold text-primary mb-2">
+              {formatBRL(price)}
+            </div>
+            <div className="text-muted-foreground">
+              {annual
+                ? t('checkout.perYear', { monthly: formatBRL(price / 12), full: formatBRL(monthlyPrice * 12) })
+                : t('checkout.perMonth')}
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -202,7 +241,7 @@ export default function Checkout() {
           <div className="bg-muted/50 p-4 rounded-lg flex items-start gap-3">
             <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
             <div className="text-sm text-muted-foreground">
-              {t('checkout.securePayment')}
+              {annual ? t('checkout.securePaymentAnnual') : t('checkout.securePayment')}
             </div>
           </div>
 

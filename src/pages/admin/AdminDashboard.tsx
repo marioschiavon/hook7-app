@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { monthlyEquivalent } from "@/lib/pricing";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +69,7 @@ const AdminDashboard = () => {
           supabase.from("organizations").select("*", { count: "exact", head: true }),
           supabase.from("users").select("*", { count: "exact", head: true }),
           supabase.from("sessions").select("*", { count: "exact", head: true }),
-          supabase.from("subscriptions").select("status, amount"),
+          supabase.from("subscriptions").select("status, amount, plan_name"),
           supabase
             .from("users")
             .select("id, email, name, role, created_at, organization_id")
@@ -85,7 +86,7 @@ const AdminDashboard = () => {
 
       const subs = subsRes.data || [];
       const activeSubs = subs.filter((s) => s.status === "active");
-      const revenue = activeSubs.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+      const revenue = activeSubs.reduce((sum, s) => sum + monthlyEquivalent(Number(s.amount || 0), s.plan_name), 0);
 
       const allSessionsWithMessages = await supabase
         .from("sessions")

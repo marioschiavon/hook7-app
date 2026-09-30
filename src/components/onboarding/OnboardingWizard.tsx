@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Hook7Logo } from "@/components/Hook7Logo";
+import { TRIAL_MESSAGE_LIMIT } from "@/lib/trial";
 
 interface OnboardingWizardProps {
   initialStep?: number;
@@ -110,7 +111,7 @@ export function OnboardingWizard({ initialStep = 0, existingOrgId = null }: Onbo
           organization_id: orgId,
           requires_subscription: true,
           status: "trial",
-          message_limit: 10,
+          message_limit: TRIAL_MESSAGE_LIMIT,
           trial_started_at: new Date().toISOString(),
           notification_phone: notificationPhone || null
         })

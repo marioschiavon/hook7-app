@@ -123,7 +123,7 @@ export default function TermsOfService() {
             <Section n={5} title="TESTE GRÁTIS">
               <List items={[
                 "Novas contas podem ativar um teste grátis de uma sessão, sem cartão de crédito;",
-                "O teste termina ao completar 48 horas ou ao atingir 10 mensagens enviadas, o que ocorrer primeiro;",
+                "O teste termina ao completar 3 dias ou ao atingir 200 mensagens enviadas, o que ocorrer primeiro;",
                 "Ao término, a sessão é bloqueada até que a assinatura seja ativada;",
                 "É proibido criar contas adicionais para obter novos períodos de teste.",
               ]} />
@@ -131,7 +131,7 @@ export default function TermsOfService() {
 
             <Section n={6} title="PLANOS, COBRANÇA, CANCELAMENTO E REEMBOLSO">
               <List items={[
-                "A cobrança é mensal e recorrente, por sessão (cada número conectado é uma assinatura independente);",
+                "A cobrança é recorrente, mensal ou anual, por sessão (cada número conectado é uma assinatura independente). A partir do segundo número pago da conta, aplica-se o valor de número adicional;",
                 "O valor vigente é exibido no checkout antes da contratação e pode variar conforme a região;",
                 "Os pagamentos são processados pela Stripe; o Hook7 não armazena dados de cartão;",
                 "Os planos pagos incluem envio de mensagens sem limite de quantidade definido pelo Hook7, sujeito às regras de uso destes Termos e aos limites impostos pelo próprio WhatsApp;",

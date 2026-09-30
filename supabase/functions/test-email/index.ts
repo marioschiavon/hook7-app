@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
                   
                   <div class="detail-row">
                     <span class="detail-label">Valor:</span>
-                    <span class="detail-value">R$ 69,90/mês</span>
+                    <span class="detail-value">R$ 59,90/mês</span>
                   </div>
                   
                   <div class="detail-row" style="border: none;">
@@ -158,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
                   
                   <div class="detail-row">
                     <span class="detail-label">Valor Pago:</span>
-                    <span class="detail-value">R$ 69,90/mês</span>
+                    <span class="detail-value">R$ 59,90/mês</span>
                   </div>
                   
                   <div class="detail-row" style="border: none;">

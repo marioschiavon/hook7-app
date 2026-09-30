@@ -147,10 +147,27 @@ if (orgData.is_legacy) {
 
 ## 💰 Modelo de Cobrança
 
-### Preço por Sessão
-- **R$ 69,90/mês** por sessão
+### Preço por Sessão (plano API — atualizado em 30/09/2026)
+Fonte das decisões: `docs/planos-e-precos.md` no repositório do site (Hook7).
+
+| Plano (`plan_name`) | Valor | Secret com o Price ID do Stripe |
+|---|---|---|
+| `api_monthly` — 1º número, mensal | R$ 59,90/mês | `STRIPE_PRICE_API_MONTHLY` |
+| `api_annual` — 1º número, anual | R$ 599,00/ano | `STRIPE_PRICE_API_ANNUAL` |
+| `extra_monthly` — número adicional, mensal | R$ 39,90/mês | `STRIPE_PRICE_EXTRA_MONTHLY` |
+| `extra_annual` — número adicional, anual | R$ 399,00/ano | `STRIPE_PRICE_EXTRA_ANNUAL` |
+
+- É "número adicional" quando a organização já tem outra sessão liberada
+  (`requires_subscription = FALSE`) no momento do checkout.
+- Anual = paga 10 meses, leva 12.
+- O cliente escolhe mensal/anual na tela `/checkout`.
+- Os valores ficam em `src/lib/pricing.ts` (tela) e em `create-stripe-checkout` (cobrança).
+- Assinaturas antigas de R$ 69,90 continuam no preço antigo até serem migradas no Stripe.
 - Renovação automática via Stripe
 - Cancelamento independente
+
+### Teste grátis
+- 3 dias ou 200 mensagens, o que vier primeiro (`src/lib/trial.ts` e `check-trial-expiration`).
 
 ### Limites
 - Clientes legacy: mantêm limites existentes

@@ -96,7 +96,7 @@ const ApiDocs = () => {
             <CardContent className="pt-5 pb-5 space-y-4">
               <h2 className="text-base font-semibold text-foreground">O que é a API WhatsApp Hook7?</h2>
               <p className="text-sm text-foreground/75 leading-relaxed">
-                A Hook7 é uma API WhatsApp brasileira que permite enviar mensagens de texto, imagens, áudio e documentos via WhatsApp por R$ 69,90/mês com mensagens ilimitadas. A API é RESTful, roda sobre o <strong className="text-foreground">Evolution API</strong> e pode ser integrada com qualquer linguagem de programação (JavaScript, Python, PHP) ou plataforma de automação (Make, Zapier, n8n, TypeBot).
+                A Hook7 é uma API WhatsApp brasileira que permite enviar mensagens de texto, imagens, áudio e documentos via WhatsApp por R$ 59,90/mês por número (R$ 39,90 por número adicional), com mensagens ilimitadas. A API é RESTful, roda sobre o <strong className="text-foreground">Evolution API</strong> e pode ser integrada com qualquer linguagem de programação (JavaScript, Python, PHP) ou plataforma de automação (Make, Zapier, n8n, TypeBot).
               </p>
               <p className="text-sm text-foreground/75 leading-relaxed">
                 <strong className="text-foreground">Não é a API oficial da Meta.</strong> Você conecta o seu próprio número lendo um QR Code, como no WhatsApp Web. Por isso não há templates aprovados, janela de 24h nem custo por conversa — mas também não há selo verde, e o WhatsApp pode restringir ou banir números que enviem SPAM. Veja os <Link to="/terms" className="text-primary hover:underline">Termos de Uso</Link>.

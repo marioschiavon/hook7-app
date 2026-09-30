@@ -29,7 +29,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as hook7Api from "@/services/hook7Api";
-import { useRegionalPricing, formatPrice } from "@/hooks/useRegionalPricing";
+import { PLAN_PRICES } from "@/lib/pricing";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 interface UserData {
@@ -103,7 +103,6 @@ const ITEM = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const pricing = useRegionalPricing();
   const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
@@ -248,7 +247,7 @@ const Dashboard = () => {
     if (!paymentSuccess) return;
 
     const sessionName = searchParams.get("session");
-    const priceValue = parseFloat(pricing.amount.replace(",", "."));
+    const priceValue = Number(searchParams.get("value")) || PLAN_PRICES.api_monthly;
 
     window.dataLayer?.push({ ecommerce: null });
     window.dataLayer?.push({
@@ -256,7 +255,7 @@ const Dashboard = () => {
       ecommerce: {
         transaction_id: sessionName || `purchase_${Date.now()}`,
         value: priceValue,
-        currency: pricing.currency,
+        currency: "BRL",
         items: [{ item_id: "whatsapp_session", item_name: `Sessão WhatsApp - ${sessionName || "unknown"}`, item_category: "subscription", price: priceValue, quantity: 1 }],
       },
     });

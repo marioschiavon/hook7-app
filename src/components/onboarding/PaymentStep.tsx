@@ -41,7 +41,7 @@ export function PaymentStep({ orgName, sessionName, onConfirm, onBack, isLoading
             Grátis
           </div>
           <div className="text-muted-foreground text-sm">
-            até 10 mensagens ou 48 horas, o que vier primeiro
+            por 3 dias ou 200 mensagens, o que vier primeiro
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export function PaymentStep({ orgName, sessionName, onConfirm, onBack, isLoading
         <div className="flex items-start gap-2 bg-muted/30 rounded-lg p-3">
           <Clock className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
-            Ao atingir 10 mensagens enviadas ou 48 horas de teste, vamos pedir para você assinar para continuar usando.
+            Ao atingir 200 mensagens enviadas ou 3 dias de teste, vamos pedir para você assinar para continuar usando. Depois, é R$ 59,90/mês (ou R$ 599,00/ano).
           </p>
         </div>
 

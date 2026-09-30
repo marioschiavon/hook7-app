@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { monthlyEquivalent } from "@/lib/pricing";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +77,7 @@ const AdminSubscriptions = () => {
 
   const activeCount = subs.filter((s) => s.status === "active").length;
   const pastDueCount = subs.filter((s) => s.status === "past_due").length;
-  const revenue = subs.filter((s) => s.status === "active").reduce((sum, s) => sum + Number(s.amount), 0);
+  const revenue = subs.filter((s) => s.status === "active").reduce((sum, s) => sum + monthlyEquivalent(Number(s.amount), s.plan_name), 0);
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-5">
