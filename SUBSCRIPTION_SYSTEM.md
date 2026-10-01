@@ -323,6 +323,14 @@ SELECT * FROM organizations WHERE is_legacy = TRUE;
 - Verificar logs: Dashboard Supabase → Edge Functions → stripe-webhook
 - Verificar se URL do webhook está configurada no Stripe
 
+### Cliente excluiu a sessão e, ao criar outra, pede pagamento
+- Excluir a sessão **não cancela** a assinatura no Stripe; ela fica sem sessão (`session_id` nulo).
+- Desde 01/10/2026, ao criar uma sessão (tela Sessões ou Checkout), a Edge Function
+  `claim-orphan-subscription` vincula essa assinatura ativa à nova sessão e a libera, sem novo checkout.
+- Requer a FK `subscriptions.session_id` com `ON DELETE SET NULL`: ver `SUBSCRIPTION_ORPHAN_FIX.sql`
+  (também lista as assinaturas ativas sem sessão).
+- O aviso de exclusão da sessão explica isso ao cliente; para trocar de número basta desconectar e ler novo QR.
+
 ### Cliente legacy sendo cobrado
 - Verificar `organizations.is_legacy = TRUE`
 - Se FALSE, executar: `UPDATE organizations SET is_legacy = TRUE WHERE created_at < NOW()`

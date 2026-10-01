@@ -187,4 +187,5 @@ Fora deste escopo: chat interno do Pro (usará a mesma tabela de contatos).
 - [ ] Confirmar schema `public` (e não `hook7_app` da v2).
 - [ ] Disparos via endpoint da API para clientes Pro, ou só no painel?
 - [ ] Limite de marketing por contato: 2 por semana?
-- [ ] Novos preços (R$ 59,90) e trial (3 dias ou 200 msgs) entram na F0 ou separados?
+- [x] Novos preços (R$ 59,90) e trial (3 dias ou 200 msgs): feitos separadamente em 30/09/2026
+      (ver `SUBSCRIPTION_SYSTEM.md` e `docs/STRIPE_SETUP.md`). Falta o preço do Pro.

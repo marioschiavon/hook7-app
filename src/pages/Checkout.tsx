@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, CreditCard, Shield, Check, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { type BillingCycle, PLAN_PRICES, planKeyFor, formatBRL } from "@/lib/pricing";
+import { claimOrphanSubscription, provisionSession } from "@/lib/subscriptionSlot";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
@@ -93,6 +94,14 @@ export default function Checkout() {
     setCreatingSession(true);
 
     try {
+      // 0. Assinatura de uma sessão excluída ainda ativa: reaproveita em vez de cobrar de novo
+      if (await claimOrphanSubscription(sessionName)) {
+        await provisionSession(sessionName);
+        toast.success(t('sessions.subscriptionReused'));
+        navigate('/sessions');
+        return;
+      }
+
       // 1. Se session_id foi passado na URL, usar sessão existente
       if (sessionIdFromUrl) {
         console.log('Usando sessão existente:', sessionIdFromUrl);

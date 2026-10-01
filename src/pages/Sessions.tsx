@@ -31,6 +31,7 @@ import { motion } from "framer-motion";
 import * as hook7Api from "@/services/hook7Api";
 import { isValidHook7Token } from "@/services/hook7Api";
 import { isTrialActive } from "@/lib/trial";
+import { claimOrphanSubscription, provisionSession } from "@/lib/subscriptionSlot";
 
 interface SessionData {
   id: string;
@@ -292,18 +293,13 @@ const Sessions = () => {
 
       try {
         toast.info(t("sessions.connectingApi"));
-        // No Evolution API o próprio /instance/connect já devolve o QR Code.
-        // Ainda assim ele pode vir vazio nos primeiros instantes, então tentamos
-        // algumas vezes com espera antes de considerar indisponível.
-        let qrData = await hook7Api.connectInstance(session.api_session, session.api_token);
-        let attempts = 0;
-        while (!qrData?.qrCode && attempts < 5) {
-          await new Promise((r) => setTimeout(r, 1500));
-          qrData = await hook7Api.fetchQRCode(session.api_session, session.api_token);
-          attempts++;
-        }
+        const qrData = await hook7Api.requestFreshQRCode(session.api_session, session.api_token);
 
-        if (qrData?.qrCode) {
+        if (qrData.connected) {
+          setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: true, message: "CONNECTED" } }));
+          setGeneratingQrCode(false);
+          toast.success(t("sessions.sessionConnectedSuccess"));
+        } else if (qrData.qrCode) {
           setSessionsStatus((prev) => ({
             ...prev,
             [session.id]: { status: false, message: "qrcode", qrCode: qrData.qrCode },
@@ -316,9 +312,9 @@ const Sessions = () => {
           throw new Error(t("sessions.qrNotAvailable"));
         }
       } catch (error: any) {
+        // Mantém o modal aberto: o cliente pode tentar de novo com "Gerar novo QR Code"
         toast.error(error.message || t("sessions.startSessionError"));
         setGeneratingQrCode(false);
-        setShowSessionModal(false);
       } finally {
         setStartingSession(false);
       }
@@ -331,9 +327,9 @@ const Sessions = () => {
     try {
       const result = await hook7Api.checkConnection(session.api_session, session.api_token);
       if (result.status === false) {
+        // Descarta o QR vencido e mantém o modal aberto com o botão "Gerar novo QR Code"
         setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: false, message: "Disconnected" } }));
-        setShowSessionModal(false);
-        setSelectedSession(null);
+        setQrCodeKey("");
         toast.info(t("sessions.qrExpiredMessage"), { duration: 5000 });
       } else if (result.status === true) {
         setSessionsStatus((prev) => ({ ...prev, [session.id]: result }));
@@ -352,17 +348,10 @@ const Sessions = () => {
       }
       setCreatingSession(true);
       try {
-        const { data, error } = await supabase.functions.invoke("hook7-generate-session", {
-          body: { session_name: sessionName },
-        });
-        if (error) throw error;
-        if (data.success && data.session_id) {
-          await fetchSessions();
-          setShowCreateSessionModal(false);
-          toast.success(t("sessions.sessionCreatedSuccess"));
-        } else {
-          throw new Error(data.error || t("sessions.tokenError"));
-        }
+        await provisionSession(sessionName);
+        await fetchSessions();
+        setShowCreateSessionModal(false);
+        toast.success(t("sessions.sessionCreatedSuccess"));
       } catch (error: any) {
         toast.error(error.message || t("sessions.startSessionError"));
       } finally {
@@ -370,6 +359,24 @@ const Sessions = () => {
       }
       return;
     }
+
+    // Assinatura de uma sessão excluída ainda ativa: reaproveita em vez de cobrar de novo
+    setCreatingSession(true);
+    const claimed = await claimOrphanSubscription(sessionName);
+    if (claimed) {
+      try {
+        await provisionSession(sessionName);
+        setShowCreateSessionModal(false);
+        toast.success(t("sessions.subscriptionReused"));
+      } catch (error: any) {
+        toast.error(error.message || t("sessions.startSessionError"));
+      } finally {
+        await fetchSessions();
+        setCreatingSession(false);
+      }
+      return;
+    }
+    setCreatingSession(false);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -412,8 +419,12 @@ const Sessions = () => {
     setGeneratingQrCode(true);
     try {
       toast.info(t("sessions.fetchingQr"));
-      const qrData = await hook7Api.fetchQRCode(session.api_session, session.api_token);
-      if (qrData?.qrCode) {
+      const qrData = await hook7Api.requestFreshQRCode(session.api_session, session.api_token);
+      if (qrData.connected) {
+        setSessionsStatus((prev) => ({ ...prev, [session.id]: { status: true, message: "CONNECTED" } }));
+        setGeneratingQrCode(false);
+        toast.success(t("sessions.sessionConnectedSuccess"));
+      } else if (qrData.qrCode) {
         setSessionsStatus((prev) => ({
           ...prev,
           [session.id]: { status: false, message: "qrcode", qrCode: qrData.qrCode },
@@ -586,6 +597,13 @@ const Sessions = () => {
               Tem certeza que deseja excluir{" "}
               <strong>"{sessions.find((s) => s.id === sessionToDelete)?.name}"</strong>?
               Esta ação não pode ser desfeita.
+              {!orgData?.is_legacy && (
+                <span className="block mt-3">
+                  Excluir a sessão <strong>não cancela a assinatura</strong>: ela continua ativa e é usada
+                  automaticamente na próxima sessão que você criar. Para parar a cobrança, cancele em
+                  Assinaturas. Para trocar de número, basta desconectar e ler um novo QR Code.
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -611,7 +629,16 @@ const Sessions = () => {
         session={selectedSession}
         status={selectedSession ? sessionsStatus[selectedSession.id] : null}
         open={showSessionModal}
-        onClose={() => { setShowSessionModal(false); setQrExpiresIn(null); setQrCodeKey(""); }}
+        onClose={() => {
+          // Descarta o QR exibido: ao reabrir, um QR antigo já estaria vencido
+          if (selectedSession && !sessionsStatus[selectedSession.id]?.status) {
+            const id = selectedSession.id;
+            setSessionsStatus((prev) => ({ ...prev, [id]: { status: false, message: "Disconnected" } }));
+          }
+          setShowSessionModal(false);
+          setQrExpiresIn(null);
+          setQrCodeKey("");
+        }}
         onRefreshQr={() => selectedSession && handleRefreshQr(selectedSession)}
         onCloseSession={() => selectedSession && handleCloseSession(selectedSession)}
         onLogoutSession={() => selectedSession && handleDeleteSession(selectedSession.id)}

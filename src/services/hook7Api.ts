@@ -129,6 +129,41 @@ export const fetchQRCode = async (
 };
 
 /**
+ * Gerar um QR Code novo, recuperando instâncias travadas.
+ *
+ * O /instance/connect pode vir sem QR nos primeiros instantes, ou ficar preso depois que
+ * o QR expira várias vezes (limite de QR do Evolution). Tentamos algumas vezes e, se ainda
+ * não vier, reiniciamos a instância com logout antes de tentar de novo. Nunca faz logout de
+ * uma instância conectada: nesse caso devolve `{ connected: true }`.
+ */
+export const requestFreshQRCode = async (
+  instanceName: string,
+  apiKey: string
+): Promise<Hook7QRCode & { connected?: boolean }> => {
+  const tryConnect = async (attempts: number): Promise<Hook7QRCode | null> => {
+    for (let i = 0; i < attempts; i++) {
+      if (i > 0) await new Promise((r) => setTimeout(r, 1500));
+      const qrData = await fetchQRCode(instanceName, apiKey);
+      if (qrData?.qrCode) return qrData;
+    }
+    return null;
+  };
+
+  const state = await checkConnection(instanceName, apiKey);
+  if (state.status) return { connected: true };
+
+  const first = await tryConnect(4);
+  if (first) return first;
+
+  const afterCheck = await checkConnection(instanceName, apiKey);
+  if (afterCheck.status) return { connected: true };
+
+  await logoutInstance(instanceName, apiKey);
+  await new Promise((r) => setTimeout(r, 1500));
+  return (await tryConnect(5)) ?? {};
+};
+
+/**
  * Logout completo da instância (desvincula o WhatsApp; reconectar exige novo QR Code)
  */
 export const logoutInstance = async (

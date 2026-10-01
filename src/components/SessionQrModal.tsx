@@ -207,6 +207,23 @@ const SessionQrModal = ({
                 </motion.div>
               )}
 
+              {/* Sem QR na tela (expirou, falhou ou o modal foi reaberto) */}
+              {!generatingQrCode && !isConnected && !hasQrCode && (
+                <div className="flex flex-col items-center gap-4 py-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum QR Code ativo. Gere um novo para conectar seu WhatsApp.
+                  </p>
+                  <Button onClick={onRefreshQr} disabled={refreshingQr} className="gap-2">
+                    {refreshingQr ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    Gerar novo QR Code
+                  </Button>
+                </div>
+              )}
+
               {/* Connected State */}
               {!generatingQrCode && isConnected && (
                 <motion.div
