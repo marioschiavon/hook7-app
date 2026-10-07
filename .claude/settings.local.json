@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Mario\\\\Documents\\\\GitHub\\\\hook7-app\" -Force)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Mario\\\\Documents\\\\GitHub\\\\hook7-app\" -Force | Select-Object Name, @{N=\"Type\";E={if\\($_.PSIsContainer\\){\"DIR\"}else{\"FILE\"}}} | Format-Table -AutoSize)",
+      "Bash(dir \"C:\\\\Users\\\\Mario\\\\Documents\\\\GitHub\\\\hook7-app\\\\src\\\\pages\")",
+      "Bash(grep -E \"\\\\.tsx$\")",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(npx vite *)",
+      "Bash(icacls .)",
+      "mcp__Claude_in_Chrome__computer",
+      "PowerShell(Get-ChildItem \"F:\\\\GitHub\\\\hook7-app\\\\dist\" -Force 2>/dev/null | Where-Object { $_.Name -match \"\\(favicon|icon|logo|manifest\\)\" })",
+      "PowerShell(Get-ChildItem \"F:\\\\GitHub\\\\hook7-app\\\\dist\" -Force | Where-Object { $_.Name -match \"\\(favicon|icon|logo|manifest\\)\" })",
+      "PowerShell(Get-ChildItem \"F:\\\\GitHub\\\\hook7-app\\\\public\" -Recurse -File | ForEach-Object { $_.FullName })",
+      "Bash(nslookup app.hook7.com.br)",
+      "Bash(curl -v --max-time 10 https://app.hook7.com.br)",
+      "Bash(curl -vk --max-time 10 https://app.hook7.com.br)",
+      "Bash(curl -v --max-time 10 http://app.hook7.com.br)",
+      "Bash(curl -s -o /dev/null -w \"HTTP Status: %{http_code}\\\\n\" --max-time 10 https://app.hook7.com.br -k)",
+      "Bash(curl -sk --max-time 10 https://app.hook7.com.br)",
+      "Bash(find \"C:\\\\Users\\\\Mario\\\\AppData\\\\Local\\\\Temp\" -iname \"*.png\" -mmin -30 2>/dev/null | head -30)"
+    ]
+  }
+}
