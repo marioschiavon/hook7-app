@@ -1,8 +1,9 @@
 # Disparo Seguro — planejamento dos disparos automáticos (Plano Pro)
 
-> Status: **planejamento** (nada implementado ainda) · Última atualização: 28/09/2026
+> Status: **planejamento** (nada implementado ainda) · Última atualização: 23/10/2026
 
-Este documento registra como os disparos automáticos serão construídos no app. As decisões
+Este documento registra como os disparos automáticos e o chat do Pro (§7) serão construídos
+no app. As decisões
 comerciais vêm do repositório do site (`Hook7`):
 
 - `docs/planos-e-precos.md` — §4 "Disparo Seguro" e §6 pendências do app
@@ -143,6 +144,8 @@ apontar para o site).
 - §8 hoje diz que o Hook7 "coleta apenas e-mail" e "não armazena mensagens" — deixa de ser
   verdade com contatos e campanhas. Definir cliente como controlador e Hook7 como operador, e
   prazo de retenção (sugestão: apagar destinatários 90 dias após o fim da campanha).
+- O chat (§7) passa a guardar **conteúdo de mensagens e mídia**. Os Termos precisam dizer o
+  que é guardado, para quê (exibir o histórico ao cliente) e por quanto tempo (§7.8).
 - §9 diz "SPAM não gera suspensão automática" — ajustar para deixar claro que pausa de
   campanha não é suspensão de conta.
 
@@ -178,14 +181,159 @@ guia de boas práticas.
 - Visão no admin de sessões com sinais de abuso.
 - Página de boas práticas na ApiDocs para quem usa a API direto.
 
-Fora deste escopo: chat interno do Pro (usará a mesma tabela de contatos).
+As fases do chat estão em §7.9.
 
 ---
 
-## 7. Pendências de decisão
+## 7. Chat do Pro (estilo WhatsApp Web)
+
+Em 23/10/2026 o chat deixou de ser "comodidade, pode vir depois" e passou a ser parte central
+do Pro: uma caixa de entrada que funciona como o WhatsApp Web, para o cliente atender no dia a
+dia e responder quem reagiu às campanhas.
+
+### 7.1 Princípios
+
+- **A mesma experiência do WhatsApp Web, com a identidade visual do Hook7.** O layout e o
+  comportamento são copiados: três áreas, balões, ✓/✓✓/✓✓ azul, separadores de data, resposta
+  citada, "digitando…", atalhos. Logo, ícones, ilustrações, o nome e o verde da marca do
+  WhatsApp não são usados (*trade dress* da Meta). Cores e fundo de conversa são do Hook7.
+- **Exclusivo do Plano Pro.** A rota do chat fica bloqueada para sessões `plan = 'api'`.
+- **Resposta manual sai na hora.** As proteções de §3 (intervalo, limite por hora, janela)
+  valem para disparos, não para quem está conversando. A exceção é iniciar conversa nova (§7.7).
+- **O que acontece no celular aparece no chat**, e vice-versa: mensagens enviadas pelo
+  aparelho chegam como `fromMe` pelo webhook e entram no histórico.
+
+### 7.2 Arquitetura
+
+```
+Evolution ──► whatsapp-webhook
+                ├─ MESSAGES_UPSERT  → upsert em messages / chats (idempotente por wa_message_id)
+                │                     mídia: media_status = 'pending' → chat-media-fetch
+                ├─ MESSAGES_UPDATE  → status (sent/delivered/read) e ACK das campanhas
+                ├─ MESSAGES_EDITED / MESSAGES_DELETE → edited_at / deleted_at
+                ├─ PRESENCE_UPDATE  → Realtime broadcast (não grava; "digitando…", "online")
+                └─ CHATS_UPSERT / CONTACTS_UPSERT → nome e foto do contato
+
+Edge Function `chat-media-fetch` ──► Evolution getBase64FromMediaMessage ──► Storage `chat-media`
+
+Painel (/chat) ◄── Supabase Realtime (postgres_changes em messages e chats, filtro por session_id)
+      │
+      └─► Edge Function `chat-send` ──► Evolution sendText / sendMedia / sendWhatsAppAudio
+                                        markMessageAsRead (ao abrir a conversa)
+```
+
+- O webhook continua gravando em `message_logs` para a cobrança. `messages` é outra tabela,
+  com o conteúdo.
+- A mídia é baixada fora do webhook: a URL do WhatsApp expira, e baixar dentro do webhook
+  atrasa a resposta ao Evolution. Não usar `webhook_base64` do Evolution (payload grande em
+  todo evento).
+- O envio passa sempre por `chat-send`, nunca do front direto para o Evolution: valida
+  usuário, organização, plano e sessão conectada, e registra quem enviou.
+- `chat-send` grava a mensagem como `pending` com um id temporário do cliente, chama o
+  Evolution e completa o `wa_message_id`. O webhook do mesmo envio encontra a linha pelo
+  `wa_message_id` e não duplica.
+
+### 7.3 Tabelas
+
+| Tabela | Conteúdo |
+|---|---|
+| `chats` | `organization_id`, `session_id`, `remote_jid` (único por sessão), `contact_id` (nulo em grupo), `is_group`, `name`, `avatar_url`, `last_message_at`, `last_message_preview`, `unread_count`, `archived_at`, `pinned_at`, `muted_until`, `last_campaign_id`, `last_inbound_at` |
+| `messages` | `organization_id`, `session_id`, `chat_id`, `wa_message_id` (único por sessão), `from_me`, `sender_jid` (grupos), `sent_by_user_id` (quem respondeu pelo painel), `source` (`chat/phone/campaign/api`), `type` (`text/image/audio/video/document/sticker/location/contact/system`), `body`, `media_path`, `media_mime`, `media_size`, `media_duration`, `media_status` (`none/pending/ready/failed`), `quoted_wa_message_id`, `status` (`pending/sent/delivered/read/failed`), `edited_at`, `deleted_at`, `campaign_id`, `broadcast_recipient_id`, `wa_timestamp` |
+| `message_reactions` | `message_id`, `reactor_jid`, `emoji` (única por reator e mensagem) |
+| `quick_replies` | atalho (`/preco`) e texto, por organização (C2) |
+| Storage `chat-media` | bucket privado, caminho `org/sessão/chat/mensagem`, acesso por URL assinada |
+
+- Índice principal: `messages (chat_id, wa_timestamp desc)` para a rolagem infinita, e
+  `chats (session_id, pinned_at, last_message_at desc)` para a lista.
+- RLS por organização em todas as tabelas, igual a `sessions`.
+- `chats` e `messages` entram na publicação do Realtime.
+- `contacts` é a mesma tabela dos disparos. O chat cria o contato quando alguém escreve pela
+  primeira vez e atualiza `last_interaction_at`.
+- `type = 'system'` registra eventos na conversa ("Contato pediu para sair dos disparos",
+  "Mensagem da campanha X").
+
+### 7.4 Tela
+
+Rota `/chat`, tela cheia, sem o layout do dashboard.
+
+- **Coluna da esquerda:** seletor de número (a organização pode ter várias sessões Pro; o
+  WhatsApp Web não tem isso), busca, filtros (Todas, Não lidas, Favoritas, Grupos, Respostas
+  de campanha), lista com foto, nome, prévia, horário, não lidas, fixadas no topo, Arquivadas.
+- **Conversa:** cabeçalho com nome e "online/digitando…", lista virtualizada com rolagem
+  infinita, separadores Hoje/Ontem/data, balões com hora e ✓, citação clicável, mídia com
+  prévia e player de áudio, mensagens apagadas e editadas sinalizadas.
+- **Caixa de texto:** emoji, anexo (imagem, vídeo, documento), Enter envia e Shift+Enter
+  quebra linha, gravar áudio (C2), resposta citada ao arrastar ou pelo menu do balão.
+- **Painel do contato (direita):** dados, mídia trocada, campanhas recebidas, opt-in, opt-out,
+  etiquetas.
+- Atalhos do WhatsApp Web (Ctrl+Alt+N nova conversa, Ctrl+Alt+/ buscar, Esc fechar etc.).
+- Celular: uma coluna por vez, como o app.
+
+### 7.5 Escopo por fase
+
+| Fase | Recursos |
+|---|---|
+| C1 — MVP | Lista, busca, não lidas, conversa com ✓✓ e "digitando…", texto e emoji, receber todos os tipos de mídia, enviar imagem e documento, responder citando, arquivar, fixar, silenciar, marcar como lida |
+| C2 | Gravar áudio no navegador (converter para ogg/opus para sair como áudio de voz), reações, editar, apagar para todos, encaminhar, figurinhas, grupos com nome de quem falou, respostas rápidas, painel do contato completo |
+| C3 | Vários atendentes (atribuir conversa, ver quem respondeu), etiquetas, notas internas, notificações do navegador |
+| Fora | Ligações, Status, Comunidades e Canais: frágeis ou inexistentes no Baileys |
+
+### 7.6 Integração com os disparos
+
+- **Contatos únicos:** chat e campanhas usam `contacts`. A interação no chat atualiza
+  `last_interaction_at`, que alimenta o aviso de **lista fria** (§3).
+- **Mensagem da campanha no histórico:** o worker grava cada envio também em `messages`
+  (`source = 'campaign'`, `campaign_id`), e a conversa mostra o selo "Campanha X".
+- **Respostas de campanha:** mensagem recebida até 72 h depois de um envio da campanha marca
+  `chats.last_campaign_id` e aparece no filtro "Respostas de campanha". Conta como resposta
+  nas métricas da campanha, um sinal positivo para o indicador de saúde (§3).
+- **Opt-out:** quando o webhook detecta SAIR/PARAR, grava em `suppression_list`, insere uma
+  mensagem `system` na conversa e mostra o selo "Saiu dos disparos". O atendimento continua
+  normal. Tirar alguém da supressão exige novo opt-in com evidência.
+- **Aquecimento:** nos dias 1–3 o número só pode conversar com quem escreveu primeiro. O chat
+  é a ferramenta desse período, e a tela mostra em que fase o número está.
+- **Contato no meio de uma conversa:** o worker pula (e reagenda para mais tarde) o envio de
+  marketing para um contato que trocou mensagens no chat na última hora (a confirmar).
+- **Desconexão:** além de pausar as campanhas, o chat mostra um aviso fixo e desativa o envio
+  até reconectar.
+
+### 7.7 Proteções do chat
+
+- **Iniciar conversa nova** (com quem nunca escreveu para o número) conta no limite diário
+  de disparos e respeita o aquecimento. Sem isso, o chat vira um disparo manual sem proteção.
+- Responder quem já escreveu não tem limite nem intervalo.
+- Não há envio para vários contatos pelo chat: isso é campanha.
+
+### 7.8 Privacidade e cobrança
+
+- Retenção das mensagens e da mídia: prazo a definir (§8). Ao vencer, apagar mídia do Storage
+  e o conteúdo de `messages`.
+- Ao excluir a sessão, apagar `chats`, `messages` e a mídia dela.
+- Hoje o gatilho de `message_logs` conta toda mensagem `fromMe` na franquia mensal, então cada
+  resposta pelo chat consome a franquia. Confirmar se é o comportamento desejado (§8).
+
+### 7.9 Fases do chat e ordem com os disparos
+
+- **C0 (junto com F0):** tabelas de §7.3, bucket, gravação no webhook, `chat-send`, Termos.
+- **C1, C2, C3:** conforme §7.5.
+
+Ordem proposta (a confirmar): F0 → C1 → F1 → C2 → F2 → C3 → F3. O chat obriga a construir
+contatos, gravação de mensagens e Realtime, que os disparos usam depois, e é a parte que o
+cliente usa todos os dias.
+
+---
+
+## 8. Pendências de decisão
 
 - [ ] Confirmar schema `public` (e não `hook7_app` da v2).
 - [ ] Disparos via endpoint da API para clientes Pro, ou só no painel?
 - [ ] Limite de marketing por contato: 2 por semana?
 - [x] Novos preços (R$ 59,90) e trial (3 dias ou 200 msgs): feitos separadamente em 30/09/2026
       (ver `SUBSCRIPTION_SYSTEM.md` e `docs/STRIPE_SETUP.md`). Falta o preço do Pro.
+- [ ] Chat: ordem com os disparos (proposta em §7.9).
+- [ ] Chat: vários atendentes por organização já na C1 ou só na C3?
+- [ ] Chat: importar o histórico ao conectar (quantos dias?) ou começar da conexão?
+- [ ] Chat: prazo de retenção das mensagens e da mídia.
+- [ ] Chat: respostas pelo chat consomem a franquia mensal?
+- [ ] Chat: confirmar "mesma experiência, identidade Hook7" (§7.1) em vez de cópia visual.
+- [ ] Chat: pular marketing para contato em conversa ativa (§7.6)?
