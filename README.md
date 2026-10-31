@@ -44,7 +44,7 @@ Front-end (lidas pelo Vite **no momento do build**):
 
 O `.env` é local e não vai para o git. O `.env.production` é versionado porque só contém valores públicos e é usado no build de produção.
 
-Edge Functions (configuradas como *secrets* no Supabase, nunca no front-end): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `RESET_SECRET` e as chaves `HOOK*` da API.
+Edge Functions (configuradas como *secrets* no Supabase, nunca no front-end): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `RESET_SECRET`, `MONITOR_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` e as chaves `HOOK*` da API.
 
 ## Estrutura
 
@@ -75,4 +75,4 @@ scripts/            generate-favicon.mjs
 - [ANNOUNCEMENTS_SETUP_README.md](ANNOUNCEMENTS_SETUP_README.md): sistema de anúncios e e-mails
 - [SECURITY_FIXES_README.md](SECURITY_FIXES_README.md): correções de segurança aplicadas
 - [DISPARO_SEGURO.md](DISPARO_SEGURO.md): planejamento dos disparos automáticos (Plano Pro)
-- SQL: `hook7_v2_migration.sql`, `MESSAGE_TRACKING_MIGRATION.sql`, `MONTHLY_RESET.sql`
+- SQL: `hook7_v2_migration.sql`, `MESSAGE_TRACKING_MIGRATION.sql`, `MONTHLY_RESET.sql`, `INSTANCE_MONITORING.sql` (eventos de conexão e alertas no Telegram)

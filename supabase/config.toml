@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.check-trial-expiration]
 verify_jwt = false
+
+[functions.monitor-alerts]
+verify_jwt = false

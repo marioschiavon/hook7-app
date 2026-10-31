@@ -192,7 +192,36 @@ serve(async (req) => {
     // 4.5 Sync connection status to database on CONNECTION_UPDATE events
     if (isConnectionEvent && payload.data) {
       const connectionState = payload.data?.state || payload.data?.instance?.state;
-      
+
+      // Registra a conexão/desconexão para o monitoramento (instance_events → monitor_alerts).
+      // Só grava quando o estado muda, para que reconexões repetidas não gerem alertas duplicados.
+      if (connectionState === 'open' || connectionState === 'close') {
+        const monitorEvent = connectionState === 'open' ? 'connected' : 'disconnected';
+        const { data: lastEvent } = await supabaseAdmin
+          .from('instance_events')
+          .select('event_type')
+          .eq('session_id', session.id)
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastEvent?.event_type !== monitorEvent) {
+          const reason = Number(payload.data?.statusReason);
+          const wuid: string | undefined = payload.data?.wuid;
+          const { error: eventError } = await supabaseAdmin.from('instance_events').insert({
+            session_id: session.id,
+            instance_name: session.name,
+            event_type: monitorEvent,
+            status_reason: Number.isFinite(reason) ? reason : null,
+            phone: wuid ? wuid.split('@')[0].split(':')[0] : null,
+          });
+          if (eventError) {
+            console.error('Error inserting instance event:', eventError);
+          }
+        }
+      }
+
       if (connectionState === 'open') {
         await supabaseAdmin.from('sessions')
           .update({ status: 'connected', updated_at: new Date().toISOString() })
