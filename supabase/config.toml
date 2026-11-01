@@ -27,5 +27,5 @@ verify_jwt = false
 [functions.check-trial-expiration]
 verify_jwt = false
 
-[functions.monitor-alerts]
+[functions.evolution-monitor]
 verify_jwt = false
