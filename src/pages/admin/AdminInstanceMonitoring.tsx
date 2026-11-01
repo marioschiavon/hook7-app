@@ -218,19 +218,53 @@ const AdminInstanceMonitoring = () => {
     { label: "Quedas em 24h", value: String(totalDrops), hint: "desconexões registradas", icon: Zap, tone: totalDrops ? "text-orange-400" : "text-foreground/70" },
   ];
 
+  const filterChips = [
+    { f: "all" as FilterType, label: "Todas", dot: "bg-foreground/30", n: counts.all },
+    { f: "down" as FilterType, label: "Desconectadas", dot: "bg-red-500", n: counts.down },
+    { f: "connecting" as FilterType, label: "Conectando", dot: "bg-yellow-500", n: counts.connecting },
+    { f: "open" as FilterType, label: "Conectadas", dot: "bg-green-500", n: counts.open },
+  ];
+
+  // Campo "Cliente" editável, usado na tabela (desktop) e nos cartões (celular/tablet)
+  const renderClientLabel = (inst: InstanceRow) =>
+    editing === inst.instance_name ? (
+      <Input
+        autoFocus
+        value={labelDraft}
+        onChange={(e) => setLabelDraft(e.target.value)}
+        onBlur={() => saveLabel(inst.instance_name)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") saveLabel(inst.instance_name);
+          if (e.key === "Escape") setEditing(null);
+        }}
+        placeholder="Nome do cliente"
+        className="h-9 xl:h-7 text-sm xl:text-xs border-foreground/15"
+      />
+    ) : (
+      <button
+        onClick={() => { setEditing(inst.instance_name); setLabelDraft(inst.client_label ?? ""); }}
+        className="group flex min-h-9 xl:min-h-0 items-center gap-1.5 text-left text-sm text-foreground/70 hover:text-foreground"
+        title="Definir o cliente desta instância"
+      >
+        {inst.client_label || <span className="text-foreground/25 text-xs">Definir cliente</span>}
+        {/* Sem hover no toque: no celular/tablet o lápis fica sempre visível */}
+        <Pencil className="h-3 w-3 opacity-40 xl:opacity-0 xl:group-hover:opacity-60 transition-opacity" />
+      </button>
+    );
+
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-5">
+    <div className="container mx-auto px-3 py-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5">
       {/* Resumo */}
-      <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-3" variants={STAGGER} initial="hidden" animate="show">
+      <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3" variants={STAGGER} initial="hidden" animate="show">
         {statCards.map(({ label, value, hint, icon: Icon, tone }) => (
           <motion.div key={label} variants={ITEM}>
             <Card className="glass-card border-foreground/5 h-full">
-              <CardContent className="p-4 space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-foreground/40">
-                  {label}
-                  <Icon className="h-3.5 w-3.5" />
+              <CardContent className="p-3 sm:p-4 space-y-1 sm:space-y-1.5">
+                <div className="flex items-center justify-between gap-2 text-[11px] sm:text-xs text-foreground/40">
+                  <span className="truncate">{label}</span>
+                  <Icon className="h-3.5 w-3.5 flex-shrink-0" />
                 </div>
-                <p className={`text-xl font-semibold tabular-nums ${tone}`}>{value}</p>
+                <p className={`text-lg sm:text-xl font-semibold tabular-nums leading-tight ${tone}`}>{value}</p>
                 <p className="text-[11px] text-foreground/35 truncate">{hint}</p>
               </CardContent>
             </Card>
@@ -239,36 +273,30 @@ const AdminInstanceMonitoring = () => {
       </motion.div>
 
       {monitorStale && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+        <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs sm:text-sm text-red-300">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
           O monitor não registra verificações há mais de 3 minutos. Confira o cron evolution-monitor no Supabase.
         </div>
       )}
       {!monitorStale && lastCheck.api_ok === false && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+        <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs sm:text-sm text-red-300">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
           A API do Hook7 não respondeu na última verificação{lastCheck.error ? `: ${lastCheck.error}` : ""}. Os estados abaixo podem estar desatualizados.
         </div>
       )}
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
+      <div className="grid gap-4 sm:gap-5 2xl:grid-cols-[1fr_360px]">
         {/* Instâncias */}
         <Card className="glass-card border-foreground/5 overflow-hidden min-w-0">
-          <CardHeader className="pb-3 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap gap-2">
-                {(
-                  [
-                    { f: "all" as FilterType, label: "Todas", dot: "bg-foreground/30", n: counts.all },
-                    { f: "down" as FilterType, label: "Desconectadas", dot: "bg-red-500", n: counts.down },
-                    { f: "connecting" as FilterType, label: "Conectando", dot: "bg-yellow-500", n: counts.connecting },
-                    { f: "open" as FilterType, label: "Conectadas", dot: "bg-green-500", n: counts.open },
-                  ] as const
-                ).map(({ f, label, dot, n }) => (
+          <CardHeader className="p-3 sm:p-6 pb-3 space-y-3">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              {/* No celular os filtros rolam na horizontal em vez de quebrar em várias linhas */}
+              <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+                {filterChips.map(({ f, label, dot, n }) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                    className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 xl:py-1.5 text-sm transition-colors ${
                       filter === f
                         ? "border-primary/50 bg-primary/10 text-primary"
                         : "border-foreground/8 bg-muted/20 text-foreground/50 hover:border-foreground/15 hover:text-foreground/70"
@@ -280,102 +308,117 @@ const AdminInstanceMonitoring = () => {
                   </button>
                 ))}
               </div>
-              <div className="relative w-full sm:w-64">
+              <div className="relative w-full xl:w-64">
                 <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-foreground/30" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar instância, cliente ou número"
-                  className="h-9 pl-8 text-sm border-foreground/10"
+                  className="h-10 xl:h-9 pl-8 text-sm border-foreground/10"
                 />
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
+          <CardContent className="p-0">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <Activity className="h-8 w-8 text-foreground/15" />
                 <p className="text-sm text-foreground/30">Nenhuma instância com este filtro</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-foreground/5 hover:bg-transparent">
-                    <TableHead className="text-foreground/40 text-xs font-medium">Status</TableHead>
-                    <TableHead className="text-foreground/40 text-xs font-medium">Instância</TableHead>
-                    <TableHead className="text-foreground/40 text-xs font-medium">Cliente</TableHead>
-                    <TableHead className="text-foreground/40 text-xs font-medium">Número</TableHead>
-                    <TableHead className="text-foreground/40 text-xs font-medium">No estado desde</TableHead>
-                    <TableHead className="text-foreground/40 text-xs font-medium text-right">Quedas 24h</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Celular, tablet e notebook pequeno: cartões. As colunas seguem a largura disponível, que no tablet
+                    muda bastante com o menu lateral aberto ou fechado. */}
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-2 px-3 pb-3 sm:px-6 sm:pb-6 xl:hidden">
                   {filtered.map((inst) => {
                     const cfg = STATE_CONFIG[inst.state] ?? STATE_CONFIG.close;
                     const phone = inst.phone ?? inst.last_phone;
                     const drops = drops24h[inst.instance_name] ?? 0;
                     return (
-                      <TableRow key={inst.instance_name} className="border-foreground/5 hover:bg-foreground/3">
-                        <TableCell>
-                          <div className="flex items-center gap-1.5">
-                            <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
-                            <Badge variant="outline" className={`text-[10px] h-5 px-1.5 whitespace-nowrap ${cfg.badge}`}>
-                              {cfg.label}
-                            </Badge>
+                      <div key={inst.instance_name} className="rounded-lg border border-foreground/8 bg-muted/10 p-3 space-y-2 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-mono text-xs text-foreground/85 break-all">{inst.instance_name}</p>
+                            <p className="text-[11px] text-foreground/35 truncate">
+                              {inst.profile_name || "—"} · {appInstances.has(inst.instance_name) ? "App" : "API direta"}
+                            </p>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <p className="font-mono text-xs text-foreground/80">{inst.instance_name}</p>
-                          <p className="text-[11px] text-foreground/35">
-                            {inst.profile_name || "—"} · {appInstances.has(inst.instance_name) ? "App" : "API direta"}
-                          </p>
-                        </TableCell>
-                        <TableCell className="min-w-[150px]">
-                          {editing === inst.instance_name ? (
-                            <Input
-                              autoFocus
-                              value={labelDraft}
-                              onChange={(e) => setLabelDraft(e.target.value)}
-                              onBlur={() => saveLabel(inst.instance_name)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") saveLabel(inst.instance_name);
-                                if (e.key === "Escape") setEditing(null);
-                              }}
-                              placeholder="Nome do cliente"
-                              className="h-7 text-xs border-foreground/15"
-                            />
-                          ) : (
-                            <button
-                              onClick={() => { setEditing(inst.instance_name); setLabelDraft(inst.client_label ?? ""); }}
-                              className="group flex items-center gap-1.5 text-left text-sm text-foreground/70 hover:text-foreground"
-                              title="Definir o cliente desta instância"
-                            >
-                              {inst.client_label || <span className="text-foreground/25 text-xs">Definir cliente</span>}
-                              <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
-                            </button>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs text-foreground/50 whitespace-nowrap">
-                          {phone ? `+${phone}` : "—"}
-                        </TableCell>
-                        <TableCell className="text-xs text-foreground/40 whitespace-nowrap">
-                          {formatDistanceToNow(new Date(inst.state_changed_at), { addSuffix: true, locale: ptBR })}
-                        </TableCell>
-                        <TableCell className={`text-right text-sm tabular-nums ${drops ? "text-orange-400 font-semibold" : "text-foreground/30"}`}>
-                          {drops}
-                        </TableCell>
-                      </TableRow>
+                          <Badge variant="outline" className={`flex-shrink-0 gap-1 text-[10px] h-5 px-1.5 whitespace-nowrap ${cfg.badge}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                            {cfg.label}
+                          </Badge>
+                        </div>
+                        {renderClientLabel(inst)}
+                        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-foreground/40">
+                          <span className="font-mono">{phone ? `+${phone}` : "—"}</span>
+                          <span>{formatDistanceToNow(new Date(inst.state_changed_at), { addSuffix: true, locale: ptBR })}</span>
+                          <span className={drops ? "text-orange-400 font-semibold" : ""}>
+                            {drops} {drops === 1 ? "queda" : "quedas"} em 24h
+                          </span>
+                        </div>
+                      </div>
                     );
                   })}
-                </TableBody>
-              </Table>
+                </div>
+
+                {/* Telas largas: tabela */}
+                <div className="hidden xl:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-foreground/5 hover:bg-transparent">
+                        <TableHead className="text-foreground/40 text-xs font-medium">Status</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium">Instância</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium">Cliente</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium">Número</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium">No estado desde</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium text-right">Quedas 24h</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filtered.map((inst) => {
+                        const cfg = STATE_CONFIG[inst.state] ?? STATE_CONFIG.close;
+                        const phone = inst.phone ?? inst.last_phone;
+                        const drops = drops24h[inst.instance_name] ?? 0;
+                        return (
+                          <TableRow key={inst.instance_name} className="border-foreground/5 hover:bg-foreground/3">
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                                <Badge variant="outline" className={`text-[10px] h-5 px-1.5 whitespace-nowrap ${cfg.badge}`}>
+                                  {cfg.label}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <p className="font-mono text-xs text-foreground/80">{inst.instance_name}</p>
+                              <p className="text-[11px] text-foreground/35">
+                                {inst.profile_name || "—"} · {appInstances.has(inst.instance_name) ? "App" : "API direta"}
+                              </p>
+                            </TableCell>
+                            <TableCell className="min-w-[150px]">{renderClientLabel(inst)}</TableCell>
+                            <TableCell className="font-mono text-xs text-foreground/50 whitespace-nowrap">
+                              {phone ? `+${phone}` : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs text-foreground/40 whitespace-nowrap">
+                              {formatDistanceToNow(new Date(inst.state_changed_at), { addSuffix: true, locale: ptBR })}
+                            </TableCell>
+                            <TableCell className={`text-right text-sm tabular-nums ${drops ? "text-orange-400 font-semibold" : "text-foreground/30"}`}>
+                              {drops}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
 
         {/* Alertas recentes */}
         <Card className="glass-card border-foreground/5 min-w-0">
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3 sm:p-6 pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground/70">
               <Bell className="h-4 w-4" />
               Alertas recentes
@@ -385,12 +428,12 @@ const AdminInstanceMonitoring = () => {
             {alerts.length === 0 ? (
               <p className="px-6 py-10 text-center text-sm text-foreground/30">Nenhum alerta ainda</p>
             ) : (
-              <ScrollArea className="h-[560px]">
+              <ScrollArea className="h-[420px] 2xl:h-[640px]">
                 <ul className="divide-y divide-foreground/5">
                   {alerts.map((a) => {
                     const [title, ...rest] = a.message.split("\n").filter(Boolean);
                     return (
-                      <li key={a.id} className="px-4 py-3 space-y-1">
+                      <li key={a.id} className="px-3 sm:px-4 py-3 space-y-1">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${SEVERITY_DOT[a.severity] ?? "bg-foreground/30"}`} />
@@ -401,7 +444,7 @@ const AdminInstanceMonitoring = () => {
                           </span>
                         </div>
                         {rest.length > 0 && (
-                          <p className="pl-3.5 text-xs text-foreground/40 whitespace-pre-line line-clamp-4">{rest.join("\n")}</p>
+                          <p className="pl-3.5 text-xs text-foreground/40 whitespace-pre-line line-clamp-4 break-words">{rest.join("\n")}</p>
                         )}
                         {a.status !== "sent" && (
                           <p className="pl-3.5 text-[11px] text-yellow-400/80">
