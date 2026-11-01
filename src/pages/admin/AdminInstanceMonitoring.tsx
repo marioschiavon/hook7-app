@@ -7,14 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Activity, AlertTriangle, Bell, Pencil, Search, Server, Wifi, WifiOff, Zap } from "lucide-react";
+import { Activity, AlertTriangle, Bell, Copy, Hourglass, Pencil, Search, Server, Trash2, Wifi, WifiOff, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Dados gravados pela edge function evolution-monitor (ver INSTANCE_MONITORING.sql).
+// Dados gravados pelas edge functions evolution-monitor e instance-cleanup
+// (ver INSTANCE_MONITORING.sql e INSTANCE_CLEANUP.sql).
 // As tabelas não estão nos tipos gerados do Supabase, por isso os casts `as any`.
 
 interface InstanceRow {
@@ -26,6 +28,26 @@ interface InstanceRow {
   client_label: string | null;
   state_changed_at: string;
   removed_at: string | null;
+  keep: boolean;
+  disconnected_since: string | null;
+}
+
+interface DeletionRow {
+  id: number;
+  instance_name: string;
+  reason: "inactive" | "superseded";
+  dry_run: boolean;
+  phone: string | null;
+  client_label: string | null;
+  api_status: number | null;
+  created_at: string;
+}
+
+interface CleanupConfig {
+  enabled?: boolean;
+  dry_run_until?: string | null;
+  inactive_days?: number;
+  superseded_hours?: number;
 }
 
 interface AlertRow {
@@ -46,7 +68,7 @@ interface LastCheck {
   open?: number;
 }
 
-type FilterType = "all" | "open" | "down" | "connecting";
+type FilterType = "all" | "open" | "down" | "connecting" | "duplicate";
 
 // O cron roda a cada minuto; sem pulso por mais que isso o próprio monitor parou
 const STALE_AFTER_MS = 3 * 60 * 1000;
@@ -63,6 +85,8 @@ const SEVERITY_DOT: Record<string, string> = {
   info: "bg-green-500",
 };
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 const STAGGER = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const ITEM = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
@@ -75,6 +99,8 @@ const AdminInstanceMonitoring = () => {
   const [drops24h, setDrops24h] = useState<Record<string, number>>({});
   const [appInstances, setAppInstances] = useState<Set<string>>(new Set());
   const [lastCheck, setLastCheck] = useState<LastCheck>({});
+  const [deletions, setDeletions] = useState<DeletionRow[]>([]);
+  const [cleanupConfig, setCleanupConfig] = useState<CleanupConfig>({});
   const [filter, setFilter] = useState<FilterType>("all");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
@@ -88,13 +114,17 @@ const AdminInstanceMonitoring = () => {
 
   const fetchAll = useCallback(async () => {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const [instRes, alertRes, eventRes, statusRes, sessionRes] = await Promise.all([
+    const [instRes, alertRes, eventRes, statusRes, sessionRes, deletionRes, cleanupRes] = await Promise.all([
       supabase.from("evolution_instances" as any).select("*").is("removed_at", null),
       supabase.from("monitor_alerts" as any).select("id, kind, severity, instance_name, message, status, created_at")
         .order("created_at", { ascending: false }).limit(40),
       supabase.from("instance_events" as any).select("instance_name").eq("event_type", "disconnected").gte("created_at", since),
       supabase.from("monitor_status" as any).select("value").eq("key", "last_check").maybeSingle(),
       supabase.from("sessions").select("api_session"),
+      supabase.from("instance_deletions" as any)
+        .select("id, instance_name, reason, dry_run, phone, client_label, api_status, created_at")
+        .order("created_at", { ascending: false }).limit(50),
+      supabase.from("monitor_status" as any).select("value").eq("key", "cleanup_config").maybeSingle(),
     ]);
 
     if (instRes.error || alertRes.error) {
@@ -112,6 +142,8 @@ const AdminInstanceMonitoring = () => {
     setDrops24h(drops);
     setLastCheck(((statusRes.data as any)?.value as LastCheck) ?? {});
     setAppInstances(new Set((sessionRes.data ?? []).map((s) => s.api_session).filter(Boolean) as string[]));
+    setDeletions((deletionRes.data as unknown as DeletionRow[]) ?? []);
+    setCleanupConfig(((cleanupRes.data as any)?.value as CleanupConfig) ?? {});
     setLoading(false);
   }, []);
 
@@ -126,7 +158,7 @@ const AdminInstanceMonitoring = () => {
     };
 
     const channel = supabase.channel("admin-instance-monitoring");
-    for (const table of ["evolution_instances", "instance_events", "monitor_alerts", "monitor_status"]) {
+    for (const table of ["evolution_instances", "instance_events", "monitor_alerts", "monitor_status", "instance_deletions"]) {
       channel.on("postgres_changes" as any, { event: "*", schema: "public", table }, scheduleRefetch);
     }
     channel.subscribe();
@@ -155,12 +187,59 @@ const AdminInstanceMonitoring = () => {
     setInstances((prev) => prev.map((i) => (i.instance_name === instanceName ? { ...i, client_label: value } : i)));
   };
 
+  const toggleKeep = async (inst: InstanceRow, keep: boolean) => {
+    setInstances((prev) => prev.map((i) => (i.instance_name === inst.instance_name ? { ...i, keep } : i)));
+    const { error } = await supabase
+      .from("evolution_instances" as any)
+      .update({ keep })
+      .eq("instance_name", inst.instance_name);
+    if (error) {
+      toast.error("Não foi possível salvar");
+      setInstances((prev) => prev.map((i) => (i.instance_name === inst.instance_name ? { ...i, keep: !keep } : i)));
+      return;
+    }
+    toast.success(keep ? "Instância não será removida automaticamente" : "Instância volta para a limpeza automática");
+  };
+
+  // Número conectado em mais de uma instância ao mesmo tempo
+  const openByPhone = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const i of instances) {
+      const phone = i.phone ?? i.last_phone;
+      if (i.state === "open" && phone) map.set(phone, (map.get(phone) ?? 0) + 1);
+    }
+    return map;
+  }, [instances]);
+
+  // Mesma regra da edge function instance-cleanup, só para exibir no painel
+  const flagsFor = (inst: InstanceRow) => {
+    const phone = inst.phone ?? inst.last_phone;
+    const openWithPhone = phone ? openByPhone.get(phone) ?? 0 : 0;
+    const duplicate = inst.state === "open" && openWithPhone > 1;
+    const superseded = inst.state !== "open" && openWithPhone > 0;
+    const protectedFromCleanup = inst.keep || appInstances.has(inst.instance_name);
+    let removalAt: Date | null = null;
+    if (inst.state !== "open" && inst.disconnected_since && !protectedFromCleanup) {
+      const since = new Date(inst.disconnected_since).getTime();
+      removalAt = superseded
+        ? new Date(since + (cleanupConfig.superseded_hours ?? 48) * 60 * 60 * 1000)
+        : new Date(since + (cleanupConfig.inactive_days ?? 15) * DAY_MS);
+    }
+    return { duplicate, superseded, removalAt, isApp: appInstances.has(inst.instance_name) };
+  };
+
+  const dryRunActive = !!cleanupConfig.dry_run_until && Date.now() < new Date(cleanupConfig.dry_run_until).getTime();
+
   const counts = useMemo(() => ({
     all: instances.length,
     open: instances.filter((i) => i.state === "open").length,
     connecting: instances.filter((i) => i.state === "connecting").length,
     down: instances.filter((i) => i.state === "close").length,
-  }), [instances]);
+    duplicate: instances.filter((i) => {
+      const phone = i.phone ?? i.last_phone;
+      return i.state === "open" && !!phone && (openByPhone.get(phone) ?? 0) > 1;
+    }).length,
+  }), [instances, openByPhone]);
 
   const totalDrops = Object.values(drops24h).reduce((a, b) => a + b, 0);
 
@@ -171,6 +250,10 @@ const AdminInstanceMonitoring = () => {
         if (filter === "open") return i.state === "open";
         if (filter === "down") return i.state === "close";
         if (filter === "connecting") return i.state === "connecting";
+        if (filter === "duplicate") {
+          const phone = i.phone ?? i.last_phone;
+          return i.state === "open" && !!phone && (openByPhone.get(phone) ?? 0) > 1;
+        }
         return true;
       })
       .filter((i) => !q || [i.instance_name, i.client_label, i.profile_name, i.phone, i.last_phone]
@@ -180,7 +263,7 @@ const AdminInstanceMonitoring = () => {
         const rank = (s: string) => (s === "close" ? 0 : s === "connecting" ? 1 : 2);
         return rank(a.state) - rank(b.state) || a.instance_name.localeCompare(b.instance_name);
       });
-  }, [instances, filter, search]);
+  }, [instances, filter, search, openByPhone]);
 
   const lastCheckAt = lastCheck.at ? new Date(lastCheck.at) : null;
   const monitorStale = !lastCheckAt || Date.now() - lastCheckAt.getTime() > STALE_AFTER_MS;
@@ -223,7 +306,48 @@ const AdminInstanceMonitoring = () => {
     { f: "down" as FilterType, label: "Desconectadas", dot: "bg-red-500", n: counts.down },
     { f: "connecting" as FilterType, label: "Conectando", dot: "bg-yellow-500", n: counts.connecting },
     { f: "open" as FilterType, label: "Conectadas", dot: "bg-green-500", n: counts.open },
+    ...(counts.duplicate ? [{ f: "duplicate" as FilterType, label: "Duplicadas", dot: "bg-orange-400", n: counts.duplicate }] : []),
   ];
+
+  // Marcações de duplicidade e remoção automática, iguais na tabela e nos cartões
+  const renderFlags = (inst: InstanceRow) => {
+    const { duplicate, superseded, removalAt } = flagsFor(inst);
+    if (!duplicate && !superseded && !removalAt) return null;
+    return (
+      <div className="flex flex-wrap gap-1">
+        {duplicate && (
+          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] border-orange-400/40 text-orange-300" title="O mesmo número está conectado em outra instância">
+            <Copy className="h-2.5 w-2.5" /> Número duplicado
+          </Badge>
+        )}
+        {superseded && (
+          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] border-foreground/15 text-foreground/50" title="Este número está conectado em outra instância">
+            <Copy className="h-2.5 w-2.5" /> Sobra
+          </Badge>
+        )}
+        {removalAt && (
+          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] border-yellow-500/30 text-yellow-300/90" title={format(removalAt, "dd/MM/yyyy HH:mm")}>
+            <Hourglass className="h-2.5 w-2.5" />
+            {removalAt.getTime() <= Date.now()
+              ? (dryRunActive ? "Seria removida" : "Remoção pendente")
+              : `Removida ${formatDistanceToNow(removalAt, { addSuffix: true, locale: ptBR })}`}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
+  const renderKeep = (inst: InstanceRow) => {
+    if (appInstances.has(inst.instance_name)) {
+      return <span className="text-[11px] text-foreground/30" title="Instâncias do app nunca são removidas automaticamente">Protegida (app)</span>;
+    }
+    return (
+      <label className="flex items-center gap-2 text-[11px] text-foreground/45 cursor-pointer select-none">
+        <Switch checked={inst.keep} onCheckedChange={(v) => toggleKeep(inst, v)} className="scale-75 origin-left" />
+        Manter
+      </label>
+    );
+  };
 
   // Campo "Cliente" editável, usado na tabela (desktop) e nos cartões (celular/tablet)
   const renderClientLabel = (inst: InstanceRow) =>
@@ -349,6 +473,7 @@ const AdminInstanceMonitoring = () => {
                           </Badge>
                         </div>
                         {renderClientLabel(inst)}
+                        {renderFlags(inst)}
                         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-foreground/40">
                           <span className="font-mono">{phone ? `+${phone}` : "—"}</span>
                           <span>{formatDistanceToNow(new Date(inst.state_changed_at), { addSuffix: true, locale: ptBR })}</span>
@@ -356,6 +481,7 @@ const AdminInstanceMonitoring = () => {
                             {drops} {drops === 1 ? "queda" : "quedas"} em 24h
                           </span>
                         </div>
+                        <div className="border-t border-foreground/5 pt-2">{renderKeep(inst)}</div>
                       </div>
                     );
                   })}
@@ -372,6 +498,7 @@ const AdminInstanceMonitoring = () => {
                         <TableHead className="text-foreground/40 text-xs font-medium">Número</TableHead>
                         <TableHead className="text-foreground/40 text-xs font-medium">No estado desde</TableHead>
                         <TableHead className="text-foreground/40 text-xs font-medium text-right">Quedas 24h</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium">Limpeza</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -394,6 +521,7 @@ const AdminInstanceMonitoring = () => {
                               <p className="text-[11px] text-foreground/35">
                                 {inst.profile_name || "—"} · {appInstances.has(inst.instance_name) ? "App" : "API direta"}
                               </p>
+                              <div className="mt-1">{renderFlags(inst)}</div>
                             </TableCell>
                             <TableCell className="min-w-[150px]">{renderClientLabel(inst)}</TableCell>
                             <TableCell className="font-mono text-xs text-foreground/50 whitespace-nowrap">
@@ -405,6 +533,7 @@ const AdminInstanceMonitoring = () => {
                             <TableCell className={`text-right text-sm tabular-nums ${drops ? "text-orange-400 font-semibold" : "text-foreground/30"}`}>
                               {drops}
                             </TableCell>
+                            <TableCell>{renderKeep(inst)}</TableCell>
                           </TableRow>
                         );
                       })}
@@ -416,6 +545,7 @@ const AdminInstanceMonitoring = () => {
           </CardContent>
         </Card>
 
+        <div className="space-y-4 sm:space-y-5 min-w-0">
         {/* Alertas recentes */}
         <Card className="glass-card border-foreground/5 min-w-0">
           <CardHeader className="p-3 sm:p-6 pb-2">
@@ -459,6 +589,62 @@ const AdminInstanceMonitoring = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Remoções automáticas */}
+        <Card className="glass-card border-foreground/5 min-w-0">
+          <CardHeader className="p-3 sm:p-6 pb-2 space-y-1">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground/70">
+              <Trash2 className="h-4 w-4" />
+              Limpeza automática
+            </CardTitle>
+            <p className="text-[11px] text-foreground/35">
+              {cleanupConfig.enabled === false
+                ? "Desligada"
+                : `Desconectadas há ${cleanupConfig.inactive_days ?? 15} dias, ou sobras após ${cleanupConfig.superseded_hours ?? 48}h`}
+              {dryRunActive && cleanupConfig.dry_run_until && (
+                <> · <span className="text-yellow-300/80">simulação até {format(new Date(cleanupConfig.dry_run_until), "dd/MM HH:mm")}</span></>
+              )}
+            </p>
+          </CardHeader>
+          <CardContent className="p-0">
+            {deletions.length === 0 ? (
+              <p className="px-6 py-8 text-center text-sm text-foreground/30">Nenhuma remoção ainda</p>
+            ) : (
+              <>
+                <p className="px-3 sm:px-4 pb-2 text-xs text-foreground/50">
+                  <span className="font-semibold text-foreground/80 tabular-nums">
+                    {deletions.filter((d) => !d.dry_run && Date.now() - new Date(d.created_at).getTime() < 30 * DAY_MS).length}
+                  </span>{" "}
+                  removidas nos últimos 30 dias
+                </p>
+                <ScrollArea className="max-h-[320px]">
+                  <ul className="divide-y divide-foreground/5">
+                    {deletions.map((d) => (
+                      <li key={d.id} className="px-3 sm:px-4 py-2.5 space-y-0.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-mono text-xs text-foreground/75 break-all">{d.instance_name}</p>
+                          <span className="text-[11px] text-foreground/30 whitespace-nowrap">
+                            {formatDistanceToNow(new Date(d.created_at), { addSuffix: true, locale: ptBR })}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-foreground/40">
+                          {d.dry_run ? <span className="text-yellow-300/80">Simulação · </span> : null}
+                          {d.reason === "superseded" ? "Sobra de número duplicado" : "Inatividade"}
+                          {d.client_label ? ` · ${d.client_label}` : ""}
+                          {d.phone ? ` · +${d.phone}` : ""}
+                          {!d.dry_run && d.api_status && (d.api_status < 200 || (d.api_status >= 300 && d.api_status !== 404))
+                            ? <span className="text-red-400"> · falhou ({d.api_status})</span>
+                            : null}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollArea>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        </div>
       </div>
     </div>
   );

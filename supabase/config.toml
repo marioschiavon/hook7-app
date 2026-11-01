@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.evolution-monitor]
 verify_jwt = false
+
+[functions.instance-cleanup]
+verify_jwt = false

@@ -20,6 +20,8 @@ interface FetchedInstance {
   phone: string | null;
   profileName: string | null;
   reason: number | null;
+  disconnectionAt: string | null;
+  createdAt: string | null;
 }
 
 interface InventoryRow {
@@ -32,6 +34,8 @@ interface InventoryRow {
   first_seen_at: string;
   state_changed_at: string;
   removed_at: string | null;
+  disconnected_since: string | null;
+  evolution_created_at: string | null;
 }
 
 interface NewAlert {
@@ -47,6 +51,23 @@ const formatTime = (iso: string | Date) =>
 
 const jidToPhone = (jid?: string | null) => (jid ? jid.split('@')[0].split(':')[0] : null);
 
+const toIso = (value: unknown): string | null => {
+  if (!value) return null;
+  const d = new Date(value as string);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+};
+
+// O banco devolve datas como "…+00:00" e nós gravamos "…Z": compara pelo instante, não pelo texto
+const sameInstant = (a: string | null, b: string | null) =>
+  (a ? new Date(a).getTime() : null) === (b ? new Date(b).getTime() : null);
+
+// Desde quando a instância está fora do ar. Usa o horário do Evolution quando existe, para
+// não depender de quando o monitor começou a observar; sem conexão nenhuma, conta da criação.
+const disconnectedSince = (inst: FetchedInstance, prev: InventoryRow | undefined, nowIso: string) => {
+  if (inst.state === 'open') return null;
+  return prev?.disconnected_since ?? inst.disconnectionAt ?? inst.createdAt ?? nowIso;
+};
+
 // O formato do /instance/fetchInstances mudou entre versões do Evolution; normalizamos os dois.
 const normalizeInstance = (raw: any): FetchedInstance | null => {
   const v1 = raw?.instance;
@@ -59,6 +80,8 @@ const normalizeInstance = (raw: any): FetchedInstance | null => {
     phone: jidToPhone(raw?.ownerJid ?? v1?.owner) ?? raw?.number ?? null,
     profileName: raw?.profileName ?? v1?.profileName ?? null,
     reason: Number.isFinite(reason) ? reason : null,
+    disconnectionAt: toIso(raw?.disconnectionAt),
+    createdAt: toIso(raw?.createdAt),
   };
 };
 
@@ -182,7 +205,7 @@ serve(async (req) => {
     if (fetched) {
       const { data: inventoryData, error: inventoryError } = await supabaseAdmin
         .from('evolution_instances')
-        .select('instance_name, state, phone, last_phone, profile_name, client_label, first_seen_at, state_changed_at, removed_at');
+        .select('instance_name, state, phone, last_phone, profile_name, client_label, first_seen_at, state_changed_at, removed_at, disconnected_since, evolution_created_at');
       if (inventoryError) throw inventoryError;
 
       const inventory = new Map((inventoryData as InventoryRow[] ?? []).map((r) => [r.instance_name, r]));
@@ -219,6 +242,8 @@ serve(async (req) => {
             last_seen_at: nowIso,
             state_changed_at: nowIso,
             removed_at: null,
+            disconnected_since: disconnectedSince(inst, undefined, nowIso),
+            evolution_created_at: inst.createdAt,
           });
           continue;
         }
@@ -261,11 +286,15 @@ serve(async (req) => {
           phone: isOpen ? inst.phone : prev.phone,
           last_phone: isOpen && inst.phone ? inst.phone : prev.last_phone,
           profile_name: inst.profileName ?? prev.profile_name,
+          disconnected_since: disconnectedSince(inst, prev, nowIso),
+          evolution_created_at: inst.createdAt ?? prev.evolution_created_at,
         };
         // Só grava linhas que mudaram: o painel escuta essa tabela via Realtime, e regravar
         // todas as instâncias a cada minuto geraria um evento por instância por minuto.
         const changed = next.state !== prev.state || next.phone !== prev.phone
-          || next.last_phone !== prev.last_phone || next.profile_name !== prev.profile_name;
+          || next.last_phone !== prev.last_phone || next.profile_name !== prev.profile_name
+          || !sameInstant(next.disconnected_since, prev.disconnected_since)
+          || !sameInstant(next.evolution_created_at, prev.evolution_created_at);
         if (changed) {
           upserts.push({
             instance_name: inst.name,
@@ -298,6 +327,8 @@ serve(async (req) => {
           last_seen_at: nowIso,
           state_changed_at: nowIso,
           removed_at: nowIso,
+          disconnected_since: prev.disconnected_since,
+          evolution_created_at: prev.evolution_created_at,
         });
       }
 
@@ -358,6 +389,9 @@ serve(async (req) => {
       instance_created: '🆕 instâncias criadas',
       instance_removed: '🗑️ instâncias removidas',
       first_connection: '🔐 números conectados',
+      cleanup_warning: '⏳ instâncias serão removidas por inatividade',
+      cleanup_simulated: '🧪 instâncias seriam removidas (simulação)',
+      instance_deleted: '🧹 instâncias removidas por inatividade',
     };
     const byKind = new Map<string, NonNullable<typeof pending>>();
     for (const a of pending ?? []) {
