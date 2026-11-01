@@ -256,17 +256,26 @@ serve(async (req) => {
           }
         }
 
-        upserts.push({
-          instance_name: inst.name,
+        const next = {
           state: inst.state,
           phone: isOpen ? inst.phone : prev.phone,
           last_phone: isOpen && inst.phone ? inst.phone : prev.last_phone,
           profile_name: inst.profileName ?? prev.profile_name,
-          first_seen_at: prev.first_seen_at,
-          last_seen_at: nowIso,
-          state_changed_at: prev.state !== inst.state ? nowIso : prev.state_changed_at,
-          removed_at: null,
-        });
+        };
+        // Só grava linhas que mudaram: o painel escuta essa tabela via Realtime, e regravar
+        // todas as instâncias a cada minuto geraria um evento por instância por minuto.
+        const changed = next.state !== prev.state || next.phone !== prev.phone
+          || next.last_phone !== prev.last_phone || next.profile_name !== prev.profile_name;
+        if (changed) {
+          upserts.push({
+            instance_name: inst.name,
+            ...next,
+            first_seen_at: prev.first_seen_at,
+            last_seen_at: nowIso,
+            state_changed_at: prev.state !== inst.state ? nowIso : prev.state_changed_at,
+            removed_at: null,
+          });
+        }
       }
 
       // Instâncias que sumiram do Evolution (deletadas)
@@ -314,6 +323,13 @@ serve(async (req) => {
         });
       }
     }
+
+    // Pulso do monitor, usado pelo painel para mostrar a última verificação e a saúde da API
+    await supabaseAdmin.from('monitor_status').upsert({
+      key: 'last_check',
+      value: { at: nowIso, api_ok: !!fetched, error: fetched ? null : fetchError, ...instancesSummary },
+      updated_at: nowIso,
+    });
 
     if (alerts.length > 0) {
       const { error } = await supabaseAdmin

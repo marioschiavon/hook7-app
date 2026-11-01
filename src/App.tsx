@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrganizations from "./pages/admin/AdminOrganizations";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminInstanceMonitoring from "./pages/admin/AdminInstanceMonitoring";
 
 const queryClient = new QueryClient();
 
@@ -74,7 +75,7 @@ const App = () => (
             <Route path="/admin/organizations" element={<AdminOrganizations />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
-            <Route path="/admin/monitoring" element={<SessionMonitoring />} />
+            <Route path="/admin/monitoring" element={<AdminInstanceMonitoring />} />
             <Route path="/admin/announcements" element={<Announcements />} />
           </Route>
           

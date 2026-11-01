@@ -293,3 +293,31 @@ SELECT cron.schedule(
     DELETE FROM public.monitor_alerts WHERE status = 'sent' AND created_at < NOW() - INTERVAL '30 days';
     $$
 );
+
+-- 10. Painel de monitoramento (admin): superadmins podem nomear o cliente de cada instância,
+-- e as tabelas do monitor entram no Realtime para o painel atualizar sozinho.
+DROP POLICY IF EXISTS "Superadmins label evolution instances" ON public.evolution_instances;
+CREATE POLICY "Superadmins label evolution instances"
+ON public.evolution_instances
+FOR UPDATE
+TO authenticated
+USING ((SELECT public.is_superadmin()))
+WITH CHECK ((SELECT public.is_superadmin()));
+
+-- Superadmins só alteram o rótulo do cliente; o resto é gravado pelo monitor
+REVOKE UPDATE ON public.evolution_instances FROM authenticated;
+GRANT UPDATE (client_label) ON public.evolution_instances TO authenticated;
+
+DO $$
+DECLARE
+    t TEXT;
+BEGIN
+    FOREACH t IN ARRAY ARRAY['evolution_instances', 'instance_events', 'monitor_alerts', 'monitor_status'] LOOP
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_publication_tables
+            WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = t
+        ) THEN
+            EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', t);
+        END IF;
+    END LOOP;
+END $$;
