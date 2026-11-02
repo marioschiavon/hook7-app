@@ -9,7 +9,6 @@ import { useTheme } from "next-themes";
 const routeMeta: Record<string, { title: string; description?: string }> = {
   "/dashboard":            { title: "Dashboard",       description: "Visão geral da sua conta" },
   "/sessions":             { title: "Sessões",          description: "Gerencie suas conexões WhatsApp" },
-  "/monitoring":           { title: "Monitoramento",    description: "Status em tempo real" },
   "/webhooks":             { title: "Webhooks",         description: "Eventos e integrações" },
   "/subscriptions":        { title: "Assinaturas",      description: "Planos e cobranças" },
   "/api-docs":             { title: "Documentação",     description: "Referência da API" },

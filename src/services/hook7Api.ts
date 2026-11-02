@@ -55,6 +55,11 @@ export const checkConnection = async (
       }
     );
 
+    if (response.status === 401 || response.status === 403) {
+      // Token salvo na sessão não é aceito (ex.: instância reconectada direto pelo painel do Hook7).
+      // A tela de sessões ressincroniza pelo servidor (função hook7-session-sync).
+      return { status: false, message: 'INVALID_TOKEN' };
+    }
     if (!response.ok) {
       return { status: false, message: 'Offline' };
     }
@@ -184,31 +189,6 @@ export const logoutInstance = async (
     return response.ok;
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
-    return false;
-  }
-};
-
-/**
- * Deletar uma instância completamente
- */
-export const deleteInstance = async (
-  instanceName: string,
-  apiKey: string
-): Promise<boolean> => {
-  try {
-    const response = await fetch(
-      `${EVOLUTION_API_URL}/instance/delete/${encodeURIComponent(instanceName)}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'apikey': apiKey
-        }
-      }
-    );
-
-    return response.ok;
-  } catch (error) {
-    console.error('Erro ao deletar instância:', error);
     return false;
   }
 };

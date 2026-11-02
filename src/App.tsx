@@ -11,7 +11,6 @@ import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import Dashboard from "./pages/Dashboard";
 import Sessions from "./pages/Sessions";
-import SessionMonitoring from "./pages/SessionMonitoring";
 import Checkout from "./pages/Checkout";
 import Subscriptions from "./pages/Subscriptions";
 import Announcements from "./pages/Announcements";
@@ -67,7 +66,8 @@ const App = () => (
             <Route path="/sessions" element={<Sessions />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/announcements" element={<Announcements />} />
-            <Route path="/monitoring" element={<SessionMonitoring />} />
+            {/* Antiga tela de monitoramento; o acompanhamento das instâncias fica em /admin/monitoring */}
+            <Route path="/monitoring" element={<Navigate to="/sessions" replace />} />
             <Route path="/webhooks" element={<Webhooks />} />
 
             {/* Admin Routes */}

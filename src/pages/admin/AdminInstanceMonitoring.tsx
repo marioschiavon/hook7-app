@@ -35,7 +35,7 @@ interface InstanceRow {
 interface DeletionRow {
   id: number;
   instance_name: string;
-  reason: "inactive" | "superseded";
+  reason: "inactive" | "superseded" | "requested";
   dry_run: boolean;
   phone: string | null;
   client_label: string | null;
@@ -629,7 +629,9 @@ const AdminInstanceMonitoring = () => {
                         </div>
                         <p className="text-[11px] text-foreground/40">
                           {d.dry_run ? <span className="text-yellow-300/80">Simulação · </span> : null}
-                          {d.reason === "superseded" ? "Sobra de número duplicado" : "Inatividade"}
+                          {d.reason === "superseded"
+                            ? "Sobra de número duplicado"
+                            : d.reason === "requested" ? "Sessão excluída no app" : "Inatividade"}
                           {d.client_label ? ` · ${d.client_label}` : ""}
                           {d.phone ? ` · +${d.phone}` : ""}
                           {!d.dry_run && d.api_status && (d.api_status < 200 || (d.api_status >= 300 && d.api_status !== 404))

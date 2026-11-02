@@ -70,7 +70,6 @@ export function AppSidebar() {
   const clientItems: NavItem[] = [
     { title: t("sidebar.dashboard"), url: "/dashboard", icon: LayoutDashboard },
     { title: t("sidebar.sessions"), url: "/sessions", icon: MessageSquare },
-    { title: t("sidebar.monitoring"), url: "/monitoring", icon: Activity },
     { title: t("sidebar.webhooks"), url: "/webhooks", icon: Webhook },
     { title: t("sidebar.subscriptions"), url: "/subscriptions", icon: CreditCard },
     { title: t("sidebar.apiDocs"), url: "/api-docs", icon: BookOpen },

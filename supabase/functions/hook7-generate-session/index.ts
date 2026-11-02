@@ -95,6 +95,21 @@ serve(async (req) => {
     }
 
     // ── 2. Fetch existing instance if token not yet obtained ─────────────────
+    // O nome já existe no Hook7. Só reaproveitamos a instância se ela já for desta organização
+    // (sessão com o mesmo api_session); caso contrário qualquer usuário poderia pegar o token de
+    // uma instância de outro cliente (ou do Leaderei) só criando uma sessão com o mesmo nome.
+    if (!instanceApiKey) {
+      const { data: owners } = await supabaseAdmin
+        .from('sessions')
+        .select('organization_id')
+        .eq('api_session', session_name);
+      const ownedHere = (owners ?? []).some((o) => o.organization_id === userData.organization_id);
+      const ownedElsewhere = (owners ?? []).some((o) => o.organization_id !== userData.organization_id);
+      if (!ownedHere || ownedElsewhere) {
+        throw new Error('Este nome de sessão já está em uso. Escolha outro nome.');
+      }
+    }
+
     let listDebug = '';
     if (!instanceApiKey) {
       console.log('[hook7] Fetching via /instance/fetchInstances...');

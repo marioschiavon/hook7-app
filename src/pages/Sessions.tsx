@@ -95,6 +95,8 @@ const Sessions = () => {
   // Sessions manually disconnected by the user — polling must not override this with "connected"
   // until the user explicitly starts a new connection.
   const manuallyDisconnected = useRef<Set<string>>(new Set());
+  // Sessões já ressincronizadas nesta visita à tela, para não repetir a cada verificação
+  const syncAttempted = useRef<Set<string>>(new Set());
 
   // ─── Data fetching ──────────────────────────────────────────────────────────
 
@@ -183,10 +185,31 @@ const Sessions = () => {
     }
   };
 
+  // O Hook7 recusou o token salvo (ex.: instância conectada direto pelo painel do Hook7): o servidor
+  // busca a instância pelo nome com a chave global e grava o token e o estado atuais na sessão.
+  const syncSessionWithHook7 = async (sessionId: string) => {
+    if (syncAttempted.current.has(sessionId)) return;
+    syncAttempted.current.add(sessionId);
+    try {
+      const { data, error } = await supabase.functions.invoke("hook7-session-sync", { body: { session_id: sessionId } });
+      if (error || !data?.success || !data.found) return;
+      if (data.token) {
+        setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, api_token: data.token, api_token_full: data.token } : s)));
+      }
+      setSessionsStatus((prev) => ({
+        ...prev,
+        [sessionId]: data.connected ? { status: true, message: "CONNECTED" } : { status: false, message: "Disconnected" },
+      }));
+    } catch (err) {
+      console.error("Erro ao ressincronizar sessão:", err);
+    }
+  };
+
   const fetchSessionStatus = async (sessionId: string, apiSession: string, apiToken: string) => {
     try {
       const result = await hook7Api.checkConnection(apiSession, apiToken);
       setSessionsStatus((prev) => ({ ...prev, [sessionId]: result }));
+      if (result.message === "INVALID_TOKEN") await syncSessionWithHook7(sessionId);
     } catch {
       setSessionsStatus((prev) => ({
         ...prev,
@@ -490,15 +513,18 @@ const Sessions = () => {
 
     setLoggingOut(true);
     try {
-      if (session.api_session && session.api_token) {
-        try { await hook7Api.logoutInstance(session.api_session, session.api_token); } catch { /* continue */ }
-        try { await hook7Api.deleteInstance(session.api_session, session.api_token); } catch { /* continue */ }
-      }
-      const { error } = await supabase.from("sessions").delete().eq("id", session.id);
+      // Feito pelo servidor com a chave global: apaga no Hook7 mesmo se o token da sessão estiver
+      // errado; se o Hook7 não responder, a limpeza automática conclui depois.
+      const { data, error } = await supabase.functions.invoke("hook7-delete-session", { body: { session_id: session.id } });
       if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Erro ao excluir sessão");
       setSessions((prev) => prev.filter((s) => s.id !== session.id));
       if (selectedSession?.id === session.id) { setSelectedSession(null); setShowSessionModal(false); }
-      toast.success("Sessão excluída com sucesso!");
+      if (data.instance === "pending") {
+        toast.success("Sessão excluída. A remoção no servidor será concluída automaticamente.");
+      } else {
+        toast.success("Sessão excluída com sucesso!");
+      }
     } catch (error: any) {
       toast.error(error.message || "Erro ao excluir sessão");
     } finally {

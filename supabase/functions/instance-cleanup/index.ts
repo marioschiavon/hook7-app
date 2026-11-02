@@ -35,11 +35,12 @@ interface InventoryRow {
   client_label: string | null;
   keep: boolean;
   disconnected_since: string | null;
+  delete_requested_at: string | null;
 }
 
 interface Candidate {
   inst: InventoryRow;
-  reason: 'inactive' | 'superseded';
+  reason: 'inactive' | 'superseded' | 'requested';
 }
 
 const formatDate = (iso: string) =>
@@ -119,7 +120,7 @@ serve(async (req) => {
     const [{ data: inventoryData, error: inventoryError }, { data: sessionsData }] = await Promise.all([
       supabaseAdmin
         .from('evolution_instances')
-        .select('instance_name, state, phone, last_phone, profile_name, client_label, keep, disconnected_since')
+        .select('instance_name, state, phone, last_phone, profile_name, client_label, keep, disconnected_since, delete_requested_at')
         .is('removed_at', null),
       supabaseAdmin.from('sessions').select('api_session'),
     ]);
@@ -142,6 +143,13 @@ serve(async (req) => {
     const candidates: Candidate[] = [];
 
     for (const inst of inventory) {
+      // Exclusão pedida no app que não conseguiu apagar no Hook7 na hora: conclui mesmo conectada,
+      // mesmo com "manter" e mesmo em simulação, porque o dono pediu. Se uma sessão nova voltou a
+      // usar o nome, o pedido perdeu o sentido.
+      if (inst.delete_requested_at) {
+        if (!appInstances.has(inst.instance_name)) candidates.push({ inst, reason: 'requested' });
+        continue;
+      }
       if (inst.state === 'open' || inst.keep || appInstances.has(inst.instance_name) || !inst.disconnected_since) continue;
 
       const downForMs = now - new Date(inst.disconnected_since).getTime();
@@ -181,10 +189,15 @@ serve(async (req) => {
     let simulated = 0;
     let failed = 0;
 
+    // Pedidos do app primeiro
+    candidates.sort((a, b) => Number(b.reason === 'requested') - Number(a.reason === 'requested'));
+
     for (const { inst, reason } of candidates.slice(0, config.max_deletions_per_run)) {
-      const reasonText = reason === 'superseded'
-        ? `número conectado em outra instância há mais de ${config.superseded_hours}h`
-        : `desconectada há mais de ${config.inactive_days} dias`;
+      const reasonText = reason === 'requested'
+        ? 'sessão excluída no app (resquício no servidor)'
+        : reason === 'superseded'
+          ? `número conectado em outra instância há mais de ${config.superseded_hours}h`
+          : `desconectada há mais de ${config.inactive_days} dias`;
       const logRow = {
         instance_name: inst.instance_name,
         reason,
@@ -194,7 +207,7 @@ serve(async (req) => {
         disconnected_since: inst.disconnected_since,
       };
 
-      if (dryRun) {
+      if (dryRun && reason !== 'requested') {
         // Uma simulação por instância e motivo (o índice único parcial garante o mesmo no banco)
         const { data: existing } = await supabaseAdmin
           .from('instance_deletions')
@@ -220,6 +233,12 @@ serve(async (req) => {
       let apiStatus: number | null = null;
       let apiResponse = '';
       try {
+        if (inst.state === 'open') {
+          await fetch(`${apiUrl}/instance/logout/${encodeURIComponent(inst.instance_name)}`, {
+            method: 'DELETE',
+            headers: { 'apikey': apiKey },
+          }).catch(() => null);
+        }
         const res = await fetch(`${apiUrl}/instance/delete/${encodeURIComponent(inst.instance_name)}`, {
           method: 'DELETE',
           headers: { 'apikey': apiKey },
@@ -239,14 +258,14 @@ serve(async (req) => {
         // Marca como removida já aqui, para o monitor não alertar "instância removida" de novo
         await supabaseAdmin
           .from('evolution_instances')
-          .update({ state: 'removed', removed_at: nowIso, state_changed_at: nowIso })
+          .update({ state: 'removed', removed_at: nowIso, state_changed_at: nowIso, delete_requested_at: null })
           .eq('instance_name', inst.instance_name);
         alerts.push({
           kind: 'instance_deleted',
           severity: 'info',
           instance_name: inst.instance_name,
           dedupe_key: `cleanup_del:${inst.instance_name}:${nowIso}`,
-          message: `🧹 Instância removida automaticamente\n\n${describe(inst)}\nMotivo: ${reasonText}`,
+          message: `🧹 ${reason === 'requested' ? 'Resquício de sessão excluída removido' : 'Instância removida automaticamente'}\n\n${describe(inst)}\nMotivo: ${reasonText}`,
         });
       } else {
         failed++;
