@@ -201,6 +201,11 @@ const AdminInstanceMonitoring = () => {
     toast.success(keep ? "Instância não será removida automaticamente" : "Instância volta para a limpeza automática");
   };
 
+  // Desconectadas: a data real da desconexão vinda do Hook7; state_changed_at só conta a partir de
+  // quando o monitor começou a observar
+  const stateSince = (inst: InstanceRow) =>
+    inst.state !== "open" && inst.disconnected_since ? inst.disconnected_since : inst.state_changed_at;
+
   // Número conectado em mais de uma instância ao mesmo tempo
   const openByPhone = useMemo(() => {
     const map = new Map<string, number>();
@@ -316,17 +321,17 @@ const AdminInstanceMonitoring = () => {
     return (
       <div className="flex flex-wrap gap-1">
         {duplicate && (
-          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] border-orange-400/40 text-orange-300" title="O mesmo número está conectado em outra instância">
+          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] whitespace-nowrap border-orange-400/40 text-orange-300" title="O mesmo número está conectado em outra instância">
             <Copy className="h-2.5 w-2.5" /> Número duplicado
           </Badge>
         )}
         {superseded && (
-          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] border-foreground/15 text-foreground/50" title="Este número está conectado em outra instância">
+          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] whitespace-nowrap border-foreground/15 text-foreground/50" title="Este número está conectado em outra instância">
             <Copy className="h-2.5 w-2.5" /> Sobra
           </Badge>
         )}
         {removalAt && (
-          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] border-yellow-500/30 text-yellow-300/90" title={format(removalAt, "dd/MM/yyyy HH:mm")}>
+          <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px] whitespace-nowrap border-yellow-500/30 text-yellow-300/90" title={format(removalAt, "dd/MM/yyyy HH:mm")}>
             <Hourglass className="h-2.5 w-2.5" />
             {removalAt.getTime() <= Date.now()
               ? (dryRunActive ? "Seria removida" : "Remoção pendente")
@@ -342,7 +347,7 @@ const AdminInstanceMonitoring = () => {
       return <span className="text-[11px] text-foreground/30" title="Instâncias do app nunca são removidas automaticamente">Protegida (app)</span>;
     }
     return (
-      <label className="flex items-center gap-2 text-[11px] text-foreground/45 cursor-pointer select-none">
+      <label className="flex items-center gap-2 whitespace-nowrap text-[11px] text-foreground/45 cursor-pointer select-none">
         <Switch checked={inst.keep} onCheckedChange={(v) => toggleKeep(inst, v)} className="scale-75 origin-left" />
         Manter
       </label>
@@ -362,17 +367,17 @@ const AdminInstanceMonitoring = () => {
           if (e.key === "Escape") setEditing(null);
         }}
         placeholder="Nome do cliente"
-        className="h-9 xl:h-7 text-sm xl:text-xs border-foreground/15"
+        className="h-9 min-[1440px]:h-7 text-sm min-[1440px]:text-xs border-foreground/15"
       />
     ) : (
       <button
         onClick={() => { setEditing(inst.instance_name); setLabelDraft(inst.client_label ?? ""); }}
-        className="group flex min-h-9 xl:min-h-0 items-center gap-1.5 text-left text-sm text-foreground/70 hover:text-foreground"
+        className="group flex min-h-9 min-[1440px]:min-h-0 items-center gap-1.5 text-left text-sm text-foreground/70 hover:text-foreground"
         title="Definir o cliente desta instância"
       >
         {inst.client_label || <span className="text-foreground/25 text-xs">Definir cliente</span>}
         {/* Sem hover no toque: no celular/tablet o lápis fica sempre visível */}
-        <Pencil className="h-3 w-3 opacity-40 xl:opacity-0 xl:group-hover:opacity-60 transition-opacity" />
+        <Pencil className="h-3 w-3 opacity-40 min-[1440px]:opacity-0 min-[1440px]:group-hover:opacity-60 transition-opacity" />
       </button>
     );
 
@@ -409,18 +414,18 @@ const AdminInstanceMonitoring = () => {
         </div>
       )}
 
-      <div className="grid gap-4 sm:gap-5 2xl:grid-cols-[1fr_360px]">
+      <div className="grid gap-4 sm:gap-5">
         {/* Instâncias */}
         <Card className="glass-card border-foreground/5 overflow-hidden min-w-0">
           <CardHeader className="p-3 sm:p-6 pb-3 space-y-3">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-3 min-[1440px]:flex-row min-[1440px]:items-center min-[1440px]:justify-between">
               {/* No celular os filtros rolam na horizontal em vez de quebrar em várias linhas */}
               <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
                 {filterChips.map(({ f, label, dot, n }) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 xl:py-1.5 text-sm transition-colors ${
+                    className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 min-[1440px]:py-1.5 text-sm transition-colors ${
                       filter === f
                         ? "border-primary/50 bg-primary/10 text-primary"
                         : "border-foreground/8 bg-muted/20 text-foreground/50 hover:border-foreground/15 hover:text-foreground/70"
@@ -432,13 +437,13 @@ const AdminInstanceMonitoring = () => {
                   </button>
                 ))}
               </div>
-              <div className="relative w-full xl:w-64">
+              <div className="relative w-full min-[1440px]:w-64">
                 <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-foreground/30" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar instância, cliente ou número"
-                  className="h-10 xl:h-9 pl-8 text-sm border-foreground/10"
+                  className="h-10 min-[1440px]:h-9 pl-8 text-sm border-foreground/10"
                 />
               </div>
             </div>
@@ -451,9 +456,9 @@ const AdminInstanceMonitoring = () => {
               </div>
             ) : (
               <>
-                {/* Celular, tablet e notebook pequeno: cartões. As colunas seguem a largura disponível, que no tablet
+                {/* Celular, tablet e notebook: cartões (a tabela só cabe a partir de ~1440px com o menu aberto). As colunas seguem a largura disponível, que no tablet
                     muda bastante com o menu lateral aberto ou fechado. */}
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-2 px-3 pb-3 sm:px-6 sm:pb-6 xl:hidden">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-2 px-3 pb-3 sm:px-6 sm:pb-6 min-[1440px]:hidden">
                   {filtered.map((inst) => {
                     const cfg = STATE_CONFIG[inst.state] ?? STATE_CONFIG.close;
                     const phone = inst.phone ?? inst.last_phone;
@@ -476,7 +481,7 @@ const AdminInstanceMonitoring = () => {
                         {renderFlags(inst)}
                         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-foreground/40">
                           <span className="font-mono">{phone ? `+${phone}` : "—"}</span>
-                          <span>{formatDistanceToNow(new Date(inst.state_changed_at), { addSuffix: true, locale: ptBR })}</span>
+                          <span>{formatDistanceToNow(new Date(stateSince(inst)), { addSuffix: true, locale: ptBR })}</span>
                           <span className={drops ? "text-orange-400 font-semibold" : ""}>
                             {drops} {drops === 1 ? "queda" : "quedas"} em 24h
                           </span>
@@ -488,16 +493,16 @@ const AdminInstanceMonitoring = () => {
                 </div>
 
                 {/* Telas largas: tabela */}
-                <div className="hidden xl:block overflow-x-auto">
+                <div className="hidden min-[1440px]:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="border-foreground/5 hover:bg-transparent">
                         <TableHead className="text-foreground/40 text-xs font-medium">Status</TableHead>
-                        <TableHead className="text-foreground/40 text-xs font-medium">Instância</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium min-w-[280px]">Instância</TableHead>
                         <TableHead className="text-foreground/40 text-xs font-medium">Cliente</TableHead>
                         <TableHead className="text-foreground/40 text-xs font-medium">Número</TableHead>
-                        <TableHead className="text-foreground/40 text-xs font-medium">No estado desde</TableHead>
-                        <TableHead className="text-foreground/40 text-xs font-medium text-right">Quedas 24h</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium whitespace-nowrap">No estado desde</TableHead>
+                        <TableHead className="text-foreground/40 text-xs font-medium text-right whitespace-nowrap">Quedas 24h</TableHead>
                         <TableHead className="text-foreground/40 text-xs font-medium">Limpeza</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -517,7 +522,7 @@ const AdminInstanceMonitoring = () => {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <p className="font-mono text-xs text-foreground/80">{inst.instance_name}</p>
+                              <p className="font-mono text-xs text-foreground/80 break-all">{inst.instance_name}</p>
                               <p className="text-[11px] text-foreground/35">
                                 {inst.profile_name || "—"} · {appInstances.has(inst.instance_name) ? "App" : "API direta"}
                               </p>
@@ -528,7 +533,7 @@ const AdminInstanceMonitoring = () => {
                               {phone ? `+${phone}` : "—"}
                             </TableCell>
                             <TableCell className="text-xs text-foreground/40 whitespace-nowrap">
-                              {formatDistanceToNow(new Date(inst.state_changed_at), { addSuffix: true, locale: ptBR })}
+                              {formatDistanceToNow(new Date(stateSince(inst)), { addSuffix: true, locale: ptBR })}
                             </TableCell>
                             <TableCell className={`text-right text-sm tabular-nums ${drops ? "text-orange-400 font-semibold" : "text-foreground/30"}`}>
                               {drops}
@@ -545,7 +550,8 @@ const AdminInstanceMonitoring = () => {
           </CardContent>
         </Card>
 
-        <div className="space-y-4 sm:space-y-5 min-w-0">
+        {/* Abaixo da tabela: a página tem largura máxima e a tabela não cabe ao lado deste painel */}
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-2 items-start min-w-0">
         {/* Alertas recentes */}
         <Card className="glass-card border-foreground/5 min-w-0">
           <CardHeader className="p-3 sm:p-6 pb-2">
@@ -558,7 +564,7 @@ const AdminInstanceMonitoring = () => {
             {alerts.length === 0 ? (
               <p className="px-6 py-10 text-center text-sm text-foreground/30">Nenhum alerta ainda</p>
             ) : (
-              <ScrollArea className="h-[420px] 2xl:h-[640px]">
+              <ScrollArea className="h-[420px]">
                 <ul className="divide-y divide-foreground/5">
                   {alerts.map((a) => {
                     const [title, ...rest] = a.message.split("\n").filter(Boolean);

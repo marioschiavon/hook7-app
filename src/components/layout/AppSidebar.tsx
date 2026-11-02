@@ -181,11 +181,13 @@ export function AppSidebar() {
       <SidebarHeader>
         <Link
           to="/dashboard"
-          className="flex items-center gap-3 px-2 py-3 hover:opacity-80 transition-opacity"
+          className={`flex items-center gap-3 py-3 hover:opacity-80 transition-opacity ${isCollapsed ? "justify-center px-0" : "px-2"}`}
         >
+          {/* max-w-none: no menu recolhido sobra pouca largura e o max-width: 100% padrão das
+              imagens espremia a logo */}
           <Hook7Logo
             size={32}
-            className="h-8 w-8 flex-shrink-0"
+            className="h-8 w-8 max-w-none flex-shrink-0 object-contain"
           />
           {!isCollapsed && (
             <span className="text-xl font-bold font-['Space_Grotesk'] hook7-gradient-text truncate">
